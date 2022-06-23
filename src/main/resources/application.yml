@@ -1,0 +1,26 @@
+spring:
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    default-property-inclusion: non_null
+fhir:
+  url: ${FHIR_URL:https://fhir.qa.cqgc.hsj.rtss.qc.ca/fhir}
+  timeout: 600000
+management:
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+security:
+  enabled: ${SECURITY_ENABLED:true}
+  audience: ${SECURITY_AUDIENCE:clin-acl}
+  issuer: ${SECURITY_ISSUER:https://auth.qa.cqgc.hsj.rtss.qc.ca/auth/realms/clin}
+  cors:
+    - "http://localhost:2000"
+    - "https://portail.qa.cqgc.hsj.rtss.qc.ca"
+    - "https://portail.staging.cqgc.hsj.rtss.qc.ca"
+    - "https://portail.cqgc.hsj.rtss.qc.ca"
