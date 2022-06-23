@@ -18,6 +18,7 @@ public class FhirAuthInterceptor implements IClientInterceptor {
   
   @Override
   public void interceptRequest(IHttpRequest fhirRequest) {
+    // FHIR will validate the token's authorizations
     fhirRequest.addHeader(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION));
   }
 
