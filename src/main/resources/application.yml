@@ -1,6 +1,7 @@
 fhir:
   url: ${FHIR_URL:https://fhir.qa.cqgc.hsj.rtss.qc.ca/fhir}
   timeout: 600000
+  pool-size: 100
 management:
   endpoint:
     health:

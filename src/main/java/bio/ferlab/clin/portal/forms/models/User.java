@@ -13,5 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class User {
-  private List<Role> roles = new ArrayList<>();
+  private String name;
+  private List<String> roles = new ArrayList<>();
 }

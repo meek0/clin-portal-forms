@@ -12,13 +12,16 @@ import org.springframework.stereotype.Component;
 @Getter
 public class FhirClient {
   
+  private final FhirContext context;
   private final IClinFhirClient clinClient;
   private final IGenericClient genericClient;
   
   public FhirClient(FhirConfiguration configuration, FhirAuthInterceptor fhirAuthInterceptor) {
-    FhirContext context = FhirContext.forR4();
+    context = FhirContext.forR4();
     context.getRestfulClientFactory().setConnectTimeout(configuration.getTimeout());
     context.getRestfulClientFactory().setSocketTimeout(configuration.getTimeout());
+    context.getRestfulClientFactory().setPoolMaxTotal(configuration.getPoolSize());
+    context.getRestfulClientFactory().setPoolMaxPerRoute(configuration.getPoolSize());
     context.setPerformanceOptions(PerformanceOptionsEnum.DEFERRED_MODEL_SCANNING);
     context.getRestfulClientFactory().setServerValidationMode(ServerValidationModeEnum.NEVER);
         

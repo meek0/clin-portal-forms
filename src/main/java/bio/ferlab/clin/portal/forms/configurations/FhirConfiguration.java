@@ -11,5 +11,6 @@ public class FhirConfiguration {
   
   private String url;
   private int timeout;
+  private int poolSize;
   
 }
