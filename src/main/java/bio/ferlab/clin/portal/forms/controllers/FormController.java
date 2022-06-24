@@ -9,7 +9,9 @@ import bio.ferlab.clin.portal.forms.utils.JwtUtils;
 import ca.uhn.fhir.rest.param.TokenParam;
 import io.undertow.util.BadRequestException;
 import org.hl7.fhir.r4.model.PractitionerRole;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,7 +35,7 @@ public class FormController {
     //final Locale locale = StringUtils.parseLocaleString(lang);
     
     final String practitionerId = jwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID)
-        .orElseThrow(() -> new BadRequestException("Missing '" + JwtUtils.FHIR_PRACTITIONER_ID + "' in token"));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing '" + JwtUtils.FHIR_PRACTITIONER_ID + "' in token"));
     
     List<PractitionerRole> fhirRoles = fhirClient.getClinClient().findPractitionerRole(new TokenParam(practitionerId));
     
