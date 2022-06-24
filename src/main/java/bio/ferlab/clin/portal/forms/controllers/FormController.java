@@ -55,8 +55,8 @@ public class FormController {
     
     Bundle response = fhirClient.getGenericClient().transaction().withBundle(bundle).execute();
 
-    List<PractitionerRole> fhirRoles = BundleUtils.toListOfResourcesOfType(fhirClient.getContext(), response, PractitionerRole.class);
-    Practitioner fhirPractitioner = BundleUtils.toResourcesOfType(fhirClient.getContext(), response, Practitioner.class);
+    List<PractitionerRole> fhirRoles = bundleUtils.toListOfResourcesOfType(fhirClient.getContext(), response, PractitionerRole.class);
+    Practitioner fhirPractitioner = bundleUtils.toResourcesOfType(fhirClient.getContext(), response, Practitioner.class);
     //fhirClient.getClinClient().findPractitionerRole(new TokenParam(practitionerId));
     List<String> roles = fhirRoles.stream().map(r -> r.getCodeFirstRep().getCodingFirstRep().getCode()).distinct().collect(Collectors.toList());
    

@@ -13,7 +13,7 @@ import java.util.List;
 @Component
 public class BundleUtils {
 
-  public static <T extends IBaseResource> List<T> toListOfResourcesOfType(FhirContext context, IBaseBundle bundle, Class<T> clazz) {
+  public <T extends IBaseResource> List<T> toListOfResourcesOfType(FhirContext context, IBaseBundle bundle, Class<T> clazz) {
     List<T> results = new ArrayList<>();
     List<IBaseResource> allRes = BundleUtil.toListOfResources(context, bundle);
     for(IBaseResource res: allRes) {
@@ -26,7 +26,7 @@ public class BundleUtils {
     return results;
   }
 
-  public static <T extends IBaseResource> T toResourcesOfType(FhirContext context, IBaseBundle bundle, Class<T> clazz) {
+  public <T extends IBaseResource> T toResourcesOfType(FhirContext context, IBaseBundle bundle, Class<T> clazz) {
     return toListOfResourcesOfType(context, bundle, clazz).stream().findFirst().orElse(null);
   }
   
