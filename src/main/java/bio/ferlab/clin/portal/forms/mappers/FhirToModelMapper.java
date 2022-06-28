@@ -24,7 +24,7 @@ public class FhirToModelMapper {
     }).collect(Collectors.toList());
   }
   
-  public List<ValueName> mapClinicalSigns(CodeSystem hp) {
+  public List<ValueName> mapToClinicalSigns(CodeSystem hp) {
     return hp.getConcept().stream()
         .skip(1)
         .limit(10)
@@ -35,10 +35,26 @@ public class FhirToModelMapper {
     return age.getCompose().getIncludeFirstRep().getConcept().stream()
         .map(c -> new ValueName(getDisplayForLang(c, lang), c.getCode())).collect(Collectors.toList());
   }
+
+  public List<ValueName> mapToParentalLinks(CodeSystem links, String lang) {
+    return links.getConcept().stream()
+        .map(c -> new ValueName(getDisplayForLang(c, lang), c.getCode())).collect(Collectors.toList());
+  }
+
+  public List<ValueName> mapToEthnicities(CodeSystem ethnicity, String lang) {
+    return ethnicity.getConcept().stream()
+        .map(c -> new ValueName(getDisplayForLang(c, lang), c.getCode())).collect(Collectors.toList());
+  }
   
   private String getDisplayForLang(ValueSet.ConceptReferenceComponent concept, String lang) {
     return concept.getDesignation().stream().filter(c -> lang.equals(c.getLanguage()))
         .map(ValueSet.ConceptReferenceDesignationComponent::getValue)
+        .findFirst().orElse(concept.getDisplay());
+  }
+
+  private String getDisplayForLang(CodeSystem.ConceptDefinitionComponent concept, String lang) {
+    return concept.getDesignation().stream().filter(c -> lang.equals(c.getLanguage()))
+        .map(CodeSystem.ConceptDefinitionDesignationComponent::getValue)
         .findFirst().orElse(concept.getDisplay());
   }
 }

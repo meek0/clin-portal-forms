@@ -56,6 +56,14 @@ public class FormController {
         .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()
+        .setUrl("CodeSystem/fmh-relationship-plus")
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+        .setUrl("CodeSystem/qc-ethnicity")
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
         .setUrl("PractitionerRole?practitioner="+practitionerId)
         .setMethod(Bundle.HTTPVerb.GET);
     
@@ -65,6 +73,8 @@ public class FormController {
     CodeSystem analyseCode = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
     CodeSystem hp = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
     ValueSet age = bundleExtractor.getNextResourcesOfType(ValueSet.class);
+    CodeSystem parentalLinks = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
+    CodeSystem ethnicity = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
     
     if (analyseCode.getConcept().stream().noneMatch(c -> type.equals(c.getCode()))) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Unsupported form type: '%s' available types: %s",
@@ -75,8 +85,10 @@ public class FormController {
 
     Form form = new Form();
     form.getConfig().getPrescribingInstitutions().addAll(fhirToModelMapper.mapToPrescribingInst(practitionerRoles));
-    form.getConfig().getClinicalSigns().getDefaultList().addAll(fhirToModelMapper.mapClinicalSigns(hp));
+    form.getConfig().getClinicalSigns().getDefaultList().addAll(fhirToModelMapper.mapToClinicalSigns(hp));
     form.getConfig().getClinicalSigns().getOnsetAge().addAll(fhirToModelMapper.mapToOnsetAge(age, lang));
+    form.getConfig().getHistoryAndDiagnosis().getParentalLinks().addAll(fhirToModelMapper.mapToParentalLinks(parentalLinks, lang));
+    form.getConfig().getHistoryAndDiagnosis().getEthnicities().addAll(fhirToModelMapper.mapToEthnicities(ethnicity, lang));
     
     return form;
   }

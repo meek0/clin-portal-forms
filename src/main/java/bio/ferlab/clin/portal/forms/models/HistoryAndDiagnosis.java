@@ -12,8 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Config {
-  private List<ValueName> prescribingInstitutions = new ArrayList<>();
-  private ClinicalSigns clinicalSigns = new ClinicalSigns();
-  private HistoryAndDiagnosis historyAndDiagnosis = new HistoryAndDiagnosis();
+public class HistoryAndDiagnosis {
+  private List<ValueName> parentalLinks = new ArrayList<>();
+  private List<ValueName> ethnicities = new ArrayList<>();
 }
