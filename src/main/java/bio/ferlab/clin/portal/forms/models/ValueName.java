@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Form {
-    private Config config = new Config();
+public class ValueName {
+  protected String name;
+  protected String value;
 }

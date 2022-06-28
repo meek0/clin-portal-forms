@@ -5,10 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class Config {
-  private User user;
+  private List<ValueName> prescribingInstitutions = new ArrayList<>();
+  private ClinicalSigns clinicalSigns = new ClinicalSigns();
 }

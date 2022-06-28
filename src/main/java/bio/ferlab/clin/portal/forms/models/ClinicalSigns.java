@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
-  private String name;
-  private List<String> roles = new ArrayList<>();
+public class ClinicalSigns {
+  private List<ValueName> defaultList = new ArrayList<>();
+  private List<ValueName> onsetAge = new ArrayList<>();
 }
