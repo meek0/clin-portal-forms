@@ -5,6 +5,8 @@ fhir:
   url: ${FHIR_URL:https://fhir.qa.cqgc.hsj.rtss.qc.ca/fhir}
   timeout: 5000
   pool-size: 20
+cache:
+  eviction: 300000
 management:
   endpoint:
     health:
