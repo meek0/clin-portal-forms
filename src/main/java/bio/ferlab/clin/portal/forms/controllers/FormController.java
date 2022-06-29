@@ -73,19 +73,19 @@ public class FormController {
     // codes and values are fetched once
     Map<String, IBaseResource> codesAndValues = fetchCodesAndValues();
     
-    // fetch data from FHIR, using .search() can trigger a retry if failed :)
+    // fetch data from FHIR
     Bundle response = this.fhirClient.getGenericClient().search().forResource(PractitionerRole.class)
         .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).execute();
 
     BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), response);
-
+    List<PractitionerRole> practitionerRoles = bundleExtractor.getNextListOfResourcesOfType(PractitionerRole.class);
+    
     CodeSystem analyseCode = (CodeSystem) codesAndValues.get(CACHE_ANALYSE_KEY);
     CodeSystem hp = (CodeSystem) codesAndValues.get(CACHE_HP_KEY);
     CodeSystem parentalLinks = (CodeSystem) codesAndValues.get(CACHE_PARENTAL_KEY);
     CodeSystem ethnicity = (CodeSystem) codesAndValues.get(CACHE_ETHNICITY_KEY);
     CodeSystem observation = (CodeSystem) codesAndValues.get(CACHE_OBSERVATION_KEY);
     ValueSet age = (ValueSet) codesAndValues.get(CACHE_AGE_KEY);
-    List<PractitionerRole> practitionerRoles = bundleExtractor.getNextListOfResourcesOfType(PractitionerRole.class);
     
     // validate the form's type is supported
     if (analyseCode.getConcept().stream().noneMatch(c -> type.equals(c.getCode()))) {
@@ -100,7 +100,7 @@ public class FormController {
     form.getConfig().getHistoryAndDiagnosis().getParentalLinks().addAll(fhirToModelMapper.mapToParentalLinks(parentalLinks, lang));
     form.getConfig().getHistoryAndDiagnosis().getEthnicities().addAll(fhirToModelMapper.mapToEthnicities(ethnicity, lang));
     
-    // form specific
+    // use form default or generic values
     final String formType = type.toLowerCase();
     final List<ValueSet> hpByTypes = fhirConfiguration.getTypesWithDefault().stream()
         .map(t -> (ValueSet) codesAndValues.get(t + CACHE_HP_BY_TYPE_KEY)).collect(Collectors.toList());
@@ -184,13 +184,6 @@ public class FormController {
       CodeSystem observation = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
       ValueSet age = bundleExtractor.getNextResourcesOfType(ValueSet.class);
       
-      for(String byType: fhirConfiguration.getTypesWithDefault()) {
-        ValueSet hpByType = bundleExtractor.getNextResourcesOfType(ValueSet.class);
-        ValueSet obsByType = bundleExtractor.getNextResourcesOfType(ValueSet.class);
-        cache.putIfAbsent(byType + CACHE_HP_BY_TYPE_KEY, hpByType);
-        cache.putIfAbsent(byType + CACHE_OBS_BY_TYPE, obsByType);
-      }
-
       cache.put(CACHE_INIT_KEY, Boolean.TRUE);
       cache.putIfAbsent(CACHE_ANALYSE_KEY, analyseCode);
       cache.putIfAbsent(CACHE_HP_KEY, hp);
@@ -198,6 +191,13 @@ public class FormController {
       cache.putIfAbsent(CACHE_ETHNICITY_KEY, ethnicity);
       cache.putIfAbsent(CACHE_OBSERVATION_KEY, observation);
       cache.putIfAbsent(CACHE_AGE_KEY, age);
+      
+      for(String byType: fhirConfiguration.getTypesWithDefault()) {
+        ValueSet hpByType = bundleExtractor.getNextResourcesOfType(ValueSet.class);
+        ValueSet obsByType = bundleExtractor.getNextResourcesOfType(ValueSet.class);
+        cache.putIfAbsent(byType + CACHE_HP_BY_TYPE_KEY, hpByType);
+        cache.putIfAbsent(byType + CACHE_OBS_BY_TYPE, obsByType);
+      }
     }
 
     // don't try to get the cache values out of synchronized because they could be evicted
@@ -214,7 +214,7 @@ public class FormController {
       codesAndValues.put(byType + CACHE_OBS_BY_TYPE, cache.get(byType + CACHE_OBS_BY_TYPE, ValueSet.class));
     }
     
-    return  codesAndValues;
+    return codesAndValues;
   }
   
   public synchronized void clearCache() {
