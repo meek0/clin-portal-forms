@@ -2,6 +2,7 @@ package bio.ferlab.clin.portal.forms.controllers;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.configurations.CacheConfiguration;
+import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
 import bio.ferlab.clin.portal.forms.mappers.FhirToModelMapper;
 import bio.ferlab.clin.portal.forms.models.Form;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
@@ -23,11 +24,16 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/form")
 @Slf4j
 public class FormController {
+  
+  private static final String DEFAULT_HPO = "-default-hpo";
+  private static final String DEFAULT_EXAM = "-default-exam";
 
   private static final String CACHE_INIT_KEY = "init";
   private static final String CACHE_ANALYSE_KEY = "analyse";
@@ -36,16 +42,21 @@ public class FormController {
   private static final String CACHE_ETHNICITY_KEY = "ethnicity";
   private static final String CACHE_OBSERVATION_KEY = "observation";
   private static final String CACHE_AGE_KEY = "age";
+  private static final String CACHE_HP_BY_TYPE_KEY = "-hp";
+  private static final String CACHE_OBS_BY_TYPE = "-observation";
   
+  private final FhirConfiguration fhirConfiguration;
   private final FhirClient fhirClient;
   private final LocaleService localeService;
   private final FhirToModelMapper fhirToModelMapper;
   private final Cache cache;
   
-  public FormController(FhirClient fhirClient,
+  public FormController(FhirConfiguration fhirConfiguration,
+                        FhirClient fhirClient,
                         LocaleService localeService,
                         FhirToModelMapper fhirToModelMapper,
                         CacheManager cacheManager) {
+    this.fhirConfiguration = fhirConfiguration;
     this.fhirClient = fhirClient;
     this.localeService = localeService;
     this.fhirToModelMapper = fhirToModelMapper;
@@ -62,7 +73,7 @@ public class FormController {
     // codes and values are fetched once
     Map<String, IBaseResource> codesAndValues = fetchCodesAndValues();
     
-    // fetch data from FHIR
+    // fetch data from FHIR, using .search() can trigger a retry if failed :)
     Bundle response = this.fhirClient.getGenericClient().search().forResource(PractitionerRole.class)
         .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).execute();
 
@@ -82,16 +93,41 @@ public class FormController {
           type, fhirToModelMapper.mapToAnalyseCodes(analyseCode)));
     }
     
-    // return form config
+    // return form's config
     Form form = new Form();
     form.getConfig().getPrescribingInstitutions().addAll(fhirToModelMapper.mapToPrescribingInst(practitionerRoles));
-    form.getConfig().getClinicalSigns().getDefaultList().addAll(fhirToModelMapper.mapToClinicalSigns(hp));
     form.getConfig().getClinicalSigns().getOnsetAge().addAll(fhirToModelMapper.mapToOnsetAge(age, lang));
     form.getConfig().getHistoryAndDiagnosis().getParentalLinks().addAll(fhirToModelMapper.mapToParentalLinks(parentalLinks, lang));
     form.getConfig().getHistoryAndDiagnosis().getEthnicities().addAll(fhirToModelMapper.mapToEthnicities(ethnicity, lang));
-    form.getConfig().getParaclinicalExams().getDefaultList().addAll(fhirToModelMapper.mapToParaclinicalExams(observation, lang));
+    
+    // form specific
+    final String formType = type.toLowerCase();
+    final List<ValueSet> hpByTypes = fhirConfiguration.getTypesWithDefault().stream()
+        .map(t -> (ValueSet) codesAndValues.get(t + CACHE_HP_BY_TYPE_KEY)).collect(Collectors.toList());
+    final List<ValueSet> obsByTypes = fhirConfiguration.getTypesWithDefault().stream()
+        .map(t -> (ValueSet) codesAndValues.get(t + CACHE_OBS_BY_TYPE)).collect(Collectors.toList());
+    this.applyFormHpByTypeOrDefault(formType, form, hp, hpByTypes);
+    this.applyFormObservationByTypeOrDefault(formType, form, lang, observation, obsByTypes);
     
     return form;
+  }
+  
+  private void applyFormHpByTypeOrDefault(String formType, Form form, CodeSystem all, List<ValueSet> byTypes) {
+    Optional<ValueSet> byType = byTypes.stream().filter(vs -> (formType + DEFAULT_HPO).equals(vs.getName())).findFirst();
+    if (byType.isPresent()) {
+      form.getConfig().getClinicalSigns().getDefaultList().addAll(fhirToModelMapper.mapToClinicalSigns(byType.get()));
+    } else {
+      form.getConfig().getClinicalSigns().getDefaultList().addAll(fhirToModelMapper.mapToClinicalSigns(all));
+    }
+  }
+
+  private void applyFormObservationByTypeOrDefault(String formType, Form form, String lang, CodeSystem all, List<ValueSet> byTypes) {
+    Optional<ValueSet> byType = byTypes.stream().filter(vs -> (formType + DEFAULT_EXAM).equals(vs.getName())).findFirst();
+    if (byType.isPresent()) {
+      form.getConfig().getParaclinicalExams().getDefaultList().addAll(fhirToModelMapper.mapToParaclinicalExams(byType.get(), lang));
+    } else {
+      form.getConfig().getParaclinicalExams().getDefaultList().addAll(fhirToModelMapper.mapToParaclinicalExams(all, lang));
+    }
   }
   
   private synchronized Map<String, IBaseResource> fetchCodesAndValues() {
@@ -128,7 +164,16 @@ public class FormController {
       bundle.addEntry().getRequest()
           .setUrl("ValueSet/age-at-onset")
           .setMethod(Bundle.HTTPVerb.GET);
-
+      
+      for(String byType: fhirConfiguration.getTypesWithDefault()) {
+        bundle.addEntry().getRequest()
+            .setUrl("ValueSet/" + byType + DEFAULT_HPO)
+            .setMethod(Bundle.HTTPVerb.GET);
+        bundle.addEntry().getRequest()
+            .setUrl("ValueSet/" + byType + DEFAULT_EXAM)
+            .setMethod(Bundle.HTTPVerb.GET);
+      }
+      
       Bundle response = fhirClient.getGenericClient().transaction().withBundle(bundle).execute();
       BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), response);
 
@@ -138,6 +183,13 @@ public class FormController {
       CodeSystem ethnicity = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
       CodeSystem observation = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
       ValueSet age = bundleExtractor.getNextResourcesOfType(ValueSet.class);
+      
+      for(String byType: fhirConfiguration.getTypesWithDefault()) {
+        ValueSet hpByType = bundleExtractor.getNextResourcesOfType(ValueSet.class);
+        ValueSet obsByType = bundleExtractor.getNextResourcesOfType(ValueSet.class);
+        cache.putIfAbsent(byType + CACHE_HP_BY_TYPE_KEY, hpByType);
+        cache.putIfAbsent(byType + CACHE_OBS_BY_TYPE, obsByType);
+      }
 
       cache.put(CACHE_INIT_KEY, Boolean.TRUE);
       cache.putIfAbsent(CACHE_ANALYSE_KEY, analyseCode);
@@ -148,6 +200,7 @@ public class FormController {
       cache.putIfAbsent(CACHE_AGE_KEY, age);
     }
 
+    // don't try to get the cache values out of synchronized because they could be evicted
     Map<String, IBaseResource> codesAndValues = new HashMap<>();
     codesAndValues.put(CACHE_ANALYSE_KEY, cache.get(CACHE_ANALYSE_KEY, CodeSystem.class));
     codesAndValues.put(CACHE_HP_KEY, cache.get(CACHE_HP_KEY, CodeSystem.class));
@@ -155,6 +208,12 @@ public class FormController {
     codesAndValues.put(CACHE_ETHNICITY_KEY, cache.get(CACHE_ETHNICITY_KEY, CodeSystem.class));
     codesAndValues.put(CACHE_OBSERVATION_KEY, cache.get(CACHE_OBSERVATION_KEY, CodeSystem.class));
     codesAndValues.put(CACHE_AGE_KEY, cache.get(CACHE_AGE_KEY, ValueSet.class));
+    
+    for(String byType: fhirConfiguration.getTypesWithDefault()) {
+      codesAndValues.put(byType + CACHE_HP_BY_TYPE_KEY, cache.get(byType + CACHE_HP_BY_TYPE_KEY, ValueSet.class));
+      codesAndValues.put(byType + CACHE_OBS_BY_TYPE, cache.get(byType + CACHE_OBS_BY_TYPE, ValueSet.class));
+    }
+    
     return  codesAndValues;
   }
   
@@ -167,6 +226,11 @@ public class FormController {
     cache.evictIfPresent(CACHE_ETHNICITY_KEY);
     cache.evictIfPresent(CACHE_OBSERVATION_KEY);
     cache.evictIfPresent(CACHE_AGE_KEY);
+    
+    for(String byType: fhirConfiguration.getTypesWithDefault()) {
+      cache.evictIfPresent(byType + CACHE_HP_BY_TYPE_KEY);
+      cache.evictIfPresent(byType + CACHE_OBS_BY_TYPE);
+    }
   }
 
 }

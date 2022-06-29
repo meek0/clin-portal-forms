@@ -32,6 +32,11 @@ public class FhirToModelMapper {
         .map(c -> ValueName.builder().name(c.getDisplay()).value(c.getCode()).build()).collect(Collectors.toList());
   }
 
+  public List<ValueName> mapToClinicalSigns(ValueSet hpByType) {
+    return hpByType.getCompose().getIncludeFirstRep().getConcept().stream()
+        .map(c -> ValueName.builder().name(c.getDisplay()).value(c.getCode()).build()).collect(Collectors.toList());
+  }
+
   public List<ValueName> mapToOnsetAge(ValueSet age, String lang) {
     return age.getCompose().getIncludeFirstRep().getConcept().stream()
         .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
@@ -49,6 +54,11 @@ public class FhirToModelMapper {
 
   public List<ValueNameExtra> mapToParaclinicalExams(CodeSystem observation, String lang) {
     return observation.getConcept().stream()
+        .map(c -> ValueNameExtra.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+  }
+
+  public List<ValueNameExtra> mapToParaclinicalExams(ValueSet observation, String lang) {
+    return observation.getCompose().getIncludeFirstRep().getConcept().stream()
         .map(c -> ValueNameExtra.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
   }
   
