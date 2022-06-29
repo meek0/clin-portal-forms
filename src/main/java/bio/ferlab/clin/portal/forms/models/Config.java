@@ -15,5 +15,6 @@ import java.util.List;
 public class Config {
   private List<ValueName> prescribingInstitutions = new ArrayList<>();
   private ClinicalSigns clinicalSigns = new ClinicalSigns();
+  private ParaclinicalExams paraclinicalExams = new ParaclinicalExams();
   private HistoryAndDiagnosis historyAndDiagnosis = new HistoryAndDiagnosis();
 }

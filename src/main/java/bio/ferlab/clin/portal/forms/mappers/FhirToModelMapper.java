@@ -1,6 +1,7 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
 import bio.ferlab.clin.portal.forms.models.ValueName;
+import bio.ferlab.clin.portal.forms.models.ValueNameExtra;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.ValueSet;
@@ -20,7 +21,7 @@ public class FhirToModelMapper {
   public List<ValueName> mapToPrescribingInst(List<PractitionerRole> practitionerRoles) {
     return practitionerRoles.stream().map(r -> {
       String orgId = r.getOrganization().getReferenceElement().getIdPart();
-      return new ValueName(orgId, orgId);
+      return ValueName.builder().name(orgId).value(orgId).build();
     }).collect(Collectors.toList());
   }
   
@@ -28,22 +29,27 @@ public class FhirToModelMapper {
     return hp.getConcept().stream()
         .skip(1)
         .limit(10)
-        .map(c -> new ValueName(c.getDisplay(), c.getCode())).collect(Collectors.toList());
+        .map(c -> ValueName.builder().name(c.getDisplay()).value(c.getCode()).build()).collect(Collectors.toList());
   }
 
   public List<ValueName> mapToOnsetAge(ValueSet age, String lang) {
     return age.getCompose().getIncludeFirstRep().getConcept().stream()
-        .map(c -> new ValueName(getDisplayForLang(c, lang), c.getCode())).collect(Collectors.toList());
+        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
   }
 
   public List<ValueName> mapToParentalLinks(CodeSystem links, String lang) {
     return links.getConcept().stream()
-        .map(c -> new ValueName(getDisplayForLang(c, lang), c.getCode())).collect(Collectors.toList());
+        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
   }
 
   public List<ValueName> mapToEthnicities(CodeSystem ethnicity, String lang) {
     return ethnicity.getConcept().stream()
-        .map(c -> new ValueName(getDisplayForLang(c, lang), c.getCode())).collect(Collectors.toList());
+        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+  }
+
+  public List<ValueNameExtra> mapToParaclinicalExams(CodeSystem observation, String lang) {
+    return observation.getConcept().stream()
+        .map(c -> ValueNameExtra.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
   }
   
   private String getDisplayForLang(ValueSet.ConceptReferenceComponent concept, String lang) {

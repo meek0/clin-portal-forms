@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ValueName {
+public class ValueNameExtra {
   private String name;
   private String value;
+  private Extra extra;
 }

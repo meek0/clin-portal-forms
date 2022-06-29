@@ -9,6 +9,7 @@ import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.JwtUtils;
 import io.undertow.util.BadRequestException;
 import lombok.extern.slf4j.Slf4j;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.PractitionerRole;
@@ -19,29 +20,33 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/form")
 @Slf4j
 public class FormController {
-  
+
+  private static final String CACHE_INIT_KEY = "init";
+  private static final String CACHE_ANALYSE_KEY = "analyse";
   private static final String CACHE_HP_KEY = "hp";
+  private static final String CACHE_PARENTAL_KEY = "parental";
+  private static final String CACHE_ETHNICITY_KEY = "ethnicity";
+  private static final String CACHE_OBSERVATION_KEY = "observation";
+  private static final String CACHE_AGE_KEY = "age";
   
   private final FhirClient fhirClient;
-  private final JwtUtils jwtUtils;
   private final LocaleService localeService;
   private final FhirToModelMapper fhirToModelMapper;
   private final Cache cache;
   
-  public FormController(FhirClient fhirClient, 
-                        JwtUtils jwtUtils,
+  public FormController(FhirClient fhirClient,
                         LocaleService localeService,
                         FhirToModelMapper fhirToModelMapper,
                         CacheManager cacheManager) {
     this.fhirClient = fhirClient;
-    this.jwtUtils = jwtUtils;
     this.localeService = localeService;
     this.fhirToModelMapper = fhirToModelMapper;
     this.cache = cacheManager.getCache(CacheConfiguration.CACHE_NAME);
@@ -52,66 +57,116 @@ public class FormController {
                        @PathVariable String type) throws BadRequestException {
     
     final String lang = localeService.getCurrentLocale();
-    final String practitionerId = jwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
+    final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
 
-    CodeSystem hp = getHPCodes(); // HPs are too big to be queried multiple times, fetch them once + cache
+    // codes and values are fetched once
+    Map<String, IBaseResource> codesAndValues = fetchCodesAndValues();
     
-    Bundle bundle = new Bundle();
-    bundle.setType(Bundle.BundleType.BATCH);
-    
-    bundle.addEntry().getRequest()
-        .setUrl("CodeSystem/analysis-request-code")
-        .setMethod(Bundle.HTTPVerb.GET);
-    
-    bundle.addEntry().getRequest()
-        .setUrl("ValueSet/age-at-onset")
-        .setMethod(Bundle.HTTPVerb.GET);
+    // fetch data from FHIR
+    Bundle response = this.fhirClient.getGenericClient().search().forResource(PractitionerRole.class)
+        .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).execute();
 
-    bundle.addEntry().getRequest()
-        .setUrl("CodeSystem/fmh-relationship-plus")
-        .setMethod(Bundle.HTTPVerb.GET);
-
-    bundle.addEntry().getRequest()
-        .setUrl("CodeSystem/qc-ethnicity")
-        .setMethod(Bundle.HTTPVerb.GET);
-
-    bundle.addEntry().getRequest()
-        .setUrl("PractitionerRole?practitioner="+practitionerId)
-        .setMethod(Bundle.HTTPVerb.GET);
-    
-    Bundle response = fhirClient.getGenericClient().transaction().withBundle(bundle).execute();
     BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), response);
 
-    CodeSystem analyseCode = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
-    ValueSet age = bundleExtractor.getNextResourcesOfType(ValueSet.class);
-    CodeSystem parentalLinks = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
-    CodeSystem ethnicity = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
+    CodeSystem analyseCode = (CodeSystem) codesAndValues.get(CACHE_ANALYSE_KEY);
+    CodeSystem hp = (CodeSystem) codesAndValues.get(CACHE_HP_KEY);
+    CodeSystem parentalLinks = (CodeSystem) codesAndValues.get(CACHE_PARENTAL_KEY);
+    CodeSystem ethnicity = (CodeSystem) codesAndValues.get(CACHE_ETHNICITY_KEY);
+    CodeSystem observation = (CodeSystem) codesAndValues.get(CACHE_OBSERVATION_KEY);
+    ValueSet age = (ValueSet) codesAndValues.get(CACHE_AGE_KEY);
+    List<PractitionerRole> practitionerRoles = bundleExtractor.getNextListOfResourcesOfType(PractitionerRole.class);
     
+    // validate the form's type is supported
     if (analyseCode.getConcept().stream().noneMatch(c -> type.equals(c.getCode()))) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Unsupported form type: '%s' available types: %s",
           type, fhirToModelMapper.mapToAnalyseCodes(analyseCode)));
     }
     
-    List<PractitionerRole> practitionerRoles = bundleExtractor.getNextListOfResourcesOfType(PractitionerRole.class);
-
+    // return form config
     Form form = new Form();
     form.getConfig().getPrescribingInstitutions().addAll(fhirToModelMapper.mapToPrescribingInst(practitionerRoles));
     form.getConfig().getClinicalSigns().getDefaultList().addAll(fhirToModelMapper.mapToClinicalSigns(hp));
     form.getConfig().getClinicalSigns().getOnsetAge().addAll(fhirToModelMapper.mapToOnsetAge(age, lang));
     form.getConfig().getHistoryAndDiagnosis().getParentalLinks().addAll(fhirToModelMapper.mapToParentalLinks(parentalLinks, lang));
     form.getConfig().getHistoryAndDiagnosis().getEthnicities().addAll(fhirToModelMapper.mapToEthnicities(ethnicity, lang));
+    form.getConfig().getParaclinicalExams().getDefaultList().addAll(fhirToModelMapper.mapToParaclinicalExams(observation, lang));
     
     return form;
   }
   
-  private synchronized CodeSystem getHPCodes(){ // only one query allowed to fetch FHIR, next will read the cache
-    return Optional.ofNullable(cache.get(CACHE_HP_KEY, CodeSystem.class))
-        .orElseGet(() -> {
-          CodeSystem fromFhir = this.fhirClient.getGenericClient().read().resource(CodeSystem.class).withId("hp").execute();
-          log.info("Put HP codes in cache: {}", fromFhir.getConcept().size());
-          cache.putIfAbsent(CACHE_HP_KEY, fromFhir);
-          return fromFhir;
-        });
-  } 
+  private synchronized Map<String, IBaseResource> fetchCodesAndValues() {
+    
+    final Boolean isCacheInit = cache.get(CACHE_INIT_KEY, Boolean.class);
+    
+    if (isCacheInit == null || Boolean.FALSE.equals(isCacheInit)) {
+      
+      log.info("Fetch codes and values from FHIR");
+
+      Bundle bundle = new Bundle();
+      bundle.setType(Bundle.BundleType.BATCH);
+
+      bundle.addEntry().getRequest()
+          .setUrl("CodeSystem/analysis-request-code")
+          .setMethod(Bundle.HTTPVerb.GET);
+
+      bundle.addEntry().getRequest()
+          .setUrl("CodeSystem/hp")
+          .setMethod(Bundle.HTTPVerb.GET);
+
+      bundle.addEntry().getRequest()
+          .setUrl("CodeSystem/fmh-relationship-plus")
+          .setMethod(Bundle.HTTPVerb.GET);
+
+      bundle.addEntry().getRequest()
+          .setUrl("CodeSystem/qc-ethnicity")
+          .setMethod(Bundle.HTTPVerb.GET);
+
+      bundle.addEntry().getRequest()
+          .setUrl("CodeSystem/observation-code")
+          .setMethod(Bundle.HTTPVerb.GET);
+
+      bundle.addEntry().getRequest()
+          .setUrl("ValueSet/age-at-onset")
+          .setMethod(Bundle.HTTPVerb.GET);
+
+      Bundle response = fhirClient.getGenericClient().transaction().withBundle(bundle).execute();
+      BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), response);
+
+      CodeSystem analyseCode = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
+      CodeSystem hp = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
+      CodeSystem parentalLinks = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
+      CodeSystem ethnicity = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
+      CodeSystem observation = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
+      ValueSet age = bundleExtractor.getNextResourcesOfType(ValueSet.class);
+
+      cache.put(CACHE_INIT_KEY, Boolean.TRUE);
+      cache.putIfAbsent(CACHE_ANALYSE_KEY, analyseCode);
+      cache.putIfAbsent(CACHE_HP_KEY, hp);
+      cache.putIfAbsent(CACHE_PARENTAL_KEY, parentalLinks);
+      cache.putIfAbsent(CACHE_ETHNICITY_KEY, ethnicity);
+      cache.putIfAbsent(CACHE_OBSERVATION_KEY, observation);
+      cache.putIfAbsent(CACHE_AGE_KEY, age);
+    }
+
+    Map<String, IBaseResource> codesAndValues = new HashMap<>();
+    codesAndValues.put(CACHE_ANALYSE_KEY, cache.get(CACHE_ANALYSE_KEY, CodeSystem.class));
+    codesAndValues.put(CACHE_HP_KEY, cache.get(CACHE_HP_KEY, CodeSystem.class));
+    codesAndValues.put(CACHE_PARENTAL_KEY, cache.get(CACHE_PARENTAL_KEY, CodeSystem.class));
+    codesAndValues.put(CACHE_ETHNICITY_KEY, cache.get(CACHE_ETHNICITY_KEY, CodeSystem.class));
+    codesAndValues.put(CACHE_OBSERVATION_KEY, cache.get(CACHE_OBSERVATION_KEY, CodeSystem.class));
+    codesAndValues.put(CACHE_AGE_KEY, cache.get(CACHE_AGE_KEY, ValueSet.class));
+    return  codesAndValues;
+  }
+  
+  public synchronized void clearCache() {
+    log.info("Evict codes and values entries from cache");
+    cache.put(CACHE_INIT_KEY, Boolean.FALSE);
+    cache.evictIfPresent(CACHE_ANALYSE_KEY);
+    cache.evictIfPresent(CACHE_HP_KEY);
+    cache.evictIfPresent(CACHE_PARENTAL_KEY);
+    cache.evictIfPresent(CACHE_ETHNICITY_KEY);
+    cache.evictIfPresent(CACHE_OBSERVATION_KEY);
+    cache.evictIfPresent(CACHE_AGE_KEY);
+  }
 
 }
