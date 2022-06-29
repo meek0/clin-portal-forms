@@ -14,15 +14,16 @@ import java.io.IOException;
 public class FhirAuthInterceptor implements IClientInterceptor {
 
   @Autowired
-  private HttpServletRequest request;
+  private HttpServletRequest request; // current request
   
   @Override
   public void interceptRequest(IHttpRequest fhirRequest) {
-    fhirRequest.addHeader(HttpHeaders.AUTHORIZATION, "foo");
+    // FHIR will validate the token's authorizations
+    fhirRequest.addHeader(HttpHeaders.AUTHORIZATION, request.getHeader(HttpHeaders.AUTHORIZATION));
   }
 
   @Override
   public void interceptResponse(IHttpResponse fhirResponse) throws IOException {
-    // Nothing to do here for now
+    // Nothing to do here
   }
 }

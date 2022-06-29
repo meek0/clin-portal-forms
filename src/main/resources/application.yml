@@ -1,10 +1,14 @@
 spring:
   jackson:
     property-naming-strategy: SNAKE_CASE
-    default-property-inclusion: non_null
 fhir:
   url: ${FHIR_URL:https://fhir.qa.cqgc.hsj.rtss.qc.ca/fhir}
-  timeout: 600000
+  timeout: 5000
+  pool-size: 20
+  types-with-default: # will load <type>-default-hpo <type>-default-exam 
+    - mmg
+cache:
+  eviction: 3600000 #1h
 management:
   endpoint:
     health:
