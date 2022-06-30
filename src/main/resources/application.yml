@@ -8,7 +8,7 @@ fhir:
   types-with-default: # will load <type>-default-hpo <type>-default-exam 
     - mmg
 cache:
-  eviction: 3600000 #1h
+  eviction: 3600000 # 1h
 management:
   endpoint:
     health:
@@ -20,6 +20,7 @@ management:
     readinessState:
       enabled: true
 security:
+  leeway: 5 # seconds
   enabled: ${SECURITY_ENABLED:true}
   audience: ${SECURITY_AUDIENCE:clin-acl}
   issuer: ${SECURITY_ISSUER:https://auth.qa.cqgc.hsj.rtss.qc.ca/auth/realms/clin}

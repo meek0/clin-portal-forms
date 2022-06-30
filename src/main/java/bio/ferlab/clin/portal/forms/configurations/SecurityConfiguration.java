@@ -15,6 +15,7 @@ public class SecurityConfiguration {
   private boolean enabled;
   private String audience;
   private String issuer;
+  private long leeway;
   private List<String> cors = new ArrayList<>();
   
 }
