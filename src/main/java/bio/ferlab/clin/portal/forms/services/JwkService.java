@@ -42,10 +42,9 @@ public class JwkService {
           .acceptExpiresAt(configuration.getLeeway())
           .build().verify(jwt);
     } catch (JwkException e) {
-      log.warn("Invalid token: {}", e.getMessage());
+      log.warn("Invalid token: {}", e.getMessage()); // hide from the user + log the reason
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "invalid token");
     } catch( JWTVerificationException e) {
-      log.warn("Token verification failed: {}", e.getMessage());
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, e.getMessage());
     }
   }

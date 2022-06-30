@@ -33,7 +33,7 @@ public class SecurityService {
         DecodedJWT jwt = JWT.decode(token);
         this.jwkService.checkToken(jwt);
       } catch(JWTDecodeException e) {
-        log.warn("Invalid token: {}", e.getMessage());
+        log.warn("Invalid token: {}", e.getMessage());  // hide from the user + log the reason
         throw new ResponseStatusException(HttpStatus.FORBIDDEN, "invalid token");
       }
     }
