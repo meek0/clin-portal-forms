@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @Slf4j
@@ -37,6 +38,6 @@ public class ErrorController {
     for (ObjectError error : ex.getBindingResult().getGlobalErrors()) {
       errors.add(error.getObjectName() + ": " + error.getDefaultMessage());
     }
-    return new ResponseEntity<>(errors,HttpStatus.BAD_REQUEST);
+    return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
   }
 }

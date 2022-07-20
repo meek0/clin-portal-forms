@@ -2,29 +2,37 @@ package bio.ferlab.clin.portal.forms.controllers;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
-import bio.ferlab.clin.portal.forms.models.submit.Patient;
+import bio.ferlab.clin.portal.forms.models.config.Form;
+
 import bio.ferlab.clin.portal.forms.models.submit.Request;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.server.exceptions.PreconditionFailedException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static bio.ferlab.clin.portal.forms.utils.FhirConstants.*;
 
 @RestController
 @RequestMapping("/form")
+@Slf4j
 public class SubmitController {
-  
-  private static final String SYSTEM_RAMQ = "http://terminology.hl7.org/CodeSystem/v2-0203";
-  private static final String CODE_RAMQ = "JHN";
 
   private final FhirClient fhirClient;
   private final SubmitToFhirMapper mapper;
@@ -49,59 +57,104 @@ public class SubmitController {
     6 create obsetrvations X 
      */
     
-    final Person person = new Person();
-    person.addIdentifier().setValue(request.getPatient().getRamq()).setType(new CodeableConcept().addCoding(new Coding().setSystem(SYSTEM_RAMQ).setCode(CODE_RAMQ)));
-    person.setBirthDate(mapper.toDate(request.getPatient().getBirthDate()));
-    person.setGender( Enumerations.AdministrativeGender.fromCode(request.getPatient().getGender()));
-    person.addName().addGiven(request.getPatient().getFirstName()).setFamily(request.getPatient().getLastName());
-    // add patient link
+    this.handlePatient(request.getPatient());
     
-    boolean error = false;
-    MethodOutcome outcome = fhirClient.getGenericClient().validate().resource(person).execute();
+    return ResponseEntity.noContent().build();
+  }
+  
+  private void handlePatient(bio.ferlab.clin.portal.forms.models.submit.Patient patient) {
+    var pairs = findByRamqOrMrn(patient.getEp(), patient.getRamq(), patient.getMrn());
+    this.createOrUpdate(patient, pairs.getLeft(), pairs.getRight());
+  }
+  
+  private Pair<Optional<Person>, Optional<Patient>> findByRamqOrMrn(String ep, String ramq, String mrn) {
+    if(StringUtils.isNotBlank(ramq)) {
+      Bundle bundle = this.fhirClient.getGenericClient().search()
+          .forResource(Person.class)
+          .where(Person.IDENTIFIER.exactly().code(ramq))
+          .include(Person.INCLUDE_PATIENT)
+          .returnBundle(Bundle.class)
+          .execute();
+
+      BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
+      final Person person = bundleExtractor.getNextResourcesOfType(Person.class);
+      final List<Patient> patients = bundleExtractor.getAllResourcesOfType(Patient.class);
+      final Optional<Patient> patient = patients.stream().filter(p -> p.getManagingOrganization()
+          .getReference().equals("Organization/"+ep)).findFirst();
+      
+      return Pair.of(Optional.ofNullable(person), patient);
+    } else if(StringUtils.isNotBlank(mrn)) {
+      Bundle bundle = this.fhirClient.getGenericClient().search()
+          .forResource(Patient.class)
+          .where(Patient.IDENTIFIER.exactly().code(mrn))
+          .and(Patient.ORGANIZATION.hasId(ep))
+          .revInclude(Person.INCLUDE_PATIENT)
+          .returnBundle(Bundle.class)
+          .execute();
+
+      BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
+      final Person person = bundleExtractor.getNextResourcesOfType(Person.class);
+      final List<Patient> patients = bundleExtractor.getAllResourcesOfType(Patient.class);
+      final List<String> allLinks = person.getLink().stream().map(p -> p.getTarget().getReference()).collect(Collectors.toList());
+      final Optional<Patient> patient = patients.stream().filter(p -> allLinks.contains("Patient/"+new IdType(p.getId()).getIdPart())).findFirst();
+          
+      return Pair.of(Optional.ofNullable(person), patient);
+    } else {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ramq and patient.mrn can't be both null");
+    }
+  }
+  
+  private void createOrUpdate(bio.ferlab.clin.portal.forms.models.submit.Patient patient, Optional<Person> existingPerson, Optional<Patient> existingPatient) {
+    // update existing patient
+    existingPatient.ifPresent(p -> mapper.updatePatient(patient, p));
+    // keep existing or create new patient
+    final Patient newOrUpdatedPatient = existingPatient.orElse(mapper.mapToPatient(patient));
+    // update existing person
+    existingPerson.ifPresent(p -> mapper.updatePerson(patient, p, newOrUpdatedPatient));
+    // keep existing or create new person
+    final Person newOrUpdatedPerson = existingPerson.orElse(mapper.mapToPerson(patient, newOrUpdatedPatient));
+
+    Bundle bundle = new Bundle();
+    bundle.setType(Bundle.BundleType.TRANSACTION);
+
+    bundle.addEntry()
+        .setFullUrl("Patient/"+newOrUpdatedPatient.getIdElement().getIdPart())
+        .setResource(newOrUpdatedPatient)
+        .getRequest()
+        .setUrl("Patient/"+newOrUpdatedPatient.getIdElement().getIdPart())
+        .setMethod(existingPatient.isPresent() ? Bundle.HTTPVerb.PUT: Bundle.HTTPVerb.POST);
+
+    bundle.addEntry()
+        .setFullUrl("Person/"+newOrUpdatedPerson.getIdElement().getIdPart())
+        .setResource(newOrUpdatedPerson)
+        .getRequest()
+        .setUrl("Person/"+newOrUpdatedPerson.getIdElement().getIdPart())
+        .setMethod(existingPerson.isPresent() ? Bundle.HTTPVerb.PUT: Bundle.HTTPVerb.POST);
+    
+    log.info(bundle.getEntry().get(0).getRequest().getMethod() + " " + bundle.getEntry().get(0).getFullUrl());
+    log.info(bundle.getEntry().get(1).getRequest().getMethod() + " " + bundle.getEntry().get(1).getFullUrl());
+
+    System.out.println(fhirClient.getContext().newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle));
+    
+    List<String> bundleErrors = this.validateResource(bundle);
+    if(!bundleErrors.isEmpty()) {
+      throw new RuntimeException("Failed to validate form bundle:\n" + StringUtils.join(bundleErrors, "\n"));
+    }
+    
+    this.fhirClient.getGenericClient().transaction().withBundle(bundle).execute();
+    // TODO validate saved bundle
+  }
+  
+  private List<String> validateResource(Resource resource) {
+    List<String> errors = new ArrayList<>();
+    MethodOutcome outcome = fhirClient.getGenericClient().validate().resource(resource).execute();
     OperationOutcome oo = (OperationOutcome) outcome.getOperationOutcome();
     for (OperationOutcome.OperationOutcomeIssueComponent nextIssue : oo.getIssue()) {
       if (EnumSet.of(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueSeverity.FATAL).contains(nextIssue.getSeverity())) {
-        System.out.println(nextIssue.getDiagnostics());
-        error = true;
+        errors.add(nextIssue.getDiagnostics());
       }
     }
-
-    Bundle bundle = new Bundle();
-    bundle.setType(Bundle.BundleType.BATCH);
-
-    bundle.addEntry().getRequest()
-        .setUrl("Person?identifier=foo")
-        .setMethod(Bundle.HTTPVerb.GET);
-
-    Bundle response = fhirClient.getGenericClient().transaction().withBundle(bundle).execute();
-    BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), response);
-    List<Person> ps = bundleExtractor.getNextListOfResourcesOfType(Person.class);
-
-    Optional<Person> existingPs2 = ps.stream().filter(i -> i.getIdentifierFirstRep().getType().getCoding().stream().anyMatch(c -> SYSTEM_RAMQ.equals(c.getSystem()))).findFirst();
-    
-    
-    System.out.println("From bundle " + ps);
-    
-    if (!error && existingPs2.isEmpty()) {
-      try {
-        MethodOutcome res2 = fhirClient.getGenericClient().create().resource(person)
-            //.conditional()
-            //.where(Person.IDENTIFIER.exactly().systemAndIdentifier(SYSTEM_RAMQ, "foo"))
-            //.conditionalByUrl("Person?identifier:of-type="+SYSTEM_RAMQ+"%7CJHN%7Cfoo")
-            //.prettyPrint()
-            //.encodedJson()
-            .execute();
-      }catch( PreconditionFailedException e1) {
-        
-      }catch (UnprocessableEntityException e2) {
-        
-      }
-    
-
-    
-    }
-    
-    return ResponseEntity.ok("");
+    return errors;
   }
 
 }

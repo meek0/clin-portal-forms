@@ -15,7 +15,6 @@ import java.time.LocalDate;
 public class Patient {
   @NotNull
   private String ep;
-  @NotNull
   private String ramq;
   private String mrn;
   @NotNull
