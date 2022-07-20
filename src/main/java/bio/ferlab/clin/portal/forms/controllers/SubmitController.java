@@ -93,12 +93,10 @@ public class SubmitController {
           .execute();
 
       BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
+      final Patient patient = bundleExtractor.getNextResourcesOfType(Patient.class);
       final Person person = bundleExtractor.getNextResourcesOfType(Person.class);
-      final List<Patient> patients = bundleExtractor.getAllResourcesOfType(Patient.class);
-      final List<String> allLinks = person.getLink().stream().map(p -> p.getTarget().getReference()).collect(Collectors.toList());
-      final Optional<Patient> patient = patients.stream().filter(p -> allLinks.contains("Patient/"+new IdType(p.getId()).getIdPart())).findFirst();
-          
-      return Pair.of(Optional.ofNullable(person), patient);
+
+      return Pair.of(Optional.ofNullable(person), Optional.ofNullable(patient));
     } else {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ramq and patient.mrn can't be both null");
     }
@@ -131,18 +129,18 @@ public class SubmitController {
         .setUrl("Person/"+newOrUpdatedPerson.getIdElement().getIdPart())
         .setMethod(existingPerson.isPresent() ? Bundle.HTTPVerb.PUT: Bundle.HTTPVerb.POST);
     
-    log.info(bundle.getEntry().get(0).getRequest().getMethod() + " " + bundle.getEntry().get(0).getFullUrl());
-    log.info(bundle.getEntry().get(1).getRequest().getMethod() + " " + bundle.getEntry().get(1).getFullUrl());
+    log.debug(bundle.getEntry().get(0).getRequest().getMethod() + " " + bundle.getEntry().get(0).getFullUrl());
+    log.debug(bundle.getEntry().get(1).getRequest().getMethod() + " " + bundle.getEntry().get(1).getFullUrl());
 
-    System.out.println(fhirClient.getContext().newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle));
+    log.debug("\n" + fhirClient.getContext().newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle));
     
     List<String> bundleErrors = this.validateResource(bundle);
     if(!bundleErrors.isEmpty()) {
       throw new RuntimeException("Failed to validate form bundle:\n" + StringUtils.join(bundleErrors, "\n"));
     }
     
-    this.fhirClient.getGenericClient().transaction().withBundle(bundle).execute();
-    // TODO validate saved bundle
+    Bundle response = this.fhirClient.getGenericClient().transaction().withBundle(bundle).execute();
+    log.debug("\n" + fhirClient.getContext().newJsonParser().setPrettyPrint(true).encodeResourceToString(response));
   }
   
   private List<String> validateResource(Resource resource) {

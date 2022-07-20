@@ -29,3 +29,9 @@ security:
     - "https://portail.qa.cqgc.hsj.rtss.qc.ca"
     - "https://portail.staging.cqgc.hsj.rtss.qc.ca"
     - "https://portail.cqgc.hsj.rtss.qc.ca"
+logging:
+  level:
+    root: ERROR
+    org.springframework.web: ERROR
+    bio.ferlab.clin.portal.forms: INFO
+    org.hibernate: ERROR
