@@ -78,8 +78,10 @@ public class SubmitToFhirMapper {
         }
       }
       if (identifierToUpdate != null) {
-        if (StringUtils.isNotBlank(identifierToUpdate.getValue()) && !identifierToUpdate.getValue().equals(value)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient " + code +" already set");
+        if (StringUtils.isNotBlank(identifierToUpdate.getValue())) {
+          if (!identifierToUpdate.getValue().equals(value)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient " + code + " already set");
+          }
         } else {
           identifierToUpdate.setValue(value);
         }
@@ -87,7 +89,7 @@ public class SubmitToFhirMapper {
         identifiers.add(new Identifier()
             .setValue(value)
             .setAssigner(assigner)
-            .setType(new CodeableConcept().addCoding(new Coding().setSystem(SYSTEM_MRN).setCode(CODE_MRN))));
+            .setType(new CodeableConcept().addCoding(new Coding().setSystem(system).setCode(code))));
       }
     }
   }

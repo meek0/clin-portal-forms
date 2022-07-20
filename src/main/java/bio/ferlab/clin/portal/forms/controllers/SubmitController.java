@@ -68,6 +68,17 @@ public class SubmitController {
   }
   
   private Pair<Optional<Person>, Optional<Patient>> findByRamqOrMrn(String ep, String ramq, String mrn) {
+    
+    if (StringUtils.isAllBlank(ramq, mrn)) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ramq and patient.mrn can't be both null");
+    }
+    
+    Optional<Patient> patientWithMrn = Optional.empty();
+    Optional<Person> personWithMrn = Optional.empty();
+    
+    Optional<Patient> patientWithRamq = Optional.empty();
+    Optional<Person> personWithRamq = Optional.empty();
+    
     if(StringUtils.isNotBlank(ramq)) {
       Bundle bundle = this.fhirClient.getGenericClient().search()
           .forResource(Person.class)
@@ -82,8 +93,11 @@ public class SubmitController {
       final Optional<Patient> patient = patients.stream().filter(p -> p.getManagingOrganization()
           .getReference().equals("Organization/"+ep)).findFirst();
       
-      return Pair.of(Optional.ofNullable(person), patient);
-    } else if(StringUtils.isNotBlank(mrn)) {
+      personWithRamq = Optional.ofNullable(person);
+      patientWithRamq = patient;
+    } 
+    
+    if(StringUtils.isNotBlank(mrn)) {
       Bundle bundle = this.fhirClient.getGenericClient().search()
           .forResource(Patient.class)
           .where(Patient.IDENTIFIER.exactly().code(mrn))
@@ -96,10 +110,13 @@ public class SubmitController {
       final Patient patient = bundleExtractor.getNextResourcesOfType(Patient.class);
       final Person person = bundleExtractor.getNextResourcesOfType(Person.class);
 
-      return Pair.of(Optional.ofNullable(person), Optional.ofNullable(patient));
-    } else {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ramq and patient.mrn can't be both null");
+      personWithMrn = Optional.ofNullable(person);
+      patientWithMrn = Optional.ofNullable(patient);;
     }
+
+    Optional<Person> finalPersonWithMrn = personWithMrn;
+    Optional<Patient> finalPatientWithMrn = patientWithMrn;
+    return Pair.of(personWithRamq.or(() -> finalPersonWithMrn), patientWithRamq.or(() -> finalPatientWithMrn));
   }
   
   private void createOrUpdate(bio.ferlab.clin.portal.forms.models.submit.Patient patient, Optional<Person> existingPerson, Optional<Patient> existingPatient) {
