@@ -4,10 +4,10 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.submit.Request;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
-import bio.ferlab.clin.portal.forms.utils.FhirUtils;
-import bio.ferlab.clin.portal.forms.utils.PatientBuilder;
+import bio.ferlab.clin.portal.forms.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.IdType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -43,36 +43,72 @@ public class SubmitController {
     6 create obsetrvations X 
      */
     
+    // the following is for SOLO only
     final PatientBuilder patientBuilder = new PatientBuilder(fhirClient, mapper, request.getPatient());
-    PatientBuilder.PatientBuilderResult pbr = patientBuilder.
-      validateEp().
-      validateRamqAndMrn().
-      findByRamq().
-      findByMrn().
-      build();
+    PatientBuilder.Result pbr = patientBuilder
+        .validateEp()
+        .validateRamqAndMrn()
+        .findByRamq()
+        .findByMrn()
+        .build();
     
-     submit(pbr);
+    // TODO Observation builder
+
+    final ClinicalImpressionBuilder clinicalImpressionBuilder = new ClinicalImpressionBuilder(mapper, pbr.getPatient());
+    ClinicalImpressionBuilder.Result cbr = clinicalImpressionBuilder
+        .build();
+    
+    final AnalysisBuilder analysisBuilder = new AnalysisBuilder(mapper, pbr.getPatient(), cbr.getClinicalImpression());
+    AnalysisBuilder.Result abr = analysisBuilder
+        .build();
+
+    final SequencingBuilder sequencingBuilder = new SequencingBuilder(mapper, pbr.getPatient(), abr.getAnalysis());
+    SequencingBuilder.Result sbr = sequencingBuilder
+        .build();
+    
+    submit(pbr, abr, sbr, cbr);
     
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
   
-  private void submit(PatientBuilder.PatientBuilderResult patientBuilderResult) {
+  private void submit(PatientBuilder.Result pbr, AnalysisBuilder.Result abr, SequencingBuilder.Result sbr, ClinicalImpressionBuilder.Result cbr) {
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.TRANSACTION);
 
     bundle.addEntry()
-        .setFullUrl("Patient/"+patientBuilderResult.getPatient().getIdElement().getIdPart())
-        .setResource(patientBuilderResult.getPatient())
+        .setFullUrl(FhirUtils.formatResource(pbr.getPatient()))
+        .setResource(pbr.getPatient())
         .getRequest()
-        .setUrl("Patient/"+patientBuilderResult.getPatient().getIdElement().getIdPart())
-        .setMethod(patientBuilderResult.isPatientNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
+        .setUrl("Patient")
+        .setMethod(pbr.isPatientNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
 
     bundle.addEntry()
-        .setFullUrl("Person/"+patientBuilderResult.getPerson().getIdElement().getIdPart())
-        .setResource(patientBuilderResult.getPerson())
+        .setFullUrl(FhirUtils.formatResource(pbr.getPerson()))
+        .setResource(pbr.getPerson())
         .getRequest()
-        .setUrl("Person/"+patientBuilderResult.getPerson().getIdElement().getIdPart())
-        .setMethod(patientBuilderResult.isPersonNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
+        .setUrl("Person")
+        .setMethod(pbr.isPersonNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
+
+    bundle.addEntry()
+        .setFullUrl(FhirUtils.formatResource(abr.getAnalysis()))
+        .setResource(abr.getAnalysis())
+        .getRequest()
+        .setUrl("ServiceRequest")
+        .setMethod(Bundle.HTTPVerb.POST);
+
+    bundle.addEntry()
+        .setFullUrl(FhirUtils.formatResource(sbr.getSequencing()))
+        .setResource(sbr.getSequencing())
+        .getRequest()
+        .setUrl("ServiceRequest")
+        .setMethod(Bundle.HTTPVerb.POST);
+
+    bundle.addEntry()
+        .setFullUrl(FhirUtils.formatResource(cbr.getClinicalImpression()))
+        .setResource(cbr.getClinicalImpression())
+        .getRequest()
+        .setUrl("ClinicalImpression")
+        .setMethod(Bundle.HTTPVerb.POST);
     
     for(Bundle.BundleEntryComponent entry : bundle.getEntry()) {
       log.info(entry.getRequest().getMethod() + " " + entry.getFullUrl());

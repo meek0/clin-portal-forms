@@ -1,7 +1,10 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
+import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.hl7.fhir.instance.model.api.IBase;
+import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -36,7 +39,7 @@ public class SubmitToFhirMapper {
   }
   
   public org.hl7.fhir.r4.model.Patient mapToPatient(Patient patient) {
-    final Reference epRef = new Reference("Organization/"+patient.getEp());
+    final Reference epRef = FhirUtils.toReference(new Organization().setId(patient.getEp()));
     final org.hl7.fhir.r4.model.Patient p = new org.hl7.fhir.r4.model.Patient();
     p.setId(UUID.randomUUID().toString());
     p.setManagingOrganization(epRef);
@@ -45,7 +48,7 @@ public class SubmitToFhirMapper {
   }
   
   public void updatePatient(Patient patient, org.hl7.fhir.r4.model.Patient res) {
-    final Reference epRef = new Reference("Organization/"+patient.getEp());
+    final Reference epRef = FhirUtils.toReference(new Organization().setId(patient.getEp()));
     res.setGender(mapToGender(patient.getGender()));
     updateIdentifier(res.getIdentifier(), SYSTEM_MRN, CODE_MRN, patient.getMrn(), epRef);
   }
@@ -56,11 +59,43 @@ public class SubmitToFhirMapper {
     person.setGender(mapToGender(patient.getGender()));
     person.getName().clear();
     person.addName().addGiven(patient.getFirstName()).setFamily(patient.getLastName());
-    final String linkedPatientRef = "Patient/"+new IdType(linkedPatient.getId()).getIdPart();
+    final String linkedPatientRef = FhirUtils.formatResource(linkedPatient);
     boolean isLinked = person.getLink().stream().anyMatch(l -> linkedPatientRef.equals(l.getTarget().getReference()));
     if(!isLinked){
       person.getLink().add(new Person.PersonLinkComponent(new Reference(linkedPatientRef)));
     }
+  }
+  
+  public ServiceRequest mapToAnalysis(org.hl7.fhir.r4.model.Patient patient, ClinicalImpression clinicalImpression) {
+    final ServiceRequest serviceRequest = new ServiceRequest();
+    serviceRequest.setId(UUID.randomUUID().toString());
+    serviceRequest.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
+    serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
+    serviceRequest.setSubject(FhirUtils.toReference(patient));
+    serviceRequest.setStatus(ServiceRequest.ServiceRequestStatus.ONHOLD);
+    serviceRequest.addSupportingInfo(FhirUtils.toReference(clinicalImpression));
+   // serviceRequest.addSupportingInfo(); // TODO add all clinical impression
+    return serviceRequest;
+  }
+
+  public ServiceRequest mapToSequencing(org.hl7.fhir.r4.model.Patient patient, ServiceRequest analysis) {
+    final ServiceRequest serviceRequest = new ServiceRequest();
+    serviceRequest.setId(UUID.randomUUID().toString());
+    serviceRequest.getMeta().addProfile(SEQUENCING_SERVICE_REQUEST);
+    serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
+    serviceRequest.setSubject(FhirUtils.toReference(patient));
+    serviceRequest.setStatus(ServiceRequest.ServiceRequestStatus.ONHOLD);
+    serviceRequest.addBasedOn(FhirUtils.toReference(analysis));
+    return serviceRequest;
+  }
+  
+  public ClinicalImpression mapToClinicalImpression(org.hl7.fhir.r4.model.Patient patient) {
+    final ClinicalImpression clinicalImpression = new ClinicalImpression();
+    clinicalImpression.setId(UUID.randomUUID().toString());
+    clinicalImpression.setSubject(FhirUtils.toReference(patient));
+    clinicalImpression.setStatus(ClinicalImpression.ClinicalImpressionStatus.COMPLETED);
+    // TODO add all observatinos
+    return clinicalImpression;
   }
   
   private void updateIdentifier(List<Identifier> identifiers, String system, String code, String value, Reference assigner){

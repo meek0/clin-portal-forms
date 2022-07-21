@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.Reference;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -40,7 +41,11 @@ public class FhirUtils {
     log.debug("JSON of {}\n{}", formatResource(resource), fhirClient.getContext().newJsonParser().setPrettyPrint(true).encodeResourceToString(resource));
   }
   
-  private static String formatResource(IBaseResource resource) {
+  public static String formatResource(IBaseResource resource) {
     return String.format("%s/%s", resource.fhirType(), resource.getIdElement().getIdPart());
+  }
+
+  public static Reference toReference(IBaseResource resource) {
+    return new Reference(formatResource(resource));
   }
 }

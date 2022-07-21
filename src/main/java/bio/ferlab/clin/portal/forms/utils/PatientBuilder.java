@@ -95,7 +95,7 @@ public class PatientBuilder {
     return this;
   }
   
-  public PatientBuilderResult build(){
+  public Result build(){
     
     Optional<Person> existingPerson = this.personByRamq.or(() -> this.personByMrn);
     Optional<Patient> existingPatient = this.patientByRamq.or(() -> this.patientByMrn);
@@ -109,12 +109,12 @@ public class PatientBuilder {
     // keep existing or create new person
     final Person newOrUpdatedPerson = existingPerson.orElse(mapper.mapToPerson(patient, newOrUpdatedPatient));
     
-    return new PatientBuilderResult(newOrUpdatedPatient, existingPatient.isEmpty(), newOrUpdatedPerson, existingPerson.isEmpty());
+    return new Result(newOrUpdatedPatient, existingPatient.isEmpty(), newOrUpdatedPerson, existingPerson.isEmpty());
   }
     
   @AllArgsConstructor
   @Getter
-  public static class PatientBuilderResult {
+  public static class Result {
     private final Patient patient;
     private final boolean isPatientNew;
     private final Person person;
