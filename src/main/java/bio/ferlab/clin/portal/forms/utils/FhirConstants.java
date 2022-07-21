@@ -10,4 +10,6 @@ public class FhirConstants {
   public static final String ANALYSIS_SERVICE_REQUEST = "http://fhir.cqgc.ferlab.bio/StructureDefinition/cqgc-analysis-request";
   public static final String SEQUENCING_SERVICE_REQUEST = "http://fhir.cqgc.ferlab.bio/StructureDefinition/cqgc-sequencing-request";
   public static final String OBSERVATION_PROFILE = "http://fhir.cqgc.ferlab.bio/StructureDefinition/cqgc-observation";
+
+  public static final String ANALYSIS_REQUEST_CODE = "http://fhir.cqgc.ferlab.bio/CodeSystem/analysis-request-code";
 }

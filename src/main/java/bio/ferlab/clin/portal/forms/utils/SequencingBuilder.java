@@ -10,11 +10,12 @@ import org.hl7.fhir.r4.model.ServiceRequest;
 public class SequencingBuilder {
   
   private final SubmitToFhirMapper mapper;
+  private final String panelCode;
   private final Patient patient;
   private final ServiceRequest analysis;
   
   public Result build() {
-    final ServiceRequest serviceRequest = mapper.mapToSequencing(patient, analysis);
+    final ServiceRequest serviceRequest = mapper.mapToSequencing(panelCode, patient, analysis);
     return new Result(serviceRequest);
   }
   

@@ -11,11 +11,12 @@ import org.hl7.fhir.r4.model.ServiceRequest;
 public class AnalysisBuilder {
   
   private final SubmitToFhirMapper mapper;
+  private final String panelCode;
   private final Patient patient;
   private ClinicalImpression clinicalImpression;
 
   public Result build() {
-    final ServiceRequest serviceRequest = mapper.mapToAnalysis(patient, clinicalImpression);
+    final ServiceRequest serviceRequest = mapper.mapToAnalysis(panelCode, patient, clinicalImpression);
     return new Result(serviceRequest);
   }
 

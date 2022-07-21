@@ -66,7 +66,7 @@ public class SubmitToFhirMapper {
     }
   }
   
-  public ServiceRequest mapToAnalysis(org.hl7.fhir.r4.model.Patient patient, ClinicalImpression clinicalImpression) {
+  public ServiceRequest mapToAnalysis(String panelCode, org.hl7.fhir.r4.model.Patient patient, ClinicalImpression clinicalImpression) {
     final ServiceRequest serviceRequest = new ServiceRequest();
     serviceRequest.setId(UUID.randomUUID().toString());
     serviceRequest.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
@@ -74,11 +74,11 @@ public class SubmitToFhirMapper {
     serviceRequest.setSubject(FhirUtils.toReference(patient));
     serviceRequest.setStatus(ServiceRequest.ServiceRequestStatus.ONHOLD);
     serviceRequest.addSupportingInfo(FhirUtils.toReference(clinicalImpression));
-   // serviceRequest.addSupportingInfo(); // TODO add all clinical impression
+    serviceRequest.setCode(new CodeableConcept().addCoding(new Coding().setSystem(ANALYSIS_REQUEST_CODE).setCode(panelCode)));
     return serviceRequest;
   }
 
-  public ServiceRequest mapToSequencing(org.hl7.fhir.r4.model.Patient patient, ServiceRequest analysis) {
+  public ServiceRequest mapToSequencing(String panelCode, org.hl7.fhir.r4.model.Patient patient, ServiceRequest analysis) {
     final ServiceRequest serviceRequest = new ServiceRequest();
     serviceRequest.setId(UUID.randomUUID().toString());
     serviceRequest.getMeta().addProfile(SEQUENCING_SERVICE_REQUEST);
@@ -86,6 +86,7 @@ public class SubmitToFhirMapper {
     serviceRequest.setSubject(FhirUtils.toReference(patient));
     serviceRequest.setStatus(ServiceRequest.ServiceRequestStatus.ONHOLD);
     serviceRequest.addBasedOn(FhirUtils.toReference(analysis));
+    serviceRequest.setCode(new CodeableConcept().addCoding(new Coding().setSystem(ANALYSIS_REQUEST_CODE).setCode(panelCode)));
     return serviceRequest;
   }
   

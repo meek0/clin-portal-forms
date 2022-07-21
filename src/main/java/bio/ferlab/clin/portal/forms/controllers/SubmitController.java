@@ -58,11 +58,11 @@ public class SubmitController {
     ClinicalImpressionBuilder.Result cbr = clinicalImpressionBuilder
         .build();
     
-    final AnalysisBuilder analysisBuilder = new AnalysisBuilder(mapper, pbr.getPatient(), cbr.getClinicalImpression());
+    final AnalysisBuilder analysisBuilder = new AnalysisBuilder(mapper, type, pbr.getPatient(), cbr.getClinicalImpression());
     AnalysisBuilder.Result abr = analysisBuilder
         .build();
 
-    final SequencingBuilder sequencingBuilder = new SequencingBuilder(mapper, pbr.getPatient(), abr.getAnalysis());
+    final SequencingBuilder sequencingBuilder = new SequencingBuilder(mapper, type, pbr.getPatient(), abr.getAnalysis());
     SequencingBuilder.Result sbr = sequencingBuilder
         .build();
     
@@ -79,14 +79,14 @@ public class SubmitController {
         .setFullUrl(FhirUtils.formatResource(pbr.getPatient()))
         .setResource(pbr.getPatient())
         .getRequest()
-        .setUrl("Patient")
+        .setUrl(FhirUtils.formatResource(pbr.getPatient())) // full url with ID required if PUT
         .setMethod(pbr.isPatientNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
 
     bundle.addEntry()
         .setFullUrl(FhirUtils.formatResource(pbr.getPerson()))
         .setResource(pbr.getPerson())
         .getRequest()
-        .setUrl("Person")
+        .setUrl(FhirUtils.formatResource(pbr.getPerson())) // full url with ID required if PUT
         .setMethod(pbr.isPersonNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
 
     bundle.addEntry()
