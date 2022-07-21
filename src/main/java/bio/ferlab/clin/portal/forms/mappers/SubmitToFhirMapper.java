@@ -11,9 +11,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConstants.*;
 
@@ -41,14 +39,14 @@ public class SubmitToFhirMapper {
     final Reference epRef = new Reference("Organization/"+patient.getEp());
     final org.hl7.fhir.r4.model.Patient p = new org.hl7.fhir.r4.model.Patient();
     p.setId(UUID.randomUUID().toString());
-    this.updatePatient(patient, p);
-    p.setGender(mapToGender(patient.getGender()));
     p.setManagingOrganization(epRef);
+    this.updatePatient(patient, p);
     return p;
   }
   
   public void updatePatient(Patient patient, org.hl7.fhir.r4.model.Patient res) {
     final Reference epRef = new Reference("Organization/"+patient.getEp());
+    res.setGender(mapToGender(patient.getGender()));
     updateIdentifier(res.getIdentifier(), SYSTEM_MRN, CODE_MRN, patient.getMrn(), epRef);
   }
   

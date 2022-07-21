@@ -74,7 +74,7 @@ public class ConfigController {
     
     // fetch data from FHIR
     Bundle response = this.fhirClient.getGenericClient().search().forResource(PractitionerRole.class)
-        .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).execute();
+        .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).encodedJson().execute();
 
     BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), response);
     List<PractitionerRole> practitionerRoles = bundleExtractor.getNextListOfResourcesOfType(PractitionerRole.class);
@@ -173,7 +173,7 @@ public class ConfigController {
             .setMethod(Bundle.HTTPVerb.GET);
       }
       
-      Bundle response = fhirClient.getGenericClient().transaction().withBundle(bundle).execute();
+      Bundle response = fhirClient.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
       BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), response);
 
       CodeSystem analyseCode = bundleExtractor.getNextResourcesOfType(CodeSystem.class);

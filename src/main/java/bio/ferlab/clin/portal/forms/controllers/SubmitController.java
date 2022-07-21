@@ -2,18 +2,15 @@ package bio.ferlab.clin.portal.forms.controllers;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
-import bio.ferlab.clin.portal.forms.models.config.Form;
-
 import bio.ferlab.clin.portal.forms.models.submit.Request;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
+import bio.ferlab.clin.portal.forms.utils.PatientBuilder;
 import ca.uhn.fhir.rest.api.MethodOutcome;
-import ca.uhn.fhir.rest.server.exceptions.PreconditionFailedException;
-import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
+import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +22,6 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static bio.ferlab.clin.portal.forms.utils.FhirConstants.*;
 
 @RestController
 @RequestMapping("/form")
@@ -49,120 +43,63 @@ public class SubmitController {
                                @PathVariable String type,
                                @Valid @RequestBody Request request) {
     /*
-    1- create/get Person
-    2- create/get Patient
+    1- create/get Person DONE
+    2- create/get Patient DONE
     3- create servicerequest analysis
     4- create servicerequest sequencing
+    5 - create specimen
     5 -create clinicalimpressoin 
     6 create obsetrvations X 
      */
     
-    this.handlePatient(request.getPatient());
+    final PatientBuilder patientBuilder = new PatientBuilder(fhirClient, mapper, request.getPatient());
+    PatientBuilder.PatientBuilderResult pbr = patientBuilder.
+      validateEp().
+      validateRamqAndMrn().
+      findByRamq().
+      findByMrn().
+      build();
     
-    return ResponseEntity.noContent().build();
+     submit(pbr);
+    
+    return ResponseEntity.status(HttpStatus.CREATED).build();
   }
   
-  private void handlePatient(bio.ferlab.clin.portal.forms.models.submit.Patient patient) {
-    var pairs = findByRamqOrMrn(patient.getEp(), patient.getRamq(), patient.getMrn());
-    this.createOrUpdate(patient, pairs.getLeft(), pairs.getRight());
-  }
-  
-  private Pair<Optional<Person>, Optional<Patient>> findByRamqOrMrn(String ep, String ramq, String mrn) {
-    
-    if (StringUtils.isAllBlank(ramq, mrn)) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ramq and patient.mrn can't be both null");
-    }
-    
-    Optional<Patient> patientWithMrn = Optional.empty();
-    Optional<Person> personWithMrn = Optional.empty();
-    
-    Optional<Patient> patientWithRamq = Optional.empty();
-    Optional<Person> personWithRamq = Optional.empty();
-    
-    if(StringUtils.isNotBlank(ramq)) {
-      Bundle bundle = this.fhirClient.getGenericClient().search()
-          .forResource(Person.class)
-          .where(Person.IDENTIFIER.exactly().code(ramq))
-          .include(Person.INCLUDE_PATIENT)
-          .returnBundle(Bundle.class)
-          .execute();
-
-      BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
-      final Person person = bundleExtractor.getNextResourcesOfType(Person.class);
-      final List<Patient> patients = bundleExtractor.getAllResourcesOfType(Patient.class);
-      final Optional<Patient> patient = patients.stream().filter(p -> p.getManagingOrganization()
-          .getReference().equals("Organization/"+ep)).findFirst();
-      
-      personWithRamq = Optional.ofNullable(person);
-      patientWithRamq = patient;
-    } 
-    
-    if(StringUtils.isNotBlank(mrn)) {
-      Bundle bundle = this.fhirClient.getGenericClient().search()
-          .forResource(Patient.class)
-          .where(Patient.IDENTIFIER.exactly().code(mrn))
-          .and(Patient.ORGANIZATION.hasId(ep))
-          .revInclude(Person.INCLUDE_PATIENT)
-          .returnBundle(Bundle.class)
-          .execute();
-
-      BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
-      final Patient patient = bundleExtractor.getNextResourcesOfType(Patient.class);
-      final Person person = bundleExtractor.getNextResourcesOfType(Person.class);
-
-      personWithMrn = Optional.ofNullable(person);
-      patientWithMrn = Optional.ofNullable(patient);;
-    }
-
-    Optional<Person> finalPersonWithMrn = personWithMrn;
-    Optional<Patient> finalPatientWithMrn = patientWithMrn;
-    return Pair.of(personWithRamq.or(() -> finalPersonWithMrn), patientWithRamq.or(() -> finalPatientWithMrn));
-  }
-  
-  private void createOrUpdate(bio.ferlab.clin.portal.forms.models.submit.Patient patient, Optional<Person> existingPerson, Optional<Patient> existingPatient) {
-    // update existing patient
-    existingPatient.ifPresent(p -> mapper.updatePatient(patient, p));
-    // keep existing or create new patient
-    final Patient newOrUpdatedPatient = existingPatient.orElse(mapper.mapToPatient(patient));
-    // update existing person
-    existingPerson.ifPresent(p -> mapper.updatePerson(patient, p, newOrUpdatedPatient));
-    // keep existing or create new person
-    final Person newOrUpdatedPerson = existingPerson.orElse(mapper.mapToPerson(patient, newOrUpdatedPatient));
-
+  private void submit(PatientBuilder.PatientBuilderResult patientBuilderResult) {
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.TRANSACTION);
 
     bundle.addEntry()
-        .setFullUrl("Patient/"+newOrUpdatedPatient.getIdElement().getIdPart())
-        .setResource(newOrUpdatedPatient)
+        .setFullUrl("Patient/"+patientBuilderResult.getPatient().getIdElement().getIdPart())
+        .setResource(patientBuilderResult.getPatient())
         .getRequest()
-        .setUrl("Patient/"+newOrUpdatedPatient.getIdElement().getIdPart())
-        .setMethod(existingPatient.isPresent() ? Bundle.HTTPVerb.PUT: Bundle.HTTPVerb.POST);
+        .setUrl("Patient/"+patientBuilderResult.getPatient().getIdElement().getIdPart())
+        .setMethod(patientBuilderResult.isPatientNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
 
     bundle.addEntry()
-        .setFullUrl("Person/"+newOrUpdatedPerson.getIdElement().getIdPart())
-        .setResource(newOrUpdatedPerson)
+        .setFullUrl("Person/"+patientBuilderResult.getPerson().getIdElement().getIdPart())
+        .setResource(patientBuilderResult.getPerson())
         .getRequest()
-        .setUrl("Person/"+newOrUpdatedPerson.getIdElement().getIdPart())
-        .setMethod(existingPerson.isPresent() ? Bundle.HTTPVerb.PUT: Bundle.HTTPVerb.POST);
-    
-    log.debug(bundle.getEntry().get(0).getRequest().getMethod() + " " + bundle.getEntry().get(0).getFullUrl());
-    log.debug(bundle.getEntry().get(1).getRequest().getMethod() + " " + bundle.getEntry().get(1).getFullUrl());
+        .setUrl("Person/"+patientBuilderResult.getPerson().getIdElement().getIdPart())
+        .setMethod(patientBuilderResult.isPersonNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
+
+    log.info(bundle.getEntry().get(0).getRequest().getMethod() + " " + bundle.getEntry().get(0).getFullUrl());
+    log.info(bundle.getEntry().get(1).getRequest().getMethod() + " " + bundle.getEntry().get(1).getFullUrl());
 
     log.debug("\n" + fhirClient.getContext().newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle));
-    
+
     List<String> bundleErrors = this.validateResource(bundle);
     if(!bundleErrors.isEmpty()) {
       throw new RuntimeException("Failed to validate form bundle:\n" + StringUtils.join(bundleErrors, "\n"));
     }
-    
-    Bundle response = this.fhirClient.getGenericClient().transaction().withBundle(bundle).execute();
+
+    Bundle response = this.fhirClient.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
     log.debug("\n" + fhirClient.getContext().newJsonParser().setPrettyPrint(true).encodeResourceToString(response));
   }
   
   private List<String> validateResource(Resource resource) {
     List<String> errors = new ArrayList<>();
-    MethodOutcome outcome = fhirClient.getGenericClient().validate().resource(resource).execute();
+    MethodOutcome outcome = fhirClient.getGenericClient().validate().resource(resource).encodedJson().execute();
     OperationOutcome oo = (OperationOutcome) outcome.getOperationOutcome();
     for (OperationOutcome.OperationOutcomeIssueComponent nextIssue : oo.getIssue()) {
       if (EnumSet.of(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueSeverity.FATAL).contains(nextIssue.getSeverity())) {
