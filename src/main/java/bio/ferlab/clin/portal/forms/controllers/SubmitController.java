@@ -4,24 +4,15 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.submit.Request;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
-import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
+import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import bio.ferlab.clin.portal.forms.utils.PatientBuilder;
-import ca.uhn.fhir.rest.api.MethodOutcome;
-import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r4.model.Bundle;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/form")
@@ -82,31 +73,17 @@ public class SubmitController {
         .getRequest()
         .setUrl("Person/"+patientBuilderResult.getPerson().getIdElement().getIdPart())
         .setMethod(patientBuilderResult.isPersonNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
-
-    log.info(bundle.getEntry().get(0).getRequest().getMethod() + " " + bundle.getEntry().get(0).getFullUrl());
-    log.info(bundle.getEntry().get(1).getRequest().getMethod() + " " + bundle.getEntry().get(1).getFullUrl());
-
-    log.debug("\n" + fhirClient.getContext().newJsonParser().setPrettyPrint(true).encodeResourceToString(bundle));
-
-    List<String> bundleErrors = this.validateResource(bundle);
-    if(!bundleErrors.isEmpty()) {
-      throw new RuntimeException("Failed to validate form bundle:\n" + StringUtils.join(bundleErrors, "\n"));
+    
+    for(Bundle.BundleEntryComponent entry : bundle.getEntry()) {
+      log.info(entry.getRequest().getMethod() + " " + entry.getFullUrl());
     }
 
+    FhirUtils.logDebug(fhirClient, bundle);
+    
+    FhirUtils.validate(fhirClient, bundle);
+    
     Bundle response = this.fhirClient.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
-    log.debug("\n" + fhirClient.getContext().newJsonParser().setPrettyPrint(true).encodeResourceToString(response));
+    FhirUtils.logDebug(fhirClient, response);
   }
   
-  private List<String> validateResource(Resource resource) {
-    List<String> errors = new ArrayList<>();
-    MethodOutcome outcome = fhirClient.getGenericClient().validate().resource(resource).encodedJson().execute();
-    OperationOutcome oo = (OperationOutcome) outcome.getOperationOutcome();
-    for (OperationOutcome.OperationOutcomeIssueComponent nextIssue : oo.getIssue()) {
-      if (EnumSet.of(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueSeverity.FATAL).contains(nextIssue.getSeverity())) {
-        errors.add(nextIssue.getDiagnostics());
-      }
-    }
-    return errors;
-  }
-
 }
