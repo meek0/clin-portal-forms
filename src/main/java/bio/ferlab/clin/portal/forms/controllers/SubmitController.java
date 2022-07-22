@@ -2,12 +2,15 @@ package bio.ferlab.clin.portal.forms.controllers;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
+import bio.ferlab.clin.portal.forms.models.builders.AnalysisBuilder;
+import bio.ferlab.clin.portal.forms.models.builders.ClinicalImpressionBuilder;
+import bio.ferlab.clin.portal.forms.models.builders.PatientBuilder;
+import bio.ferlab.clin.portal.forms.models.builders.SequencingBuilder;
 import bio.ferlab.clin.portal.forms.models.submit.Request;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
-import bio.ferlab.clin.portal.forms.utils.*;
+import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.IdType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -114,12 +117,12 @@ public class SubmitController {
       log.info(entry.getRequest().getMethod() + " " + entry.getFullUrl());
     }
 
-    FhirUtils.logDebug(fhirClient, bundle);
+    fhirClient.logDebug(bundle);
     
-    FhirUtils.validate(fhirClient, bundle);
+    fhirClient.validate(bundle);
     
     Bundle response = this.fhirClient.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
-    FhirUtils.logDebug(fhirClient, response);
+    fhirClient.logDebug(response);
   }
   
 }

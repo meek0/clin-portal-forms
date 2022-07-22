@@ -3,8 +3,6 @@ package bio.ferlab.clin.portal.forms.mappers;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hl7.fhir.instance.model.api.IBase;
-import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;

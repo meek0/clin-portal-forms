@@ -1,7 +1,9 @@
-package bio.ferlab.clin.portal.forms.utils;
+package bio.ferlab.clin.portal.forms.models.builders;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
+import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
+import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -66,7 +68,7 @@ public class PatientBuilder {
       final Person person = bundleExtractor.getNextResourcesOfType(Person.class);
       final List<Patient> patients = bundleExtractor.getAllResourcesOfType(Patient.class);
       final Optional<Patient> patient = patients.stream().filter(p -> p.getManagingOrganization()
-          .getReference().equals("Organization/"+this.patient.getEp())).findFirst();
+          .getReference().equals(FhirUtils.formatResource(new Organization().setId(this.patient.getEp())))).findFirst();
 
       this.personByRamq = Optional.ofNullable(person);
       this.patientByRamq = patient;
