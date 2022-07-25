@@ -1,8 +1,9 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
+import bio.ferlab.clin.portal.forms.models.submit.Analyse;
+import bio.ferlab.clin.portal.forms.models.submit.ClinicalSign;
 import bio.ferlab.clin.portal.forms.models.submit.Exam;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
-import bio.ferlab.clin.portal.forms.models.submit.Phenotype;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
@@ -14,7 +15,10 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConstants.*;
@@ -88,7 +92,7 @@ public class SubmitToFhirMapper {
     serviceRequest.setAuthoredOn(new Date());
     serviceRequest.setRequester(FhirUtils.toReference(practitionerRole));
     String sanitizedComment = StringUtils.isNotBlank(comment) ? comment : "";
-    serviceRequest.addNote(new Annotation().setText(sanitizedComment).setTime(new Date()).setAuthor(new StringType(FhirUtils.formatResource(practitionerRole))));
+    serviceRequest.addNote(new Annotation().setText(sanitizedComment).setTime(new Date()).setAuthor(practitionerRole.getPractitioner()));
     if (StringUtils.isNotBlank(orderDetails)) {
       serviceRequest.addOrderDetail(new CodeableConcept().setText(orderDetails));
     }
@@ -125,26 +129,24 @@ public class SubmitToFhirMapper {
   
   public List<Observation> mapToObservations(String panelCode,
                                              org.hl7.fhir.r4.model.Patient patient,
-                                             List<Phenotype> phenotypes,
-                                             String observation,
+                                             Analyse analyse,
+                                             List<ClinicalSign> clinicalSigns,
                                              List<Exam> exams,
-                                             String investigation,
-                                             String ethnicity,
-                                             String indication) {
+                                             String ethnicity) {
     
     List<Observation> all = new ArrayList<>();
 
     Observation dsta = createObservation(patient, "DSTA", "exam",true, ANALYSIS_REQUEST_CODE, panelCode);
     all.add(dsta);
 
-    all.addAll(phenotypes.stream().map(o -> {
+    all.addAll(clinicalSigns.stream().map(o -> {
       Observation obs = createObservation(patient, "PHEN", "exam",o.getIsObserved(), HP_CODE, o.getValue());
       obs.addExtension(AGE_AT_ONSET_EXT,  new Coding().setCode(o.getAgeCode()));
       return obs;
     }).collect(Collectors.toList()));
     
-    if(StringUtils.isNotBlank(observation)) {
-      Observation obsg = createObservation(patient, "OBSG", "exam",null, null, observation);
+    if(StringUtils.isNotBlank(analyse.getObservation())) {
+      Observation obsg = createObservation(patient, "OBSG", "exam",null, null, analyse.getObservation());
       all.add(obsg);
     }
 
@@ -157,8 +159,8 @@ public class SubmitToFhirMapper {
       return obs;
     }).collect(Collectors.toList()));
 
-    if(StringUtils.isNotBlank(observation)) {
-      Observation obsg = createObservation(patient, "INVES", "exam", null, null, investigation);
+    if(StringUtils.isNotBlank(analyse.getInvestigation())) {
+      Observation obsg = createObservation(patient, "INVES", "exam", null, null, analyse.getInvestigation());
       all.add(obsg);
     }
     
@@ -167,7 +169,7 @@ public class SubmitToFhirMapper {
       all.add(obsg);
     }
 
-    Observation indic = createObservation(patient, "INDIC", "exam",null, null, indication);
+    Observation indic = createObservation(patient, "INDIC", "exam",null, null, analyse.getIndication());
     all.add(indic);
     
     return all;

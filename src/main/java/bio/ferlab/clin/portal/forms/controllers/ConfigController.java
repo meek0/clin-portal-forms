@@ -45,13 +45,13 @@ public class ConfigController {
   private static final String CACHE_HP_BY_TYPE_KEY = "-hp";
   private static final String CACHE_OBS_BY_TYPE = "-observation";
   private static final String CACHE_MULTI_VALUES = "-multi-values";
-  
+
   private final FhirConfiguration fhirConfiguration;
   private final FhirClient fhirClient;
   private final LocaleService localeService;
   private final FhirToConfigMapper fhirToConfigMapper;
   private final Cache cache;
-  
+
   public ConfigController(FhirConfiguration fhirConfiguration,
                           FhirClient fhirClient,
                           LocaleService localeService,
@@ -63,6 +63,7 @@ public class ConfigController {
     this.fhirToConfigMapper = fhirToConfigMapper;
     this.cache = cacheManager.getCache(CacheConfiguration.CACHE_NAME);
   }
+
 
   @GetMapping("/{panelCode}")
   public Form config(@RequestHeader String authorization,

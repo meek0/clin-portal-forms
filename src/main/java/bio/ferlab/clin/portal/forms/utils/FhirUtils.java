@@ -12,4 +12,5 @@ public class FhirUtils {
   public static Reference toReference(IBaseResource resource) {
     return new Reference(formatResource(resource));
   }
+  
 }

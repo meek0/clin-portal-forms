@@ -5,6 +5,8 @@ fhir:
   url: ${FHIR_URL:https://fhir.qa.cqgc.hsj.rtss.qc.ca/fhir}
   timeout: 15000
   pool-size: 20
+  supported-langs:
+    - fr
   types-with-default: # will load <type>-default-hpo <type>-default-exam 
     - mmg
   multi-values-observation-codes: # will load <code>-abnormalities

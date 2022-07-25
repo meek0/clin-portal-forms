@@ -1,7 +1,6 @@
 package bio.ferlab.clin.portal.forms.models.submit;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -14,4 +13,10 @@ public class Analyse {
   @NotNull
   private String panelCode;
   private Boolean isReflex;
+  private String observation;
+  private String investigation;
+  @NotNull
+  private String indication;
+  private String comment;
+  private String residentSupervisor;
 }

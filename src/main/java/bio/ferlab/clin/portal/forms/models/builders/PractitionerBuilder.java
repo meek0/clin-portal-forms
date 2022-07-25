@@ -1,6 +1,7 @@
 package bio.ferlab.clin.portal.forms.models.builders;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
+import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
@@ -21,7 +22,7 @@ public class PractitionerBuilder {
   
   private final FhirClient fhirClient;
   private final String practitionerId;
-  private final String ep;
+  private final Patient patient;
   
   private PractitionerRole supervisorRole;
   
@@ -33,7 +34,6 @@ public class PractitionerBuilder {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "supervisor " + supervisor + " is unknown");
       }
     }
-
     return this;
   }
   
@@ -44,9 +44,9 @@ public class PractitionerBuilder {
     BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), response);
     List<PractitionerRole> practitionerRoles = bundleExtractor.getNextListOfResourcesOfType(PractitionerRole.class);
     
-    final String orgRef = FhirUtils.formatResource(new Organization().setId(ep));
+    final String orgRef = FhirUtils.formatResource(new Organization().setId(patient.getEp()));
     PractitionerRole role = practitionerRoles.stream().filter(r -> orgRef.equals(r.getOrganization().getReference())).findFirst()
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("can't find role for practitioner %s in ep %s", practitionerId, ep)));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("can't find role for practitioner %s in ep %s", practitionerId, patient.getEp())));
     
     return new Result(role, supervisorRole);
   }

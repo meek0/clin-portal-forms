@@ -42,8 +42,7 @@ public class FhirToConfigMapper {
   }
 
   public List<ValueName> mapToOnsetAge(ValueSet age, String lang) {
-    return age.getCompose().getIncludeFirstRep().getConcept().stream()
-        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+    return extractValuesByLang(age, lang);
   }
 
   public List<ValueName> mapToParentalLinks(CodeSystem links, String lang) {
@@ -79,12 +78,15 @@ public class FhirToConfigMapper {
   private Extra buildExtra(String code, String lang, List<ValueSet> multiValues) {
     Optional<ValueSet> byCode = multiValues.stream().filter(vs -> (code + ConfigController.ABNORMALITIES).equalsIgnoreCase(vs.getName())).findFirst();
     if(byCode.isPresent()) {
-      final List<ValueName> values = byCode.get().getCompose().getIncludeFirstRep().getConcept().stream()
-          .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
-      return Extra.builder().type(ExtraType.multi_select).options(values).build();
+      return Extra.builder().type(ExtraType.multi_select).options(extractValuesByLang(byCode.get(), lang)).build();
     } else {
       return Extra.builder().type(ExtraType.string).build();
     }
+  }
+  
+  private List<ValueName> extractValuesByLang(ValueSet valueSet, String lang) {
+    return valueSet.getCompose().getIncludeFirstRep().getConcept().stream()
+        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
   }
   
   private String getDisplayForLang(ValueSet.ConceptReferenceComponent concept, String lang) {

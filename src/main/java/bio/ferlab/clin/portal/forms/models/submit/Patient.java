@@ -2,7 +2,6 @@ package bio.ferlab.clin.portal.forms.models.submit;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -26,4 +25,5 @@ public class Patient {
   private LocalDate birthDate;
   @NotNull
   private String gender;
+  private String ethnicity;
 }

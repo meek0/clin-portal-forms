@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,22 +17,7 @@ public class Request {
   @Valid
   private Patient patient = new Patient();
   @Valid
-  private List<Phenotype> phenotypes = new ArrayList<>();
-  
-  private String observation;
-
+  private List<ClinicalSign> clinicalSigns = new ArrayList<>();
   @Valid
-  private List<Exam> exams = new ArrayList<>();
-  
-  private String investigation;
-  
-  private String ethnicity;
-  
-  @NotNull
-  private String indication;
-  
-  private String comment;
-  
-  private String residentSupervisor;
-  
+  private List<Exam> paraclinicalExams = new ArrayList<>();
 }

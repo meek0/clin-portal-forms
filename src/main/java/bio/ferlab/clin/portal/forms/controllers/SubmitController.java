@@ -4,9 +4,9 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.builders.*;
 import bio.ferlab.clin.portal.forms.models.submit.Request;
-import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import bio.ferlab.clin.portal.forms.utils.JwtUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
 import org.springframework.http.HttpStatus;
@@ -17,18 +17,12 @@ import javax.validation.Valid;
 
 @RestController
 @RequestMapping("/form")
+@RequiredArgsConstructor
 @Slf4j
 public class SubmitController {
 
   private final FhirClient fhirClient;
   private final SubmitToFhirMapper mapper;
-  private final LocaleService localeService;
-  
-  public SubmitController(FhirClient fhirClient, SubmitToFhirMapper mapper, LocaleService localeService) {
-    this.fhirClient = fhirClient;
-    this.mapper = mapper;
-    this.localeService = localeService;
-  }
 
   @PostMapping
   public ResponseEntity<String> submit(@RequestHeader String authorization,
@@ -37,7 +31,6 @@ public class SubmitController {
     // The following code is for SOLO only
 
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
-    
     final String panelCode = request.getAnalyse().getPanelCode();
  
     final PatientBuilder patientBuilder = new PatientBuilder(fhirClient, mapper, request.getPatient());
@@ -48,15 +41,13 @@ public class SubmitController {
         .findByMrn()
         .build();
     
-    final PractitionerBuilder practitionerBuilder = new PractitionerBuilder(fhirClient, practitionerId, request.getPatient().getEp());
+    final PractitionerBuilder practitionerBuilder = new PractitionerBuilder(fhirClient, practitionerId, request.getPatient());
     PractitionerBuilder.Result roleBr = practitionerBuilder
-        .withSupervisor(request.getResidentSupervisor())
+        .withSupervisor(request.getAnalyse().getResidentSupervisor())
         .build();
     
-    final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, request.getAnalyse().getPanelCode(), pbr.getPatient(),
-        request.getPhenotypes(), request.getObservation(), 
-        request.getExams(), request.getInvestigation(),
-        request.getEthnicity(), request.getIndication());
+    final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, panelCode, pbr.getPatient(), request.getAnalyse(),
+        request.getClinicalSigns(), request.getParaclinicalExams(), request.getPatient().getEthnicity());
     ObservationsBuilder.Result obr = observationsBuilder
         .build();
 
@@ -65,8 +56,8 @@ public class SubmitController {
     ClinicalImpressionBuilder.Result cbr = clinicalImpressionBuilder
         .build();
     
-    final AnalysisBuilder analysisBuilder = new AnalysisBuilder(fhirClient, mapper, panelCode, 
-        pbr.getPatient(), cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getComment());
+    final AnalysisBuilder analysisBuilder = new AnalysisBuilder(fhirClient, mapper, panelCode, pbr.getPatient(), 
+        cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getAnalyse().getComment());
     AnalysisBuilder.Result abr = analysisBuilder
         .withReflex(request.getAnalyse().getIsReflex())
         .build();
