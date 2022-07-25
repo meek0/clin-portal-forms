@@ -1,5 +1,8 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
+import bio.ferlab.clin.portal.forms.controllers.ConfigController;
+import bio.ferlab.clin.portal.forms.models.config.Extra;
+import bio.ferlab.clin.portal.forms.models.config.ExtraType;
 import bio.ferlab.clin.portal.forms.models.config.ValueName;
 import bio.ferlab.clin.portal.forms.models.config.ValueNameExtra;
 import org.hl7.fhir.r4.model.CodeSystem;
@@ -8,6 +11,7 @@ import org.hl7.fhir.r4.model.ValueSet;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -52,14 +56,35 @@ public class FhirToConfigMapper {
         .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
   }
 
-  public List<ValueNameExtra> mapToParaclinicalExams(CodeSystem observation, String lang) {
+  public List<ValueNameExtra> mapToParaclinicalExams(CodeSystem observation, String lang, List<ValueSet> multiValues) {
     return observation.getConcept().stream()
-        .map(c -> ValueNameExtra.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+        .map(c -> ValueNameExtra.builder()
+            .name(getDisplayForLang(c, lang))
+            .value(c.getCode())
+            .extra(buildExtra(c.getCode(), lang, multiValues))
+            .build())
+        .collect(Collectors.toList());
   }
 
-  public List<ValueNameExtra> mapToParaclinicalExams(ValueSet observation, String lang) {
+  public List<ValueNameExtra> mapToParaclinicalExams(ValueSet observation, String lang, List<ValueSet> multiValues) {
     return observation.getCompose().getIncludeFirstRep().getConcept().stream()
-        .map(c -> ValueNameExtra.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+        .map(c -> ValueNameExtra.builder()
+            .name(getDisplayForLang(c, lang))
+            .value(c.getCode())
+            .extra(buildExtra(c.getCode(), lang, multiValues))
+            .build())
+        .collect(Collectors.toList());
+  }
+  
+  private Extra buildExtra(String code, String lang, List<ValueSet> multiValues) {
+    Optional<ValueSet> byCode = multiValues.stream().filter(vs -> (code + ConfigController.ABNORMALITIES).equalsIgnoreCase(vs.getName())).findFirst();
+    if(byCode.isPresent()) {
+      final List<ValueName> values = byCode.get().getCompose().getIncludeFirstRep().getConcept().stream()
+          .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+      return Extra.builder().type(ExtraType.multi_select).options(values).build();
+    } else {
+      return Extra.builder().type(ExtraType.string).build();
+    }
   }
   
   private String getDisplayForLang(ValueSet.ConceptReferenceComponent concept, String lang) {

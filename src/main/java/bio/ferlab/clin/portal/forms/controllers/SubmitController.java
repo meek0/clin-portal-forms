@@ -31,19 +31,11 @@ public class SubmitController {
 
   @PostMapping
   public ResponseEntity<String> submit(@Valid @RequestBody Request request) {
-    /*
-    1- create/get Person DONE
-    2- create/get Patient DONE
-    3- create servicerequest analysis
-    4- create servicerequest sequencing
-    5 - create specimen
-    5 -create clinicalimpressoin 
-    6 create obsetrvations X 
-     */
+  
+    // The following code is for SOLO only
     
     final String panelCode = request.getAnalyse().getPanelCode();
-    
-    // the following is for SOLO only
+ 
     final PatientBuilder patientBuilder = new PatientBuilder(fhirClient, mapper, request.getPatient());
     PatientBuilder.Result pbr = patientBuilder
         .validateEp()
@@ -52,20 +44,25 @@ public class SubmitController {
         .findByMrn()
         .build();
     
-    final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, request.getAnalyse().getPanelCode(), request.getPhenotypes(), request.getObservation(), request.getExams(), request.getInvestigation());
+    final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, request.getAnalyse().getPanelCode(), 
+        request.getPhenotypes(), request.getObservation(), 
+        request.getExams(), request.getInvestigation());
     ObservationsBuilder.Result obr = observationsBuilder
         .build();
 
-    final ClinicalImpressionBuilder clinicalImpressionBuilder = new ClinicalImpressionBuilder(mapper, pbr.getPerson(), pbr.getPatient(), obr.getObservations());
+    final ClinicalImpressionBuilder clinicalImpressionBuilder = new ClinicalImpressionBuilder(mapper, 
+        pbr.getPerson(), pbr.getPatient(), obr.getObservations());
     ClinicalImpressionBuilder.Result cbr = clinicalImpressionBuilder
         .build();
     
-    final AnalysisBuilder analysisBuilder = new AnalysisBuilder(fhirClient, mapper, panelCode, pbr.getPatient(), cbr.getClinicalImpression());
+    final AnalysisBuilder analysisBuilder = new AnalysisBuilder(fhirClient, mapper, panelCode, 
+        pbr.getPatient(), cbr.getClinicalImpression());
     AnalysisBuilder.Result abr = analysisBuilder
         .withReflex(request.getAnalyse().getIsReflex())
         .build();
 
-    final SequencingBuilder sequencingBuilder = new SequencingBuilder(mapper, panelCode, pbr.getPatient(), abr.getAnalysis());
+    final SequencingBuilder sequencingBuilder = new SequencingBuilder(mapper, panelCode, 
+        pbr.getPatient(), abr.getAnalysis());
     SequencingBuilder.Result sbr = sequencingBuilder
         .build();
     

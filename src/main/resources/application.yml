@@ -7,6 +7,9 @@ fhir:
   pool-size: 20
   types-with-default: # will load <type>-default-hpo <type>-default-exam 
     - mmg
+  multi-values-observation-codes: # will load <code>-abnormalities
+    - bmus
+    - emg
 cache:
   eviction: 3600000 # 1h
 management:

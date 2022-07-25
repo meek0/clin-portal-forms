@@ -14,7 +14,6 @@ import java.util.List;
 @Builder
 public class Extra {
   
-  private String key;
   private ExtraType type;
   private List<ValueName> options = new ArrayList<>();
 }

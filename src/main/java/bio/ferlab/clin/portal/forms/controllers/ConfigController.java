@@ -30,9 +30,10 @@ import java.util.stream.Collectors;
 @RequestMapping("/form")
 @Slf4j
 public class ConfigController {
-  
-  private static final String DEFAULT_HPO = "-default-hpo";
-  private static final String DEFAULT_EXAM = "-default-exam";
+
+  public static final String DEFAULT_HPO = "-default-hpo";
+  public static final String DEFAULT_EXAM = "-default-exam";
+  public static final String ABNORMALITIES = "-abnormalities";
 
   private static final String CACHE_INIT_KEY = "init";
   private static final String CACHE_ANALYSE_KEY = "analyse";
@@ -43,6 +44,7 @@ public class ConfigController {
   private static final String CACHE_AGE_KEY = "age";
   private static final String CACHE_HP_BY_TYPE_KEY = "-hp";
   private static final String CACHE_OBS_BY_TYPE = "-observation";
+  private static final String CACHE_MULTI_VALUES = "-multi-values";
   
   private final FhirConfiguration fhirConfiguration;
   private final FhirClient fhirClient;
@@ -100,19 +102,20 @@ public class ConfigController {
     form.getConfig().getHistoryAndDiagnosis().getEthnicities().addAll(fhirToConfigMapper.mapToEthnicities(ethnicity, lang));
     
     // use form default or generic values
-    final String formType = panelCode.toLowerCase();
     final List<ValueSet> hpByTypes = fhirConfiguration.getTypesWithDefault().stream()
         .map(t -> (ValueSet) codesAndValues.get(t + CACHE_HP_BY_TYPE_KEY)).collect(Collectors.toList());
     final List<ValueSet> obsByTypes = fhirConfiguration.getTypesWithDefault().stream()
         .map(t -> (ValueSet) codesAndValues.get(t + CACHE_OBS_BY_TYPE)).collect(Collectors.toList());
-    this.applyFormHpByTypeOrDefault(formType, form, hp, hpByTypes);
-    this.applyFormObservationByTypeOrDefault(formType, form, lang, observation, obsByTypes);
+    final List<ValueSet> multiValues = fhirConfiguration.getMultiValuesObservationCodes().stream()
+        .map(t -> (ValueSet) codesAndValues.get(t + CACHE_MULTI_VALUES)).collect(Collectors.toList());
+    this.applyFormHpByTypeOrDefault(panelCode, form, hp, hpByTypes);
+    this.applyFormObservationByTypeOrDefault(panelCode, form, lang, observation, obsByTypes, multiValues);
     
     return form;
   }
   
   private void applyFormHpByTypeOrDefault(String formType, Form form, CodeSystem all, List<ValueSet> byTypes) {
-    Optional<ValueSet> byType = byTypes.stream().filter(vs -> (formType + DEFAULT_HPO).equals(vs.getName())).findFirst();
+    Optional<ValueSet> byType = byTypes.stream().filter(vs -> (formType + DEFAULT_HPO).equalsIgnoreCase(vs.getName())).findFirst();
     if (byType.isPresent()) {
       form.getConfig().getClinicalSigns().getDefaultList().addAll(fhirToConfigMapper.mapToClinicalSigns(byType.get()));
     } else {
@@ -120,12 +123,12 @@ public class ConfigController {
     }
   }
 
-  private void applyFormObservationByTypeOrDefault(String formType, Form form, String lang, CodeSystem all, List<ValueSet> byTypes) {
-    Optional<ValueSet> byType = byTypes.stream().filter(vs -> (formType + DEFAULT_EXAM).equals(vs.getName())).findFirst();
+  private void applyFormObservationByTypeOrDefault(String formType, Form form, String lang, CodeSystem all, List<ValueSet> byTypes, List<ValueSet> multiValues) {
+    Optional<ValueSet> byType = byTypes.stream().filter(vs -> (formType + DEFAULT_EXAM).equalsIgnoreCase(vs.getName())).findFirst();
     if (byType.isPresent()) {
-      form.getConfig().getParaclinicalExams().getDefaultList().addAll(fhirToConfigMapper.mapToParaclinicalExams(byType.get(), lang));
+      form.getConfig().getParaclinicalExams().getDefaultList().addAll(fhirToConfigMapper.mapToParaclinicalExams(byType.get(), lang, multiValues));
     } else {
-      form.getConfig().getParaclinicalExams().getDefaultList().addAll(fhirToConfigMapper.mapToParaclinicalExams(all, lang));
+      form.getConfig().getParaclinicalExams().getDefaultList().addAll(fhirToConfigMapper.mapToParaclinicalExams(all, lang, multiValues));
     }
   }
   
@@ -172,6 +175,12 @@ public class ConfigController {
             .setUrl("ValueSet/" + byType + DEFAULT_EXAM)
             .setMethod(Bundle.HTTPVerb.GET);
       }
+
+      for(String byType: fhirConfiguration.getMultiValuesObservationCodes()) {
+        bundle.addEntry().getRequest()
+            .setUrl("ValueSet/" + byType + ABNORMALITIES)
+            .setMethod(Bundle.HTTPVerb.GET);
+      }
       
       Bundle response = fhirClient.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
       BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), response);
@@ -197,6 +206,11 @@ public class ConfigController {
         cache.putIfAbsent(byType + CACHE_HP_BY_TYPE_KEY, hpByType);
         cache.putIfAbsent(byType + CACHE_OBS_BY_TYPE, obsByType);
       }
+
+      for(String byType: fhirConfiguration.getMultiValuesObservationCodes()) {
+        ValueSet abnormality = bundleExtractor.getNextResourcesOfType(ValueSet.class);
+        cache.putIfAbsent(byType + CACHE_MULTI_VALUES, abnormality);
+      }
     }
 
     // don't try to get the cache values out of synchronized because they could be evicted
@@ -211,6 +225,10 @@ public class ConfigController {
     for(String byType: fhirConfiguration.getTypesWithDefault()) {
       codesAndValues.put(byType + CACHE_HP_BY_TYPE_KEY, cache.get(byType + CACHE_HP_BY_TYPE_KEY, ValueSet.class));
       codesAndValues.put(byType + CACHE_OBS_BY_TYPE, cache.get(byType + CACHE_OBS_BY_TYPE, ValueSet.class));
+    }
+
+    for(String byType: fhirConfiguration.getMultiValuesObservationCodes()) {
+      codesAndValues.put(byType + CACHE_MULTI_VALUES, cache.get(byType + CACHE_MULTI_VALUES, ValueSet.class));
     }
     
     return codesAndValues;
@@ -229,6 +247,10 @@ public class ConfigController {
     for(String byType: fhirConfiguration.getTypesWithDefault()) {
       cache.evictIfPresent(byType + CACHE_HP_BY_TYPE_KEY);
       cache.evictIfPresent(byType + CACHE_OBS_BY_TYPE);
+    }
+
+    for(String byType: fhirConfiguration.getMultiValuesObservationCodes()) {
+      cache.evictIfPresent(byType + CACHE_MULTI_VALUES);
     }
   }
 

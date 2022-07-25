@@ -16,5 +16,6 @@ public class FhirConfiguration {
   private int timeout;
   private int poolSize;
   private List<String> typesWithDefault = new ArrayList<>();
+  private List<String> multiValuesObservationCodes = new ArrayList<>();
   
 }
