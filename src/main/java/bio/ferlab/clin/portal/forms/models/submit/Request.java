@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,5 +26,14 @@ public class Request {
   private List<Exam> exams = new ArrayList<>();
   
   private String investigation;
+  
+  private String ethnicity;
+  
+  @NotNull
+  private String indication;
+  
+  private String comment;
+  
+  private String residentSupervisor;
   
 }

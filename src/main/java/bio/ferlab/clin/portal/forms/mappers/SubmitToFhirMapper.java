@@ -73,7 +73,10 @@ public class SubmitToFhirMapper {
     }
   }
   
-  public ServiceRequest mapToAnalysis(String panelCode, org.hl7.fhir.r4.model.Patient patient, ClinicalImpression clinicalImpression, String orderDetails) {
+  public ServiceRequest mapToAnalysis(String panelCode, org.hl7.fhir.r4.model.Patient patient, 
+                                      ClinicalImpression clinicalImpression, String orderDetails, 
+                                      PractitionerRole practitionerRole, PractitionerRole supervisorRole,
+                                      String comment) {
     final ServiceRequest serviceRequest = new ServiceRequest();
     serviceRequest.setId(UUID.randomUUID().toString());
     serviceRequest.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
@@ -83,8 +86,14 @@ public class SubmitToFhirMapper {
     serviceRequest.addSupportingInfo(FhirUtils.toReference(clinicalImpression));
     serviceRequest.setCode(new CodeableConcept().addCoding(new Coding().setSystem(ANALYSIS_REQUEST_CODE).setCode(panelCode)));
     serviceRequest.setAuthoredOn(new Date());
+    serviceRequest.setRequester(FhirUtils.toReference(practitionerRole));
+    String sanitizedComment = StringUtils.isNotBlank(comment) ? comment : "";
+    serviceRequest.addNote(new Annotation().setText(sanitizedComment).setTime(new Date()).setAuthor(new StringType(FhirUtils.formatResource(practitionerRole))));
     if (StringUtils.isNotBlank(orderDetails)) {
       serviceRequest.addOrderDetail(new CodeableConcept().setText(orderDetails));
+    }
+    if(supervisorRole != null) {
+      serviceRequest.addExtension(SUPERVISOR_EXT, FhirUtils.toReference(supervisorRole));
     }
     return serviceRequest;
   }
@@ -119,7 +128,9 @@ public class SubmitToFhirMapper {
                                              List<Phenotype> phenotypes,
                                              String observation,
                                              List<Exam> exams,
-                                             String investigation) {
+                                             String investigation,
+                                             String ethnicity,
+                                             String indication) {
     
     List<Observation> all = new ArrayList<>();
 
@@ -127,13 +138,13 @@ public class SubmitToFhirMapper {
     all.add(dsta);
 
     all.addAll(phenotypes.stream().map(o -> {
-      Observation obs = createObservation(patient, "PHEN", "exam",o.getIsObserved(), HP, o.getValue());
+      Observation obs = createObservation(patient, "PHEN", "exam",o.getIsObserved(), HP_CODE, o.getValue());
       obs.addExtension(AGE_AT_ONSET_EXT,  new Coding().setCode(o.getAgeCode()));
       return obs;
     }).collect(Collectors.toList()));
     
     if(StringUtils.isNotBlank(observation)) {
-      Observation obsg = createObservation(patient, "OBSG", "exam",true, null, observation);
+      Observation obsg = createObservation(patient, "OBSG", "exam",null, null, observation);
       all.add(obsg);
     }
 
@@ -141,15 +152,23 @@ public class SubmitToFhirMapper {
       Observation obs = createObservation(patient, o.getCode(), "procedure", null, null, o.getValue());
       obs.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(getInterpretationCode(o.getInterpretation()))));
       o.getValues().forEach(v -> {
-        obs.getValueCodeableConcept().addCoding(new Coding().setSystem(HP).setCode(v));
+        obs.getValueCodeableConcept().addCoding(new Coding().setSystem(HP_CODE).setCode(v));
       });
       return obs;
     }).collect(Collectors.toList()));
 
     if(StringUtils.isNotBlank(observation)) {
-      Observation obsg = createObservation(patient, "INVES", "exam", true, null, investigation);
+      Observation obsg = createObservation(patient, "INVES", "exam", null, null, investigation);
       all.add(obsg);
     }
+    
+    if(StringUtils.isNotBlank(ethnicity)) {
+      Observation obsg = createObservation(patient, "ETHN", "exam",null, ETHNICITY_CODE, ethnicity);
+      all.add(obsg);
+    }
+
+    Observation indic = createObservation(patient, "INDIC", "exam",null, null, indication);
+    all.add(indic);
     
     return all;
   }

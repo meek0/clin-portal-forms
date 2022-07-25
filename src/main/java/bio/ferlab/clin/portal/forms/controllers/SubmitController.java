@@ -6,6 +6,7 @@ import bio.ferlab.clin.portal.forms.models.builders.*;
 import bio.ferlab.clin.portal.forms.models.submit.Request;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
+import bio.ferlab.clin.portal.forms.utils.JwtUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
 import org.springframework.http.HttpStatus;
@@ -30,9 +31,12 @@ public class SubmitController {
   }
 
   @PostMapping
-  public ResponseEntity<String> submit(@Valid @RequestBody Request request) {
+  public ResponseEntity<String> submit(@RequestHeader String authorization,
+                                       @Valid @RequestBody Request request) {
   
     // The following code is for SOLO only
+
+    final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
     
     final String panelCode = request.getAnalyse().getPanelCode();
  
@@ -44,9 +48,15 @@ public class SubmitController {
         .findByMrn()
         .build();
     
+    final PractitionerBuilder practitionerBuilder = new PractitionerBuilder(fhirClient, practitionerId, request.getPatient().getEp());
+    PractitionerBuilder.Result roleBr = practitionerBuilder
+        .withSupervisor(request.getResidentSupervisor())
+        .build();
+    
     final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, request.getAnalyse().getPanelCode(), pbr.getPatient(),
         request.getPhenotypes(), request.getObservation(), 
-        request.getExams(), request.getInvestigation());
+        request.getExams(), request.getInvestigation(),
+        request.getEthnicity(), request.getIndication());
     ObservationsBuilder.Result obr = observationsBuilder
         .build();
 
@@ -56,7 +66,7 @@ public class SubmitController {
         .build();
     
     final AnalysisBuilder analysisBuilder = new AnalysisBuilder(fhirClient, mapper, panelCode, 
-        pbr.getPatient(), cbr.getClinicalImpression());
+        pbr.getPatient(), cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getComment());
     AnalysisBuilder.Result abr = analysisBuilder
         .withReflex(request.getAnalyse().getIsReflex())
         .build();

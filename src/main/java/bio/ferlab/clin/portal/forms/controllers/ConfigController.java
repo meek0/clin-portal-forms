@@ -90,7 +90,7 @@ public class ConfigController {
     
     // validate the form's type is supported
     if (analyseCode.getConcept().stream().noneMatch(c -> panelCode.equals(c.getCode()))) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Unsupported form panel code: '%s' available codes: %s",
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("unsupported form panel code: '%s' available codes: %s",
           panelCode, fhirToConfigMapper.mapToAnalyseCodes(analyseCode)));
     }
     

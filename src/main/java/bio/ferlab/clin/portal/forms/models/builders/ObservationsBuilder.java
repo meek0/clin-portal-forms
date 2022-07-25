@@ -20,9 +20,11 @@ public class ObservationsBuilder {
   private final String observation;
   private final List<Exam> exams;
   private final String investigation;
+  private final String ethnicity;
+  private final String indication;
   
   public Result build() {
-    List<org.hl7.fhir.r4.model.Observation> obs = mapper.mapToObservations(panelCode, patient, phenotypes, observation, exams, investigation);
+    List<org.hl7.fhir.r4.model.Observation> obs = mapper.mapToObservations(panelCode, patient, phenotypes, observation, exams, investigation, ethnicity, indication);
     return new Result(obs);
   }
   
