@@ -1,23 +1,35 @@
 package bio.ferlab.clin.portal.forms.models.builders;
 
+import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.hl7.fhir.r4.model.ClinicalImpression;
-import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.ServiceRequest;
+import lombok.RequiredArgsConstructor;
+import org.hl7.fhir.r4.model.*;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class AnalysisBuilder {
   
+  private final FhirClient fhirClient;
   private final SubmitToFhirMapper mapper;
   private final String panelCode;
   private final Patient patient;
-  private ClinicalImpression clinicalImpression;
+  private final ClinicalImpression clinicalImpression;
+  
+  private String orderDetails;
 
   public Result build() {
-    final ServiceRequest serviceRequest = mapper.mapToAnalysis(panelCode, patient, clinicalImpression);
+    final ServiceRequest serviceRequest = mapper.mapToAnalysis(panelCode, patient, clinicalImpression, orderDetails);
     return new Result(serviceRequest);
+  }
+  
+  public AnalysisBuilder withReflex(boolean isReflex) {
+    if (isReflex) {
+      CodeSystem codes = this.fhirClient.getGenericClient().read().resource(CodeSystem.class).withId("analysis-request-code").encodedJson().execute();
+      CodeSystem.ConceptDefinitionComponent code = codes.getConcept().stream().filter(c -> panelCode.equals(c.getCode())).findFirst().get();
+      this.orderDetails = String.format("Reflex Panel: %s (%s)", code.getDisplay(), code.getCode());
+    }
+    return this;
   }
 
   @AllArgsConstructor

@@ -2,10 +2,7 @@ package bio.ferlab.clin.portal.forms.controllers;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
-import bio.ferlab.clin.portal.forms.models.builders.AnalysisBuilder;
-import bio.ferlab.clin.portal.forms.models.builders.ClinicalImpressionBuilder;
-import bio.ferlab.clin.portal.forms.models.builders.PatientBuilder;
-import bio.ferlab.clin.portal.forms.models.builders.SequencingBuilder;
+import bio.ferlab.clin.portal.forms.models.builders.*;
 import bio.ferlab.clin.portal.forms.models.submit.Request;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
@@ -32,10 +29,8 @@ public class SubmitController {
     this.localeService = localeService;
   }
 
-  @PostMapping("/{type}")
-  public ResponseEntity<String> submit(@RequestHeader String authorization,
-                               @PathVariable String type,
-                               @Valid @RequestBody Request request) {
+  @PostMapping
+  public ResponseEntity<String> submit(@Valid @RequestBody Request request) {
     /*
     1- create/get Person DONE
     2- create/get Patient DONE
@@ -46,6 +41,8 @@ public class SubmitController {
     6 create obsetrvations X 
      */
     
+    final String panelCode = request.getAnalyse().getPanelCode();
+    
     // the following is for SOLO only
     final PatientBuilder patientBuilder = new PatientBuilder(fhirClient, mapper, request.getPatient());
     PatientBuilder.Result pbr = patientBuilder
@@ -55,26 +52,33 @@ public class SubmitController {
         .findByMrn()
         .build();
     
-    // TODO Observation builder
+    final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, request.getAnalyse().getPanelCode(), request.getPhenotypes(), request.getObservation(), request.getExams(), request.getInvestigation());
+    ObservationsBuilder.Result obr = observationsBuilder
+        .build();
 
-    final ClinicalImpressionBuilder clinicalImpressionBuilder = new ClinicalImpressionBuilder(mapper, pbr.getPatient());
+    final ClinicalImpressionBuilder clinicalImpressionBuilder = new ClinicalImpressionBuilder(mapper, pbr.getPerson(), pbr.getPatient(), obr.getObservations());
     ClinicalImpressionBuilder.Result cbr = clinicalImpressionBuilder
         .build();
     
-    final AnalysisBuilder analysisBuilder = new AnalysisBuilder(mapper, type, pbr.getPatient(), cbr.getClinicalImpression());
+    final AnalysisBuilder analysisBuilder = new AnalysisBuilder(fhirClient, mapper, panelCode, pbr.getPatient(), cbr.getClinicalImpression());
     AnalysisBuilder.Result abr = analysisBuilder
+        .withReflex(request.getAnalyse().getIsReflex())
         .build();
 
-    final SequencingBuilder sequencingBuilder = new SequencingBuilder(mapper, type, pbr.getPatient(), abr.getAnalysis());
+    final SequencingBuilder sequencingBuilder = new SequencingBuilder(mapper, panelCode, pbr.getPatient(), abr.getAnalysis());
     SequencingBuilder.Result sbr = sequencingBuilder
         .build();
     
-    submit(pbr, abr, sbr, cbr);
+    submit(pbr, abr, sbr, cbr, obr);
     
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
   
-  private void submit(PatientBuilder.Result pbr, AnalysisBuilder.Result abr, SequencingBuilder.Result sbr, ClinicalImpressionBuilder.Result cbr) {
+  private void submit(PatientBuilder.Result pbr, 
+                      AnalysisBuilder.Result abr, 
+                      SequencingBuilder.Result sbr, 
+                      ClinicalImpressionBuilder.Result cbr,
+                      ObservationsBuilder.Result obr) {
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.TRANSACTION);
 
@@ -113,6 +117,15 @@ public class SubmitController {
         .setUrl("ClinicalImpression")
         .setMethod(Bundle.HTTPVerb.POST);
     
+    obr.getObservations().forEach(o -> {
+      bundle.addEntry()
+          .setFullUrl(FhirUtils.formatResource(o))
+          .setResource(o)
+          .getRequest()
+          .setUrl("Observation")
+          .setMethod(Bundle.HTTPVerb.POST);
+    });
+    
     for(Bundle.BundleEntryComponent entry : bundle.getEntry()) {
       log.info(entry.getRequest().getMethod() + " " + entry.getFullUrl());
     }
@@ -121,8 +134,8 @@ public class SubmitController {
     
     fhirClient.validate(bundle);
     
-    Bundle response = this.fhirClient.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
-    fhirClient.logDebug(response);
+   /* Bundle response = this.fhirClient.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
+    fhirClient.logDebug(response);*/
   }
   
 }

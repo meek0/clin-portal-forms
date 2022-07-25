@@ -62,9 +62,9 @@ public class ConfigController {
     this.cache = cacheManager.getCache(CacheConfiguration.CACHE_NAME);
   }
 
-  @GetMapping("/{type}")
+  @GetMapping("/{panelCode}")
   public Form config(@RequestHeader String authorization,
-                     @PathVariable String type) {
+                     @PathVariable String panelCode) {
     
     final String lang = localeService.getCurrentLocale();
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
@@ -87,9 +87,9 @@ public class ConfigController {
     ValueSet age = (ValueSet) codesAndValues.get(CACHE_AGE_KEY);
     
     // validate the form's type is supported
-    if (analyseCode.getConcept().stream().noneMatch(c -> type.equals(c.getCode()))) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Unsupported form type: '%s' available types: %s",
-          type, fhirToConfigMapper.mapToAnalyseCodes(analyseCode)));
+    if (analyseCode.getConcept().stream().noneMatch(c -> panelCode.equals(c.getCode()))) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("Unsupported form panel code: '%s' available codes: %s",
+          panelCode, fhirToConfigMapper.mapToAnalyseCodes(analyseCode)));
     }
     
     // return form's config
@@ -100,7 +100,7 @@ public class ConfigController {
     form.getConfig().getHistoryAndDiagnosis().getEthnicities().addAll(fhirToConfigMapper.mapToEthnicities(ethnicity, lang));
     
     // use form default or generic values
-    final String formType = type.toLowerCase();
+    final String formType = panelCode.toLowerCase();
     final List<ValueSet> hpByTypes = fhirConfiguration.getTypesWithDefault().stream()
         .map(t -> (ValueSet) codesAndValues.get(t + CACHE_HP_BY_TYPE_KEY)).collect(Collectors.toList());
     final List<ValueSet> obsByTypes = fhirConfiguration.getTypesWithDefault().stream()

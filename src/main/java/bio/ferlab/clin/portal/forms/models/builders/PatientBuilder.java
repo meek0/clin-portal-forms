@@ -7,6 +7,7 @@ import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Organization;
@@ -18,25 +19,18 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 public class PatientBuilder {
-  
-  private final bio.ferlab.clin.portal.forms.models.submit.Patient patient;
+
   private final FhirClient fhirClient;
   private final SubmitToFhirMapper mapper;
+  private final bio.ferlab.clin.portal.forms.models.submit.Patient patient;
 
   private Optional<Patient> patientByRamq = Optional.empty();
   private Optional<Patient> patientByMrn = Optional.empty();
   
   private Optional<Person> personByRamq = Optional.empty();
   private Optional<Person> personByMrn = Optional.empty();
-  
-  public PatientBuilder(FhirClient fhirClient,
-                        SubmitToFhirMapper mapper,
-                        bio.ferlab.clin.portal.forms.models.submit.Patient patient) {
-    this.patient = patient;
-    this.fhirClient = fhirClient;
-    this.mapper = mapper;
-  }
   
   public PatientBuilder validateRamqAndMrn() {
     if (StringUtils.isAllBlank(patient.getRamq(), patient.getMrn())) {

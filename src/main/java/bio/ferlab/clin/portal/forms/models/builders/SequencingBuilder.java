@@ -3,10 +3,11 @@ package bio.ferlab.clin.portal.forms.models.builders;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.ServiceRequest;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SequencingBuilder {
   
   private final SubmitToFhirMapper mapper;
