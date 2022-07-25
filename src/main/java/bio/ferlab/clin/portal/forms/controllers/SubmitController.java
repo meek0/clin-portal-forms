@@ -44,7 +44,7 @@ public class SubmitController {
         .findByMrn()
         .build();
     
-    final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, request.getAnalyse().getPanelCode(), 
+    final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, request.getAnalyse().getPanelCode(), pbr.getPatient(),
         request.getPhenotypes(), request.getObservation(), 
         request.getExams(), request.getInvestigation());
     ObservationsBuilder.Result obr = observationsBuilder
@@ -131,8 +131,8 @@ public class SubmitController {
     
     fhirClient.validate(bundle);
     
-   /* Bundle response = this.fhirClient.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
-    fhirClient.logDebug(response);*/
+    Bundle response = this.fhirClient.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
+    fhirClient.logDebug(response);
   }
   
 }

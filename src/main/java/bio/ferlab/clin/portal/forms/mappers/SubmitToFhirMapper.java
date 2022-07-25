@@ -1,6 +1,8 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
+import bio.ferlab.clin.portal.forms.models.submit.Exam;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
+import bio.ferlab.clin.portal.forms.models.submit.Phenotype;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
@@ -8,15 +10,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConstants.*;
@@ -84,6 +82,7 @@ public class SubmitToFhirMapper {
     serviceRequest.setStatus(ServiceRequest.ServiceRequestStatus.ONHOLD);
     serviceRequest.addSupportingInfo(FhirUtils.toReference(clinicalImpression));
     serviceRequest.setCode(new CodeableConcept().addCoding(new Coding().setSystem(ANALYSIS_REQUEST_CODE).setCode(panelCode)));
+    serviceRequest.setAuthoredOn(new Date());
     if (StringUtils.isNotBlank(orderDetails)) {
       serviceRequest.addOrderDetail(new CodeableConcept().setText(orderDetails));
     }
@@ -99,6 +98,7 @@ public class SubmitToFhirMapper {
     serviceRequest.setStatus(ServiceRequest.ServiceRequestStatus.ONHOLD);
     serviceRequest.addBasedOn(FhirUtils.toReference(analysis));
     serviceRequest.setCode(new CodeableConcept().addCoding(new Coding().setSystem(ANALYSIS_REQUEST_CODE).setCode(panelCode)));
+    serviceRequest.setAuthoredOn(new Date());
     return serviceRequest;
   }
   
@@ -114,53 +114,74 @@ public class SubmitToFhirMapper {
     return clinicalImpression;
   }
   
-  public List<Observation> mapToObservations(String panelCode, 
-                                             List<bio.ferlab.clin.portal.forms.models.submit.Observation> observations,
+  public List<Observation> mapToObservations(String panelCode,
+                                             org.hl7.fhir.r4.model.Patient patient,
+                                             List<Phenotype> phenotypes,
                                              String observation,
-                                             List<bio.ferlab.clin.portal.forms.models.submit.Observation> exams,
+                                             List<Exam> exams,
                                              String investigation) {
     
     List<Observation> all = new ArrayList<>();
 
-    Observation dsta = createObservation("DSTA", true, ANALYSIS_REQUEST_CODE, panelCode);
+    Observation dsta = createObservation(patient, "DSTA", "exam",true, ANALYSIS_REQUEST_CODE, panelCode);
     all.add(dsta);
 
-    all.addAll(observations.stream().map(o -> {
-      Observation obs = createObservation("PHENO", o.getIsObserved(), HP, o.getValue());
-      obs.addExtension(AGE_AT_ONSET_EXT, new StringType(o.getAgeCode()));
+    all.addAll(phenotypes.stream().map(o -> {
+      Observation obs = createObservation(patient, "PHEN", "exam",o.getIsObserved(), HP, o.getValue());
+      obs.addExtension(AGE_AT_ONSET_EXT,  new Coding().setCode(o.getAgeCode()));
       return obs;
     }).collect(Collectors.toList()));
     
     if(StringUtils.isNotBlank(observation)) {
-      Observation obsg = createObservation("OBSG", true, null, observation);
+      Observation obsg = createObservation(patient, "OBSG", "exam",true, null, observation);
       all.add(obsg);
     }
 
     all.addAll(exams.stream().map(o -> {
-      Observation obs = createObservation(o.getCode(), o.getIsObserved(), null, o.getValue());
+      Observation obs = createObservation(patient, o.getCode(), "procedure", null, null, o.getValue());
+      obs.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(getInterpretationCode(o.getInterpretation()))));
+      o.getValues().forEach(v -> {
+        obs.getValueCodeableConcept().addCoding(new Coding().setSystem(HP).setCode(v));
+      });
       return obs;
     }).collect(Collectors.toList()));
 
     if(StringUtils.isNotBlank(observation)) {
-      Observation obsg = createObservation("INVES", true, null, investigation);
+      Observation obsg = createObservation(patient, "INVES", "exam", true, null, investigation);
       all.add(obsg);
     }
     
     return all;
   }
   
-  private Observation createObservation(String code, boolean isObserved, String system, String value) {
+  private String getInterpretationCode(String interpretation) {
+    switch (interpretation){
+      case "abnormal":
+        return "A";
+      case "normal":
+        return "N";
+      default:
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid interpretation value: " + interpretation);
+    }
+  }
+  
+  private Observation createObservation(org.hl7.fhir.r4.model.Patient patient, String code, String category, Boolean isObserved, String system, String value) {
     Observation observation = new Observation();
+    observation.setSubject(FhirUtils.toReference(patient));
     observation.setId(UUID.randomUUID().toString());
     observation.getMeta().addProfile(OBSERVATION_PROFILE);
     observation.setStatus(Observation.ObservationStatus.FINAL);
     observation.setCode(new CodeableConcept(new Coding().setSystem(OBSERVATION_CODE).setCode(code)));
-    observation.addCategory(new CodeableConcept(new Coding().setSystem(OBSERVATION_CATEGORY).setCode("exam")));
-    observation.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(isObserved ? "POS": "NEG")));
-    if(system != null) {
-      observation.setValue(new CodeableConcept(new Coding().setSystem(system).setCode(value)));
-    } else {
-      observation.setValue(new StringType(value));
+    observation.addCategory(new CodeableConcept(new Coding().setSystem(OBSERVATION_CATEGORY).setCode(category)));
+    if(isObserved != null) {
+      observation.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(isObserved ? "POS" : "NEG")));
+    }
+    if (StringUtils.isNotBlank(value)) {
+      if (StringUtils.isNotBlank(system)) {
+        observation.setValue(new CodeableConcept(new Coding().setSystem(system).setCode(value)));
+      } else {
+        observation.setValue(new StringType(value));
+      }
     }
     return observation;
   }

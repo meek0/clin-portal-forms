@@ -1,7 +1,6 @@
 package bio.ferlab.clin.portal.forms.models.submit;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -18,12 +17,12 @@ public class Request {
   @Valid
   private Patient patient = new Patient();
   @Valid
-  private List<Observation> phenotypes = new ArrayList<>();
+  private List<Phenotype> phenotypes = new ArrayList<>();
   
   private String observation;
 
   @Valid
-  private List<Observation> exams = new ArrayList<>();
+  private List<Exam> exams = new ArrayList<>();
   
   private String investigation;
   
