@@ -34,7 +34,7 @@ public class SubmitToFhirMapper {
   
   public long mapToAge(Date birthDate) {
     // ChronoUnit.YEARS doesn't work, let's divide by 365
-    return ChronoUnit.DAYS.between(birthDate.toInstant(), Instant.now()) / 365;
+    return ChronoUnit.DAYS.between(birthDate.toInstant(), Instant.now());
   }
   
   public Enumerations.AdministrativeGender mapToGender(String gender) {
@@ -120,7 +120,7 @@ public class SubmitToFhirMapper {
     clinicalImpression.setId(UUID.randomUUID().toString());
     clinicalImpression.setSubject(FhirUtils.toReference(patient));
     clinicalImpression.setStatus(ClinicalImpression.ClinicalImpressionStatus.COMPLETED);
-    clinicalImpression.addExtension(AGE_AT_EVENT_EXT, new StringType(String.valueOf(mapToAge(person.getBirthDate()))));
+    clinicalImpression.addExtension(AGE_AT_EVENT_EXT, new Age().setSystem(Enumerations.AgeUnits.D.getSystem()).setCode(Enumerations.AgeUnits.D.toCode()).setValue(mapToAge(person.getBirthDate())));
     observations.forEach(o -> {
       clinicalImpression.addInvestigation(new ClinicalImpression.ClinicalImpressionInvestigationComponent(new CodeableConcept().setText("Examination / signs")).addItem(FhirUtils.toReference(o)));
     });

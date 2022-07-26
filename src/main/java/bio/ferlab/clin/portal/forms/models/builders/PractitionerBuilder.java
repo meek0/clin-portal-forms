@@ -42,7 +42,7 @@ public class PractitionerBuilder {
         .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).encodedJson().execute();
 
     BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), response);
-    List<PractitionerRole> practitionerRoles = bundleExtractor.getNextListOfResourcesOfType(PractitionerRole.class);
+    List<PractitionerRole> practitionerRoles = bundleExtractor.getAllResourcesOfType(PractitionerRole.class);
     
     final String orgRef = FhirUtils.formatResource(new Organization().setId(patient.getEp()));
     PractitionerRole role = practitionerRoles.stream().filter(r -> orgRef.equals(r.getOrganization().getReference())).findFirst()
