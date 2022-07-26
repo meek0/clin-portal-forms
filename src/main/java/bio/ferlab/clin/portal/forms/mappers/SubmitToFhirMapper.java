@@ -33,12 +33,12 @@ public class SubmitToFhirMapper {
   }
   
   public long mapToAge(Date birthDate) {
-    // ChronoUnit.YEARS doesn't work, let's divide by 365
+    // ChronoUnit.YEARS doesn't work, in case you want to use it ...
     return ChronoUnit.DAYS.between(birthDate.toInstant(), Instant.now());
   }
   
-  public Enumerations.AdministrativeGender mapToGender(String gender) {
-    return Enumerations.AdministrativeGender.fromCode(gender);
+  public Enumerations.AdministrativeGender mapToGender(Patient.Gender gender) {
+    return Enumerations.AdministrativeGender.fromCode(gender.name());
   }
   
   public Person mapToPerson(Patient patient, org.hl7.fhir.r4.model.Patient linkedPatient) {
@@ -141,7 +141,9 @@ public class SubmitToFhirMapper {
 
     all.addAll(clinicalSigns.stream().map(o -> {
       Observation obs = createObservation(patient, "PHEN", "exam",o.getIsObserved(), HP_CODE, o.getValue());
-      obs.addExtension(AGE_AT_ONSET_EXT,  new Coding().setCode(o.getAgeCode()));
+      if(o.getAgeCode() != null) {
+        obs.addExtension(AGE_AT_ONSET_EXT, new Coding().setCode(o.getAgeCode()));
+      }
       return obs;
     }).collect(Collectors.toList()));
     
@@ -175,11 +177,11 @@ public class SubmitToFhirMapper {
     return all;
   }
   
-  private String getInterpretationCode(String interpretation) {
+  private String getInterpretationCode(Exam.Interpretation interpretation) {
     switch (interpretation){
-      case "abnormal":
+      case abnormal:
         return "A";
-      case "normal":
+      case normal:
         return "N";
       default:
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "invalid interpretation value: " + interpretation);

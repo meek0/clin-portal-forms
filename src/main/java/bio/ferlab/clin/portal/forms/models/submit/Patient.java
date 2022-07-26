@@ -12,6 +12,14 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Patient {
+  
+  public enum Gender {
+    male,
+    female,
+    other,
+    unknown
+  }
+  
   @NotNull
   private String ep;
   private String ramq;
@@ -24,6 +32,6 @@ public class Patient {
   @JsonFormat(pattern = "dd/MM/yyyy")
   private LocalDate birthDate;
   @NotNull
-  private String gender;
+  private Gender gender;
   private String ethnicity;
 }

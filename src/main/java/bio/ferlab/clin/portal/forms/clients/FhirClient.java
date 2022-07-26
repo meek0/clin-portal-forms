@@ -42,28 +42,25 @@ public class FhirClient {
   }
 
   public void validate(IBaseResource resource) {
-    List<String> errors = new ArrayList<>();
     OperationOutcome oo;
     try {
       oo = (OperationOutcome) getGenericClient().validate().resource(resource).encodedJson().execute().getOperationOutcome();
     } catch(PreconditionFailedException | UnprocessableEntityException e) {
       oo = (OperationOutcome) e.getOperationOutcome();
     }
-    for (OperationOutcome.OperationOutcomeIssueComponent nextIssue : oo.getIssue()) {
-      if (EnumSet.of(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueSeverity.FATAL).contains(nextIssue.getSeverity())) {
-        errors.add(nextIssue.getDiagnostics());
-      } else if (OperationOutcome.IssueSeverity.WARNING.equals(nextIssue.getSeverity())){
-        log.warn("Validation of resource {} : {}", FhirUtils.formatResource(resource), nextIssue.getDiagnostics());
-      }
-    }
-
-    if (!errors.isEmpty()) {
-      throw new RuntimeException("Validation of resource "+ FhirUtils.formatResource(resource)+" errors:\n" + StringUtils.join(errors, "\n"));
+    boolean containsError = oo.getIssue().stream()
+        .anyMatch(issue -> EnumSet.of(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueSeverity.FATAL).contains(issue.getSeverity()));
+    if (containsError) {
+      throw new RuntimeException("Validation of resource contains error: "+ FhirUtils.formatResource(resource)+" error(s):\n" + toJson(oo));
     }
   }
 
+  public String toJson(IBaseResource resource) {
+    return getContext().newJsonParser().setPrettyPrint(true).encodeResourceToString(resource);
+  }
+  
   public void logDebug(IBaseResource resource) {
-    log.debug("JSON of {}\n{}", FhirUtils.formatResource(resource), getContext().newJsonParser().setPrettyPrint(true).encodeResourceToString(resource));
+    log.debug("JSON of {}\n{}", FhirUtils.formatResource(resource), toJson(resource));
   }
   
 }

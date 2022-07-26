@@ -14,6 +14,5 @@ public class ClinicalSign {
   private String value;
   @NotNull
   private Boolean isObserved;
-  @NotNull
   private String ageCode;
 }

@@ -49,6 +49,7 @@ public class SubmitController {
     final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, panelCode, pbr.getPatient(), request.getAnalyse(),
         request.getClinicalSigns(), request.getParaclinicalExams(), request.getPatient().getEthnicity());
     ObservationsBuilder.Result obr = observationsBuilder
+        .validate()
         .build();
 
     final ClinicalImpressionBuilder clinicalImpressionBuilder = new ClinicalImpressionBuilder(mapper, 

@@ -12,11 +12,17 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Exam {
+  
+  public enum Interpretation {
+    abnormal,
+    normal
+  }
+  
   @NotNull
   private String code;
   @NotNull
-  private String interpretation;
-  
+  private Interpretation interpretation;
   private String value;
   private List<String> values= new ArrayList<>();
+  
 }

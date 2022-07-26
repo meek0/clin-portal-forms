@@ -121,8 +121,7 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
         },
         {
             "value": "HP:0002194",
-            "is_observed": false,
-            "age_code": "HP:0003593"
+            "is_observed": false
         }
     ],
     "paraclinical_exams": [
