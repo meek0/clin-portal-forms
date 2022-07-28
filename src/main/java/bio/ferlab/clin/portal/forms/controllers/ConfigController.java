@@ -80,7 +80,7 @@ public class ConfigController {
         .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).encodedJson().execute();
 
     BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), response);
-    List<PractitionerRole> practitionerRoles = bundleExtractor.getNextListOfResourcesOfType(PractitionerRole.class);
+    List<PractitionerRole> practitionerRoles = bundleExtractor.getAllResourcesOfType(PractitionerRole.class);
     
     CodeSystem analyseCode = (CodeSystem) codesAndValues.get(CACHE_ANALYSE_KEY);
     CodeSystem hp = (CodeSystem) codesAndValues.get(CACHE_HP_KEY);
