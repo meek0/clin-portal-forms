@@ -11,7 +11,7 @@ import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.instance.model.api.IBaseResource;
-import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.*;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;
@@ -50,6 +50,31 @@ public class FhirClient {
     if (containsError) {
       throw new RuntimeException("Validation of resource contains error: "+ FhirUtils.formatResource(resource)+" error(s):\n" + toJson(oo));
     }
+  }
+  
+  public Organization findOrganizationById(String id) {
+    return this.getGenericClient().read().resource(Organization.class).withId(id).encodedJson().execute();
+  }
+  
+  public Bundle findPersonAndPatientByRamq(String ramq) {
+    return this.getGenericClient().search()
+        .forResource(Person.class)
+        .where(Person.IDENTIFIER.exactly().code(ramq))
+        .include(Person.INCLUDE_PATIENT)
+        .returnBundle(Bundle.class)
+        .encodedJson()
+        .execute();
+  }
+  
+  public Bundle findPersonAndPatientByMrnAndEp(String mrn, String ep) {
+    return this.getGenericClient().search()
+        .forResource(Patient.class)
+        .where(Patient.IDENTIFIER.exactly().code(mrn))
+        .and(Patient.ORGANIZATION.hasId(ep))
+        .revInclude(Person.INCLUDE_PATIENT)
+        .returnBundle(Bundle.class)
+        .encodedJson()
+        .execute();
   }
 
   public String toJson(IBaseResource resource) {

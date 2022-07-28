@@ -34,14 +34,14 @@ public class PatientBuilder {
   
   public PatientBuilder validateRamqAndMrn() {
     if (StringUtils.isAllBlank(patient.getRamq(), patient.getMrn())) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ramq and patient.mrn can't be both null");
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ramq and patient.mrn can't be both empty");
     }
     return this;
   }
   
   public PatientBuilder validateEp() {
     try {
-      this.fhirClient.getGenericClient().read().resource(Organization.class).withId(patient.getEp()).encodedJson().execute();
+      this.fhirClient.findOrganizationById(patient.getEp());
     }catch(ResourceNotFoundException e){
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ep " + patient.getEp() + " is unknown");
     }
@@ -50,14 +50,7 @@ public class PatientBuilder {
   
   public PatientBuilder findByRamq() {
     if(StringUtils.isNotBlank(patient.getRamq())) {
-      Bundle bundle = this.fhirClient.getGenericClient().search()
-          .forResource(Person.class)
-          .where(Person.IDENTIFIER.exactly().code(patient.getRamq()))
-          .include(Person.INCLUDE_PATIENT)
-          .returnBundle(Bundle.class)
-          .encodedJson()
-          .execute();
-
+      Bundle bundle = this.fhirClient.findPersonAndPatientByRamq(patient.getRamq());
       BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
       final Person person = bundleExtractor.getNextResourcesOfType(Person.class);
       final List<Patient> patients = bundleExtractor.getAllResourcesOfType(Patient.class);
@@ -72,15 +65,7 @@ public class PatientBuilder {
   
   public PatientBuilder findByMrn() {
     if(StringUtils.isNotBlank(patient.getMrn())) {
-      Bundle bundle = this.fhirClient.getGenericClient().search()
-          .forResource(Patient.class)
-          .where(Patient.IDENTIFIER.exactly().code(patient.getMrn()))
-          .and(Patient.ORGANIZATION.hasId(patient.getEp()))
-          .revInclude(Person.INCLUDE_PATIENT)
-          .returnBundle(Bundle.class)
-          .encodedJson()
-          .execute();
-
+      Bundle bundle = this.fhirClient.findPersonAndPatientByMrnAndEp(patient.getMrn(), patient.getEp());
       BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
       final Patient patient = bundleExtractor.getNextResourcesOfType(Patient.class);
       final Person person = bundleExtractor.getNextResourcesOfType(Person.class);
@@ -91,19 +76,23 @@ public class PatientBuilder {
     return this;
   }
   
-  public Result build(){
+  public Result build(boolean createIfMissing, boolean updateExisting){
     
     Optional<Person> existingPerson = this.personByRamq.or(() -> this.personByMrn);
     Optional<Patient> existingPatient = this.patientByRamq.or(() -> this.patientByMrn);
     
     // update existing patient
-    existingPatient.ifPresent(p -> mapper.updatePatient(patient, p));
+    if (updateExisting) {
+      existingPatient.ifPresent(p -> mapper.updatePatient(patient, p));
+    }
     // keep existing or create new patient
-    final Patient newOrUpdatedPatient = existingPatient.orElse(mapper.mapToPatient(patient));
+    final Patient newOrUpdatedPatient = existingPatient.orElseGet(() -> createIfMissing ? mapper.mapToPatient(patient) : null);
     // update existing person
-    existingPerson.ifPresent(p -> mapper.updatePerson(patient, p, newOrUpdatedPatient));
+    if (updateExisting) {
+      existingPerson.ifPresent(p -> mapper.updatePerson(patient, p, newOrUpdatedPatient));
+    }
     // keep existing or create new person
-    final Person newOrUpdatedPerson = existingPerson.orElse(mapper.mapToPerson(patient, newOrUpdatedPatient));
+    final Person newOrUpdatedPerson = existingPerson.orElseGet(() -> createIfMissing ? mapper.mapToPerson(patient, newOrUpdatedPatient) : null);
     
     return new Result(newOrUpdatedPatient, existingPatient.isEmpty(), newOrUpdatedPerson, existingPerson.isEmpty());
   }

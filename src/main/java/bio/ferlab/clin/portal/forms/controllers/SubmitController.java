@@ -39,7 +39,7 @@ public class SubmitController {
         .validateRamqAndMrn()
         .findByRamq()
         .findByMrn()
-        .build();
+        .build(true, true);
     
     final PractitionerBuilder practitionerBuilder = new PractitionerBuilder(fhirClient, practitionerId, request.getPatient());
     PractitionerBuilder.Result roleBr = practitionerBuilder
