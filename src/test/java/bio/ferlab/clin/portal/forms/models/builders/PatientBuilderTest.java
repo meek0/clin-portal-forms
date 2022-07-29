@@ -3,6 +3,7 @@ package bio.ferlab.clin.portal.forms.models.builders;
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
+import bio.ferlab.clin.portal.forms.utils.FhirConstants;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
@@ -13,11 +14,10 @@ import ca.uhn.fhir.rest.gclient.IReadTyped;
 import static org.mockito.ArgumentMatchers.any;
 
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import org.hl7.fhir.instance.model.api.IBaseReference;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Enumerations;
-import org.hl7.fhir.r4.model.Organization;
-import org.hl7.fhir.r4.model.Person;
+import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -151,6 +151,29 @@ class PatientBuilderTest {
     assertEquals(Enumerations.AdministrativeGender.MALE, result.getPatient().getGender());
     assertEquals("Organization/ep", result.getPatient().getManagingOrganization().getReference());
     assertEquals("mrn", result.getPatient().getIdentifierFirstRep().getValue());
+  }
+
+  @Test
+  void update_identifier_already_set() {
+    final Patient patient = new Patient();
+    patient.setGender(Patient.Gender.male);
+    patient.setBirthDate(LocalDate.now());
+    patient.setRamq("new_ramq");
+
+    final Bundle bundleByRamq = new Bundle();
+    final Person person = new Person();
+    person.getIdentifierFirstRep().setValue("ramq").getType().getCodingFirstRep().setCode(FhirConstants.CODE_RAMQ).setSystem(FhirConstants.SYSTEM_RAMQ);
+    bundleByRamq.addEntry().setResource(person);
+    
+    when(fhirClient.findPersonAndPatientByRamq(any())).thenReturn(bundleByRamq);
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+      final PatientBuilder builder = new PatientBuilder(fhirClient, new SubmitToFhirMapper(), patient);
+      PatientBuilder.Result result = builder.findByRamq().build(true, true);
+    });
+    assertEquals("patient JHN already set", exception.getReason());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+
   }
 
 }
