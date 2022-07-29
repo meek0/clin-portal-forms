@@ -33,3 +33,5 @@ build/
 .vscode/
 
 bench*
+
+.attach_pid*

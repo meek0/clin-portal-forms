@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hl7.fhir.r4.model.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @RequiredArgsConstructor
 public class AnalysisBuilder {
@@ -28,8 +30,9 @@ public class AnalysisBuilder {
   
   public AnalysisBuilder withReflex(boolean isReflex) {
     if (isReflex) {
-      CodeSystem codes = this.fhirClient.getGenericClient().read().resource(CodeSystem.class).withId("analysis-request-code").encodedJson().execute();
-      CodeSystem.ConceptDefinitionComponent code = codes.getConcept().stream().filter(c -> panelCode.equals(c.getCode())).findFirst().get();
+      CodeSystem codes = this.fhirClient.findCodeSystemById("analysis-request-code");
+      CodeSystem.ConceptDefinitionComponent code = codes.getConcept().stream().filter(c -> panelCode.equals(c.getCode())).findFirst()
+          .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "panel code '" + panelCode + "' is unknown"));
       this.orderDetails = String.format("Reflex Panel: %s (%s)", code.getDisplay(), code.getCode());
     }
     return this;

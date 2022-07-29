@@ -29,24 +29,23 @@ public class PractitionerBuilder {
   public PractitionerBuilder withSupervisor(String supervisor) {
     if (StringUtils.isNotBlank(supervisor)) {
       try {
-        supervisorRole = this.fhirClient.getGenericClient().read().resource(PractitionerRole.class).withId(supervisor).encodedJson().execute();
+        supervisorRole = this.fhirClient.findPractitionerRoleById(supervisor);
       }catch(ResourceNotFoundException e){
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "supervisor " + supervisor + " is unknown");
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "supervisor '" + supervisor + "' is unknown");
       }
     }
     return this;
   }
   
   public Result build(){
-    Bundle response = this.fhirClient.getGenericClient().search().forResource(PractitionerRole.class)
-        .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).encodedJson().execute();
+    Bundle response = this.fhirClient.findPractitionerRoleByPractitionerId(practitionerId);
 
     BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), response);
     List<PractitionerRole> practitionerRoles = bundleExtractor.getAllResourcesOfType(PractitionerRole.class);
     
     final String orgRef = FhirUtils.formatResource(new Organization().setId(patient.getEp()));
     PractitionerRole role = practitionerRoles.stream().filter(r -> orgRef.equals(r.getOrganization().getReference())).findFirst()
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("can't find role for practitioner %s in ep %s", practitionerId, patient.getEp())));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("can't find role for practitioner '%s' in ep '%s'", practitionerId, patient.getEp())));
     
     return new Result(role, supervisorRole);
   }

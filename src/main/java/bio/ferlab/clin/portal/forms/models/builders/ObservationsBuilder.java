@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hl7.fhir.r4.model.Patient;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public class ObservationsBuilder {
     }
     for(int i=0; i<exams.size();i++) {
       final Exam ex = exams.get(i);
-      if (Exam.Interpretation.abnormal.equals(ex.getInterpretation()) && ex.getValue() == null && ex.getValues().isEmpty()) {
+      if (Exam.Interpretation.abnormal.equals(ex.getInterpretation()) && ex.getValue() == null && CollectionUtils.isEmpty(ex.getValues())) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("value and values can't be both empty for paraclinical_exams[%s].interpretation = abnormal", i));
       }
     }

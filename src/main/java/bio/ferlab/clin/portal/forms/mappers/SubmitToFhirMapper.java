@@ -138,28 +138,11 @@ public class SubmitToFhirMapper {
 
     Observation dsta = createObservation(patient, "DSTA", "exam",true, ANALYSIS_REQUEST_CODE, panelCode);
     all.add(dsta);
-
-    all.addAll(clinicalSigns.stream().map(o -> {
-      Observation obs = createObservation(patient, "PHEN", "exam",o.getIsObserved(), HP_CODE, o.getValue());
-      if(o.getAgeCode() != null) {
-        obs.addExtension(AGE_AT_ONSET_EXT, new Coding().setCode(o.getAgeCode()));
-      }
-      return obs;
-    }).collect(Collectors.toList()));
     
     if(StringUtils.isNotBlank(analyse.getObservation())) {
       Observation obsg = createObservation(patient, "OBSG", "exam",null, null, analyse.getObservation());
       all.add(obsg);
     }
-
-    all.addAll(exams.stream().map(o -> {
-      Observation obs = createObservation(patient, o.getCode(), "procedure", null, null, o.getValue());
-      obs.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(getInterpretationCode(o.getInterpretation()))));
-      o.getValues().forEach(v -> {
-        obs.getValueCodeableConcept().addCoding(new Coding().setSystem(HP_CODE).setCode(v));
-      });
-      return obs;
-    }).collect(Collectors.toList()));
 
     if(StringUtils.isNotBlank(analyse.getInvestigation())) {
       Observation obsg = createObservation(patient, "INVES", "exam", null, null, analyse.getInvestigation());
@@ -173,6 +156,23 @@ public class SubmitToFhirMapper {
 
     Observation indic = createObservation(patient, "INDIC", "exam",null, null, analyse.getIndication());
     all.add(indic);
+
+    all.addAll(clinicalSigns.stream().map(o -> {
+      Observation obs = createObservation(patient, "PHEN", "exam",o.getIsObserved(), HP_CODE, o.getValue());
+      if(o.getAgeCode() != null) {
+        obs.addExtension(AGE_AT_ONSET_EXT, new Coding().setCode(o.getAgeCode()));
+      }
+      return obs;
+    }).collect(Collectors.toList()));
+
+    all.addAll(exams.stream().map(o -> {
+      Observation obs = createObservation(patient, o.getCode(), "procedure", null, null, o.getValue());
+      obs.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(getInterpretationCode(o.getInterpretation()))));
+      o.getValues().forEach(v -> {
+        obs.getValueCodeableConcept().addCoding(new Coding().setSystem(HP_CODE).setCode(v));
+      });
+      return obs;
+    }).collect(Collectors.toList()));
     
     return all;
   }

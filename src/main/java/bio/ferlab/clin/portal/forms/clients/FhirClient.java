@@ -55,6 +55,19 @@ public class FhirClient {
   public Organization findOrganizationById(String id) {
     return this.getGenericClient().read().resource(Organization.class).withId(id).encodedJson().execute();
   }
+
+  public CodeSystem findCodeSystemById(String id) {
+    return this.getGenericClient().read().resource(CodeSystem.class).withId(id).encodedJson().execute();
+  }
+  
+  public PractitionerRole findPractitionerRoleById(String id) {
+    return this.getGenericClient().read().resource(PractitionerRole.class).withId(id).encodedJson().execute();
+  }
+  
+  public Bundle findPractitionerRoleByPractitionerId(String practitionerId) {
+    return this.getGenericClient().search().forResource(PractitionerRole.class)
+        .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).encodedJson().execute();
+  }
   
   public Bundle findPersonAndPatientByRamq(String ramq) {
     return this.getGenericClient().search()
