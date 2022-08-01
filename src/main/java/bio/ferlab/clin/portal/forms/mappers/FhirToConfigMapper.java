@@ -5,6 +5,7 @@ import bio.ferlab.clin.portal.forms.models.config.Extra;
 import bio.ferlab.clin.portal.forms.models.config.ExtraType;
 import bio.ferlab.clin.portal.forms.models.config.ValueName;
 import bio.ferlab.clin.portal.forms.models.config.ValueNameExtra;
+import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.ValueSet;
@@ -90,13 +91,13 @@ public class FhirToConfigMapper {
   }
   
   private String getDisplayForLang(ValueSet.ConceptReferenceComponent concept, String lang) {
-    return concept.getDesignation().stream().filter(c -> lang.equals(c.getLanguage()))
+    return concept.getDesignation().stream().filter(c -> StringUtils.isNotBlank(lang) && lang.equals(c.getLanguage()))
         .map(ValueSet.ConceptReferenceDesignationComponent::getValue)
         .findFirst().orElse(concept.getDisplay());
   }
 
   private String getDisplayForLang(CodeSystem.ConceptDefinitionComponent concept, String lang) {
-    return concept.getDesignation().stream().filter(c -> lang.equals(c.getLanguage()))
+    return concept.getDesignation().stream().filter(c -> StringUtils.isNotBlank(lang) && lang.equals(c.getLanguage()))
         .map(CodeSystem.ConceptDefinitionDesignationComponent::getValue)
         .findFirst().orElse(concept.getDisplay());
   }
