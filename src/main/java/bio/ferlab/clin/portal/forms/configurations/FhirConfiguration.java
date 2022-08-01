@@ -15,6 +15,8 @@ public class FhirConfiguration {
   private String url;
   private int timeout;
   private int poolSize;
+  private List<String> supportedLangs = new ArrayList<>();
   private List<String> typesWithDefault = new ArrayList<>();
+  private List<String> multiValuesObservationCodes = new ArrayList<>();
   
 }

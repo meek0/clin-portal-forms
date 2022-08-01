@@ -1,18 +1,23 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
-import bio.ferlab.clin.portal.forms.models.ValueName;
-import bio.ferlab.clin.portal.forms.models.ValueNameExtra;
+import bio.ferlab.clin.portal.forms.controllers.ConfigController;
+import bio.ferlab.clin.portal.forms.models.config.Extra;
+import bio.ferlab.clin.portal.forms.models.config.ExtraType;
+import bio.ferlab.clin.portal.forms.models.config.ValueName;
+import bio.ferlab.clin.portal.forms.models.config.ValueNameExtra;
+import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
-public class FhirToModelMapper {
+public class FhirToConfigMapper {
   
   public Set<String> mapToAnalyseCodes( CodeSystem analyseCode) {
     return analyseCode.getConcept().stream().map(CodeSystem.ConceptDefinitionComponent::getCode).collect(Collectors.toSet());
@@ -38,8 +43,7 @@ public class FhirToModelMapper {
   }
 
   public List<ValueName> mapToOnsetAge(ValueSet age, String lang) {
-    return age.getCompose().getIncludeFirstRep().getConcept().stream()
-        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+    return extractValuesByLang(age, lang);
   }
 
   public List<ValueName> mapToParentalLinks(CodeSystem links, String lang) {
@@ -52,24 +56,48 @@ public class FhirToModelMapper {
         .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
   }
 
-  public List<ValueNameExtra> mapToParaclinicalExams(CodeSystem observation, String lang) {
+  public List<ValueNameExtra> mapToParaclinicalExams(CodeSystem observation, String lang, List<ValueSet> multiValues) {
     return observation.getConcept().stream()
-        .map(c -> ValueNameExtra.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+        .map(c -> ValueNameExtra.builder()
+            .name(getDisplayForLang(c, lang))
+            .value(c.getCode())
+            .extra(buildExtra(c.getCode(), lang, multiValues))
+            .build())
+        .collect(Collectors.toList());
   }
 
-  public List<ValueNameExtra> mapToParaclinicalExams(ValueSet observation, String lang) {
+  public List<ValueNameExtra> mapToParaclinicalExams(ValueSet observation, String lang, List<ValueSet> multiValues) {
     return observation.getCompose().getIncludeFirstRep().getConcept().stream()
-        .map(c -> ValueNameExtra.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+        .map(c -> ValueNameExtra.builder()
+            .name(getDisplayForLang(c, lang))
+            .value(c.getCode())
+            .extra(buildExtra(c.getCode(), lang, multiValues))
+            .build())
+        .collect(Collectors.toList());
+  }
+  
+  private Extra buildExtra(String code, String lang, List<ValueSet> multiValues) {
+    Optional<ValueSet> byCode = multiValues.stream().filter(vs -> (code + ConfigController.ABNORMALITIES).equalsIgnoreCase(vs.getName())).findFirst();
+    if(byCode.isPresent()) {
+      return Extra.builder().type(ExtraType.multi_select).options(extractValuesByLang(byCode.get(), lang)).build();
+    } else {
+      return Extra.builder().type(ExtraType.string).build();
+    }
+  }
+  
+  private List<ValueName> extractValuesByLang(ValueSet valueSet, String lang) {
+    return valueSet.getCompose().getIncludeFirstRep().getConcept().stream()
+        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
   }
   
   private String getDisplayForLang(ValueSet.ConceptReferenceComponent concept, String lang) {
-    return concept.getDesignation().stream().filter(c -> lang.equals(c.getLanguage()))
+    return concept.getDesignation().stream().filter(c -> StringUtils.isNotBlank(lang) && lang.equals(c.getLanguage()))
         .map(ValueSet.ConceptReferenceDesignationComponent::getValue)
         .findFirst().orElse(concept.getDisplay());
   }
 
   private String getDisplayForLang(CodeSystem.ConceptDefinitionComponent concept, String lang) {
-    return concept.getDesignation().stream().filter(c -> lang.equals(c.getLanguage()))
+    return concept.getDesignation().stream().filter(c -> StringUtils.isNotBlank(lang) && lang.equals(c.getLanguage()))
         .map(CodeSystem.ConceptDefinitionDesignationComponent::getValue)
         .findFirst().orElse(concept.getDisplay());
   }

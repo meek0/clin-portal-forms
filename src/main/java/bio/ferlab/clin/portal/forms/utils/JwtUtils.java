@@ -16,7 +16,7 @@ public class JwtUtils {
   public static String getProperty(String token, String attr) {
     DecodedJWT jwt = JWT.decode(removeBearerPrefix(token));
     return Optional.ofNullable(jwt.getClaim(attr)).map(Claim::asString)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing '" + attr + "' in token"));
+        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "missing '" + attr + "' in token"));
   }
   
   public static String removeBearerPrefix(String token) {
