@@ -16,7 +16,7 @@ import java.io.IOException;
 @Order(2)
 public class SecurityFilter extends OncePerRequestFilter {
   
-  private SecurityService securityService;
+  private final SecurityService securityService;
   
   public SecurityFilter(SecurityService securityService) {
     this.securityService = securityService;

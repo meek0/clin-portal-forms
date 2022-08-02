@@ -222,12 +222,9 @@ public class SubmitToFhirMapper {
         }
       }
       if (identifierToUpdate != null) {
-        if (StringUtils.isNotBlank(identifierToUpdate.getValue())) {
-          if (!identifierToUpdate.getValue().equals(value)) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient " + code + " already set");
-          }
-        } else {
-          identifierToUpdate.setValue(value);
+        final String previousValue = identifierToUpdate.getValue();
+        if (StringUtils.isBlank(previousValue) || !previousValue.equals(value)) {
+          identifierToUpdate.setValue(value); // FHIR Server will check if modifying MRN/RAMQ is allowed or not
         }
       } else {
         identifiers.add(new Identifier()

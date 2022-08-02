@@ -80,19 +80,22 @@ public class SubmitController {
                       ObservationsBuilder.Result obr) {
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.TRANSACTION);
+    
+    final String patientRef = FhirUtils.formatResource(pbr.getPatient());
+    final String personRef = FhirUtils.formatResource(pbr.getPerson());
 
     bundle.addEntry()
-        .setFullUrl(FhirUtils.formatResource(pbr.getPatient()))
+        .setFullUrl(patientRef)
         .setResource(pbr.getPatient())
         .getRequest()
-        .setUrl(FhirUtils.formatResource(pbr.getPatient())) // full url with ID required if PUT
+        .setUrl(patientRef) // full url with ID required if PUT
         .setMethod(pbr.isPatientNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
 
     bundle.addEntry()
-        .setFullUrl(FhirUtils.formatResource(pbr.getPerson()))
+        .setFullUrl(personRef)
         .setResource(pbr.getPerson())
         .getRequest()
-        .setUrl(FhirUtils.formatResource(pbr.getPerson())) // full url with ID required if PUT
+        .setUrl(personRef) // full url with ID required if PUT
         .setMethod(pbr.isPersonNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
 
     bundle.addEntry()
@@ -125,16 +128,7 @@ public class SubmitController {
           .setMethod(Bundle.HTTPVerb.POST);
     });
     
-    for(Bundle.BundleEntryComponent entry : bundle.getEntry()) {
-      log.info(entry.getRequest().getMethod() + " " + entry.getFullUrl());
-    }
-
-    fhirClient.logDebug(bundle);
-    
-    fhirClient.validate(bundle);
-    
-    Bundle response = this.fhirClient.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
-    fhirClient.logDebug(response);
+    fhirClient.submitForm(personRef, patientRef, bundle);
   }
   
 }

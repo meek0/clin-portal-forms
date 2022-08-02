@@ -6,13 +6,16 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.PerformanceOptionsEnum;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.client.api.ServerValidationModeEnum;
+import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ca.uhn.fhir.rest.server.exceptions.PreconditionFailedException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.EnumSet;
 
@@ -23,6 +26,7 @@ public class FhirClient {
   
   private final FhirContext context;
   private final IGenericClient genericClient;
+  private final FhirConfiguration fhirConfiguration;
   
   public FhirClient(FhirConfiguration configuration, FhirAuthInterceptor fhirAuthInterceptor) {
     context = FhirContext.forR4();
@@ -34,6 +38,7 @@ public class FhirClient {
     context.getRestfulClientFactory().setServerValidationMode(ServerValidationModeEnum.NEVER);
 
     this.genericClient = context.newRestfulGenericClient(configuration.getUrl());
+    this.fhirConfiguration = configuration;
     
     genericClient.registerInterceptor(fhirAuthInterceptor);
   }
@@ -48,7 +53,24 @@ public class FhirClient {
     boolean containsError = oo.getIssue().stream()
         .anyMatch(issue -> EnumSet.of(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueSeverity.FATAL).contains(issue.getSeverity()));
     if (containsError) {
-      throw new RuntimeException("Validation of resource contains error: "+ FhirUtils.formatResource(resource)+" error(s):\n" + toJson(oo));
+      // no need to return to the user the errors as they most likely come from bad mapping inside this API
+      throw new RuntimeException("Validation of resource contains error:\n"+ toJson(resource)+"\n" + toJson(oo));
+    }
+  }
+  
+  public void submitForm(String personRef, String patientRef, Bundle bundle) {
+    try {
+      logDebug(bundle);
+      if (fhirConfiguration.isValidate()) {
+        validate(bundle);
+      }
+      log.info("Submit bundle for {} {} with {} entries",personRef, patientRef, bundle.getEntry().size());
+      Bundle response = this.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
+      logDebug(response);
+    } catch(PreconditionFailedException | UnprocessableEntityException | InvalidRequestException e) {  // FHIR Server custom validation chain failed
+      final String errors = toJson(e.getOperationOutcome());
+      log.error("Failed to submit bundle:\n{}\n{}", toJson(bundle), errors);
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors);
     }
   }
   
