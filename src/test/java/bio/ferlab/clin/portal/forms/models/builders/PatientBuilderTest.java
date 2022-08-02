@@ -145,7 +145,7 @@ class PatientBuilderTest {
   }
 
   @Test
-  void update_identifier_already_set() {
+  void update_identifier() {
     final Patient patient = new Patient();
     patient.setGender(Patient.Gender.male);
     patient.setBirthDate(LocalDate.now());
@@ -158,12 +158,10 @@ class PatientBuilderTest {
     
     when(fhirClient.findPersonAndPatientByRamq(any())).thenReturn(bundleByRamq);
 
-    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-      final PatientBuilder builder = new PatientBuilder(fhirClient, new SubmitToFhirMapper(), patient);
-      PatientBuilder.Result result = builder.findByRamq().build(true, true);
-    });
-    assertEquals("patient JHN already set", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    final PatientBuilder builder = new PatientBuilder(fhirClient, new SubmitToFhirMapper(), patient);
+    PatientBuilder.Result result = builder.findByRamq().build(true, true);
+    
+    assertEquals("new_ramq", result.getPerson().getIdentifierFirstRep().getValue());
 
   }
 

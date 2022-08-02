@@ -2,6 +2,7 @@ server:
   port: 7979
 fhir:
   url: http://localhost:8080/fhir
+  validate: true
 security:
   issuer: http://localhost:8081/auth/realms/master
 logging:
