@@ -5,6 +5,8 @@ import bio.ferlab.clin.portal.forms.models.config.Extra;
 import bio.ferlab.clin.portal.forms.models.config.ExtraType;
 import bio.ferlab.clin.portal.forms.models.config.ValueName;
 import bio.ferlab.clin.portal.forms.models.config.ValueNameExtra;
+import bio.ferlab.clin.portal.forms.services.LabelsService;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.PractitionerRole;
@@ -17,7 +19,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
+@RequiredArgsConstructor
 public class FhirToConfigMapper {
+  
+  private final LabelsService labelsService;
   
   public Set<String> mapToAnalyseCodes( CodeSystem analyseCode) {
     return analyseCode.getConcept().stream().map(CodeSystem.ConceptDefinitionComponent::getCode).collect(Collectors.toSet());
@@ -79,10 +84,14 @@ public class FhirToConfigMapper {
   private Extra buildExtra(String code, String lang, List<ValueSet> multiValues) {
     Optional<ValueSet> byCode = multiValues.stream().filter(vs -> (code + ConfigController.ABNORMALITIES).equalsIgnoreCase(vs.getName())).findFirst();
     if(byCode.isPresent()) {
-      return Extra.builder().type(ExtraType.multi_select).options(extractValuesByLang(byCode.get(), lang)).build();
+      return Extra.builder().label(getLabel(code, lang)).type(ExtraType.multi_select).options(extractValuesByLang(byCode.get(), lang)).build();
     } else {
-      return Extra.builder().type(ExtraType.string).build();
+      return Extra.builder().label(getLabel(code, lang)).type(ExtraType.string).build();
     }
+  }
+  
+  private String getLabel(String code, String lang) {
+    return labelsService.getLabel(code, lang);
   }
   
   private List<ValueName> extractValuesByLang(ValueSet valueSet, String lang) {

@@ -21,7 +21,7 @@ public class WebConfiguration implements WebMvcConfigurer {
   @Bean
   public LocaleResolver localeResolver() {
     SessionLocaleResolver slr = new SessionLocaleResolver();
-    slr.setDefaultLocale(Locale.ENGLISH);
+    slr.setDefaultLocale(Locale.ENGLISH); // avoid exceptions to be translated into system lang
     return slr;
   }
 

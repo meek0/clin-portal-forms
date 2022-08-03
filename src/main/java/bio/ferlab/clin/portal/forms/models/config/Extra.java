@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class Extra {
-  
   private ExtraType type;
+  private String label;
   private List<ValueName> options = new ArrayList<>();
 }
