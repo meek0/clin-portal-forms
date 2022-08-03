@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/form")
 @Slf4j
+@CrossOrigin("*")
 public class ConfigController {
 
   public static final String DEFAULT_HPO = "-default-hpo";

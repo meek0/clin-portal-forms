@@ -25,7 +25,7 @@ public class WebConfiguration implements WebMvcConfigurer {
     return slr;
   }
 
-  @Override
+  /*@Override
   public void addCorsMappings(CorsRegistry registry) {
     registry
         .addMapping("/**")
@@ -36,7 +36,16 @@ public class WebConfiguration implements WebMvcConfigurer {
         .allowedHeaders(HttpHeaders.CONTENT_TYPE)
         .allowedHeaders(HttpHeaders.CACHE_CONTROL)
         .allowedHeaders(HttpHeaders.AUTHORIZATION)
+        .allowedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS)
+        .allowedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS)
+        .allowedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
+        .allowedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS)
+        .allowedHeaders(HttpHeaders.ACCESS_CONTROL_MAX_AGE)
+        .exposedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS)
+        .exposedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS)
+        .exposedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
+        .exposedHeaders(HttpHeaders.ACCESS_CONTROL_MAX_AGE)
         .allowCredentials(false)
         .maxAge(3600);
-  }
+  }*/
 }
