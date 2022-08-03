@@ -47,7 +47,7 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
                     "value": "CKIN",
                     "extra": {
                         "type": "string",
-                        "options": null
+                        "label": "Saisir un texte"
                     }
                 },
                 {
@@ -55,6 +55,7 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
                     "value": "BMUS",
                     "extra": {
                         "type": "multi_select",
+                        "label": "Selectionner un ou plusieurs élements",
                         "options": [
                             {
                                 "name": "Expression anormale des protéines des fibres musculaires",

@@ -1,6 +1,7 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
 import bio.ferlab.clin.portal.forms.models.config.ValueName;
+import bio.ferlab.clin.portal.forms.services.LabelsService;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import io.github.benas.randombeans.EnhancedRandomBuilder;
 import io.github.benas.randombeans.api.EnhancedRandom;
@@ -9,17 +10,27 @@ import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.ValueSet;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 class FhirToConfigMapperTest {
 
-  final FhirToConfigMapper mapper = new FhirToConfigMapper();
+  final LabelsService labelsService = Mockito.mock(LabelsService.class);
+  final FhirToConfigMapper mapper = new FhirToConfigMapper(labelsService);
+  
+  @BeforeEach
+  void beforeEach() {
+    when(labelsService.getLabel(any(), any())).thenReturn("label");
+  }
   
   @Test
   void mapToAnalyseCodes() {
@@ -117,7 +128,7 @@ class FhirToConfigMapperTest {
     multiValue.getCompose().getIncludeFirstRep().getConceptFirstRep().setCode("code1").getDesignation().add(new ValueSet.ConceptReferenceDesignationComponent().setLanguage("fr").setValue("fr1"));
     
     var result = mapper.mapToParaclinicalExams(codeSystem, "fr", List.of(multiValue));
-    assertEquals("ValueNameExtra(name=display0, value=0, extra=Extra(type=string, options=null)) ValueNameExtra(name=fr1, value=1, extra=Extra(type=multi_select, options=[ValueName(name=fr1, value=code1)]))", StringUtils.join(result, " "));
+    assertEquals("ValueNameExtra(name=display0, value=0, extra=Extra(type=string, label=label, options=null)) ValueNameExtra(name=fr1, value=1, extra=Extra(type=multi_select, label=label, options=[ValueName(name=fr1, value=code1)]))", StringUtils.join(result, " "));
   }
   
   @Test
@@ -135,7 +146,7 @@ class FhirToConfigMapperTest {
     multiValue.getCompose().getIncludeFirstRep().getConceptFirstRep().setCode("code0").getDesignation().add(new ValueSet.ConceptReferenceDesignationComponent().setLanguage("fr").setValue("fr0"));
 
     var result = mapper.mapToParaclinicalExams(valueSet, "fr", List.of(multiValue));
-    assertEquals("ValueNameExtra(name=fr0, value=0, extra=Extra(type=multi_select, options=[ValueName(name=fr0, value=code0)])) ValueNameExtra(name=display1, value=1, extra=Extra(type=string, options=null))", StringUtils.join(result, " "));
+    assertEquals("ValueNameExtra(name=fr0, value=0, extra=Extra(type=multi_select, label=label, options=[ValueName(name=fr0, value=code0)])) ValueNameExtra(name=display1, value=1, extra=Extra(type=string, label=label, options=null))", StringUtils.join(result, " "));
 
   }
 }
