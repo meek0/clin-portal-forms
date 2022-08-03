@@ -21,7 +21,6 @@ class LocaleServiceTest {
   void setup() {
     when(configuration.getSupportedLangs()).thenReturn(List.of("fr", "en"));
     when(request.getParameter("lang")).thenReturn(null);
-    when(request.getHeader("Accept-Language")).thenReturn(null);
   }
   
   @Test
@@ -32,12 +31,6 @@ class LocaleServiceTest {
   @Test
   void getCurrentLocale_query_param() {
     when(request.getParameter("lang")).thenReturn("en");
-    assertEquals("en", service.getCurrentLocale());
-  }
-
-  @Test
-  void getCurrentLocale_header() {
-    when(request.getHeader("Accept-Language")).thenReturn("en");
     assertEquals("en", service.getCurrentLocale());
   }
 
