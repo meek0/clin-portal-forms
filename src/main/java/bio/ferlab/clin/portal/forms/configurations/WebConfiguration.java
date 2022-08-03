@@ -3,6 +3,8 @@ package bio.ferlab.clin.portal.forms.configurations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -26,8 +28,9 @@ public class WebConfiguration implements WebMvcConfigurer {
   @Override
   public void addCorsMappings(CorsRegistry registry) {
     registry.addMapping("/**")
-        .allowedOrigins(securityConfiguration.getCors().toArray(String[]::new))
+        .allowedOriginPatterns(securityConfiguration.getCors().toArray(String[]::new))
         .allowedMethods("*")
+        .allowedHeaders(HttpHeaders.AUTHORIZATION)
         .allowCredentials(true) // authorization header
         .maxAge(3600);
   }
