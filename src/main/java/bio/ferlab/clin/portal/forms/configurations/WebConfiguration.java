@@ -27,11 +27,16 @@ public class WebConfiguration implements WebMvcConfigurer {
 
   @Override
   public void addCorsMappings(CorsRegistry registry) {
-    registry.addMapping("/**")
-        .allowedOriginPatterns(securityConfiguration.getCors().toArray(String[]::new))
-        .allowedMethods("*")
+    registry
+        .addMapping("/**")
+        .allowedOrigins(securityConfiguration.getCors().toArray(String[]::new))
+        .allowedMethods(HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.OPTIONS.name())
+        .allowedHeaders(HttpHeaders.ORIGIN)
+        .allowedHeaders(HttpHeaders.ACCEPT)
+        .allowedHeaders(HttpHeaders.CONTENT_TYPE)
+        .allowedHeaders(HttpHeaders.CACHE_CONTROL)
         .allowedHeaders(HttpHeaders.AUTHORIZATION)
-        .allowCredentials(true) // authorization header
+        .allowCredentials(false)
         .maxAge(3600);
   }
 }

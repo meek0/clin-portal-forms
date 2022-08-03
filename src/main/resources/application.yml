@@ -32,7 +32,6 @@ security:
   audience: ${SECURITY_AUDIENCE:clin-acl}
   issuer: ${SECURITY_ISSUER:https://auth.qa.cqgc.hsj.rtss.qc.ca/auth/realms/clin}
   cors:
-    - "*"
     - "http://localhost:2000"
     - "https://portail.qa.cqgc.hsj.rtss.qc.ca"
     - "https://portail.staging.cqgc.hsj.rtss.qc.ca"
