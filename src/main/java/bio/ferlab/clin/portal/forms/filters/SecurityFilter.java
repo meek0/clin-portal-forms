@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
-@Order(2)
+@Order(1)
 public class SecurityFilter extends OncePerRequestFilter {
   
   private final SecurityService securityService;
@@ -28,8 +28,8 @@ public class SecurityFilter extends OncePerRequestFilter {
     if (!HttpMethod.OPTIONS.name().equals(request.getMethod())) { // we don't check OPTIONS
       String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
       securityService.checkAuthorization(authorization);
-      filterChain.doFilter(request, response);
     }
+    filterChain.doFilter(request, response);
   }
 
   @Override

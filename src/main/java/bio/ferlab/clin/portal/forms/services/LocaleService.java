@@ -21,9 +21,7 @@ public class LocaleService {
   private final FhirConfiguration fhirConfiguration;
   
   public String getCurrentLocale() {
-    String lang = Optional.ofNullable(request.getParameter(LANG_QUERY_PARAM))
-        .orElse(request.getHeader(HttpHeaders.ACCEPT_LANGUAGE));
-    return Optional.ofNullable(lang)
+    return Optional.ofNullable(request.getParameter(LANG_QUERY_PARAM))
         .map(StringUtils::parseLocale)
         .map(Locale::getLanguage)
         .filter(fhirConfiguration.getSupportedLangs()::contains)

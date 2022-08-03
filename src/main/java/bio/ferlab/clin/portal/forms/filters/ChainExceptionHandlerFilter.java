@@ -1,6 +1,5 @@
 package bio.ferlab.clin.portal.forms.filters;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.annotation.Order;
@@ -15,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 @Component
-@Order(1)
+@Order(0)
 public class ChainExceptionHandlerFilter extends OncePerRequestFilter {
 
   @Autowired
