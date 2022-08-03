@@ -10,6 +10,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
+import java.util.List;
 import java.util.Locale;
 
 @Configuration
@@ -25,27 +26,14 @@ public class WebConfiguration implements WebMvcConfigurer {
     return slr;
   }
 
-  /*@Override
+  @Override
   public void addCorsMappings(CorsRegistry registry) {
     registry
         .addMapping("/**")
         .allowedOrigins(securityConfiguration.getCors().toArray(String[]::new))
-        .allowedMethods(HttpMethod.GET.name(), HttpMethod.POST.name(), HttpMethod.OPTIONS.name())
-        .allowedHeaders(HttpHeaders.ORIGIN)
-        .allowedHeaders(HttpHeaders.ACCEPT)
-        .allowedHeaders(HttpHeaders.CONTENT_TYPE)
-        .allowedHeaders(HttpHeaders.CACHE_CONTROL)
+        .allowedMethods(HttpMethod.GET.name(), HttpMethod.POST.name())
         .allowedHeaders(HttpHeaders.AUTHORIZATION)
-        .allowedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS)
-        .allowedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS)
-        .allowedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
-        .allowedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS)
-        .allowedHeaders(HttpHeaders.ACCESS_CONTROL_MAX_AGE)
-        .exposedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_HEADERS)
-        .exposedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS)
-        .exposedHeaders(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN)
-        .exposedHeaders(HttpHeaders.ACCESS_CONTROL_MAX_AGE)
-        .allowCredentials(false)
+        .allowCredentials(true)
         .maxAge(3600);
-  }*/
+  }
 }

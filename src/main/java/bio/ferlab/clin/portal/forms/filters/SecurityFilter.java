@@ -3,6 +3,7 @@ package bio.ferlab.clin.portal.forms.filters;
 import bio.ferlab.clin.portal.forms.services.SecurityService;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -24,9 +25,11 @@ public class SecurityFilter extends OncePerRequestFilter {
 
   @Override
   public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-    String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-    securityService.checkAuthorization(authorization);
-    filterChain.doFilter(request, response);
+    if (!HttpMethod.OPTIONS.name().equals(request.getMethod())) { // we don't check OPTIONS
+      String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+      securityService.checkAuthorization(authorization);
+      filterChain.doFilter(request, response);
+    }
   }
 
   @Override
