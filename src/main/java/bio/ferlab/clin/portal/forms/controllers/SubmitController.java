@@ -19,6 +19,7 @@ import javax.validation.Valid;
 @RequestMapping("/form")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin("*")
 public class SubmitController {
 
   private final FhirClient fhirClient;
