@@ -142,16 +142,6 @@ class PatientBuilderTest {
     assertEquals(Enumerations.AdministrativeGender.MALE, result.getPatient().getGender());
     assertEquals("Organization/ep", result.getPatient().getManagingOrganization().getReference());
     assertEquals("mrn", result.getPatient().getIdentifierFirstRep().getValue());
-
-    assertEquals(org.hl7.fhir.r4.model.Narrative.NarrativeStatus.GENERATED, result.getPerson().getText().getStatus());
-    assertEquals(
-        "<div xmlns=\"http://www.w3.org/1999/xhtml\">created by clin-portal-forms</div>",
-        result.getPerson().getText().getDivAsString());
-
-    assertEquals(org.hl7.fhir.r4.model.Narrative.NarrativeStatus.GENERATED, result.getPatient().getText().getStatus());
-    assertEquals(
-        "<div xmlns=\"http://www.w3.org/1999/xhtml\">created by clin-portal-forms</div>",
-        result.getPatient().getText().getDivAsString());
   }
 
   @Test
