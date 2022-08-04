@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.ServiceRequest;
 
 @RequiredArgsConstructor
@@ -14,9 +15,10 @@ public class SequencingBuilder {
   private final String panelCode;
   private final Patient patient;
   private final ServiceRequest analysis;
+  private final PractitionerRole practitionerRole;
   
   public Result build() {
-    final ServiceRequest serviceRequest = mapper.mapToSequencing(panelCode, patient, analysis);
+    final ServiceRequest serviceRequest = mapper.mapToSequencing(panelCode, patient, analysis, practitionerRole);
     return new Result(serviceRequest);
   }
   

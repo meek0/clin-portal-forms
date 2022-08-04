@@ -102,7 +102,7 @@ public class SubmitToFhirMapper {
     return serviceRequest;
   }
 
-  public ServiceRequest mapToSequencing(String panelCode, org.hl7.fhir.r4.model.Patient patient, ServiceRequest analysis) {
+  public ServiceRequest mapToSequencing(String panelCode, org.hl7.fhir.r4.model.Patient patient, ServiceRequest analysis, PractitionerRole practitionerRole) {
     final ServiceRequest serviceRequest = new ServiceRequest();
     serviceRequest.setId(UUID.randomUUID().toString());
     serviceRequest.getMeta().addProfile(SEQUENCING_SERVICE_REQUEST);
@@ -110,6 +110,7 @@ public class SubmitToFhirMapper {
     serviceRequest.setSubject(FhirUtils.toReference(patient));
     serviceRequest.setStatus(ServiceRequest.ServiceRequestStatus.ONHOLD);
     serviceRequest.addBasedOn(FhirUtils.toReference(analysis));
+    serviceRequest.setRequester(FhirUtils.toReference(practitionerRole));
     serviceRequest.setCode(new CodeableConcept().addCoding(new Coding().setSystem(ANALYSIS_REQUEST_CODE).setCode(panelCode)));
     serviceRequest.setAuthoredOn(new Date());
     return serviceRequest;

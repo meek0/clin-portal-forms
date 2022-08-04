@@ -64,7 +64,7 @@ public class SubmitController {
         .build();
 
     final SequencingBuilder sequencingBuilder = new SequencingBuilder(mapper, panelCode, 
-        pbr.getPatient(), abr.getAnalysis());
+        pbr.getPatient(), abr.getAnalysis(), roleBr.getPractitionerRole());
     SequencingBuilder.Result sbr = sequencingBuilder
         .build();
     

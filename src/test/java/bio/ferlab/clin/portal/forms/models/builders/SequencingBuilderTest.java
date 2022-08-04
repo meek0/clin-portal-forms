@@ -3,6 +3,7 @@ package bio.ferlab.clin.portal.forms.models.builders;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +19,9 @@ class SequencingBuilderTest {
     patient.setId("foo");
     final ServiceRequest analysis = new ServiceRequest();
     analysis.setId("foo");
-    final SequencingBuilder.Result result = new SequencingBuilder(new SubmitToFhirMapper(), "code", patient, analysis).build();
+    final PractitionerRole role = new PractitionerRole();
+    role.setId("role");
+    final SequencingBuilder.Result result = new SequencingBuilder(new SubmitToFhirMapper(), "code", patient, analysis, role).build();
     final ServiceRequest sr = result.getSequencing();
     
     assertNotNull(sr.getId());
@@ -28,6 +31,7 @@ class SequencingBuilderTest {
     assertEquals(ServiceRequest.ServiceRequestStatus.ONHOLD, sr.getStatus());
     assertEquals(FhirUtils.formatResource(analysis), sr.getBasedOn().get(0).getReference());
     assertEquals("code", sr.getCode().getCodingFirstRep().getCode());
+    assertEquals(FhirUtils.formatResource(role), sr.getRequester().getReference());
     assertNotNull(sr.getAuthoredOn());
   }
 
