@@ -60,12 +60,14 @@ public class SubmitToFhirMapper {
   
   public void updatePatient(Patient patient, org.hl7.fhir.r4.model.Patient res) {
     final Reference epRef = FhirUtils.toReference(new Organization().setId(patient.getEp()));
+    updateNarative(res.getText());
     res.setGender(mapToGender(patient.getGender()));
     updateIdentifier(res.getIdentifier(), SYSTEM_MRN, CODE_MRN, patient.getMrn(), epRef);
   }
   
   public void updatePerson(Patient patient, Person person, org.hl7.fhir.r4.model.Patient linkedPatient) {
     updateIdentifier(person.getIdentifier(), SYSTEM_RAMQ, CODE_RAMQ, patient.getRamq(), null);
+    updateNarative(person.getText());
     person.setBirthDate(mapToDate(patient.getBirthDate()));
     person.setGender(mapToGender(patient.getGender()));
     person.getName().clear();
@@ -75,6 +77,13 @@ public class SubmitToFhirMapper {
     if(!isLinked){
       person.getLink().add(new Person.PersonLinkComponent(new Reference(linkedPatientRef)));
     }
+  }
+  
+  private void updateNarative(Narrative narrative) {
+    // if it's an update (person/patient) already exist, the generated narrative by FHIR failed to be posted  ...
+    // ... so let the API generate one that work for both creation/update
+    narrative.setStatus(org.hl7.fhir.r4.model.Narrative.NarrativeStatus.GENERATED);
+    narrative.setDivAsString("<div>created by clin-portal-forms</div>");
   }
   
   public ServiceRequest mapToAnalysis(String panelCode, org.hl7.fhir.r4.model.Patient patient, 
