@@ -1,7 +1,7 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
-import bio.ferlab.clin.portal.forms.models.submit.*;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
+import bio.ferlab.clin.portal.forms.models.submit.*;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
+import static bio.ferlab.clin.portal.forms.utils.FhirConsts.*;
 
 @Component
 public class SubmitToFhirMapper {

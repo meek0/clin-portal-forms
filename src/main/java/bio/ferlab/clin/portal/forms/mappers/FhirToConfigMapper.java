@@ -5,7 +5,7 @@ import bio.ferlab.clin.portal.forms.models.config.ExtraType;
 import bio.ferlab.clin.portal.forms.models.config.ValueName;
 import bio.ferlab.clin.portal.forms.models.config.ValueNameExtra;
 import bio.ferlab.clin.portal.forms.services.LabelsService;
-import bio.ferlab.clin.portal.forms.utils.FhirConst;
+import bio.ferlab.clin.portal.forms.utils.FhirConsts;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.CodeSystem;
@@ -82,7 +82,7 @@ public class FhirToConfigMapper {
   }
   
   private Extra buildExtra(String code, String lang, List<ValueSet> multiValues) {
-    Optional<ValueSet> byCode = multiValues.stream().filter(vs -> (code + FhirConst.ABNORMALITIES_SUFFIX).equalsIgnoreCase(vs.getName())).findFirst();
+    Optional<ValueSet> byCode = multiValues.stream().filter(vs -> (code + FhirConsts.ABNORMALITIES_SUFFIX).equalsIgnoreCase(vs.getName())).findFirst();
     if(byCode.isPresent()) {
       return Extra.builder().label(getLabel(code, lang)).type(ExtraType.multi_select).options(extractValuesByLang(byCode.get(), lang)).build();
     } else {

@@ -1,8 +1,8 @@
 package bio.ferlab.clin.portal.forms.utils;
 
-public class FhirConst {
+public class FhirConsts {
 
-  private FhirConst(){}
+  private FhirConsts(){}
   
   public static final String DEFAULT_HPO_SUFFIX = "-default-hpo";
   public static final String DEFAULT_EXAM_SUFFIX = "-default-exam";

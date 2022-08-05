@@ -150,14 +150,14 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
 ### Response
 
 `201 created`
-## GET /search/patient/`ramq`=foo&`mrn`=foo&`ep`=foo
+## GET /search/patient/`ep`?`ramq`=foo&`mrn`=foo
 
 ### Parameters
-|Name|Required|Type|Description|
-|---|---|---|---|
-|`ramq`|false|String|required if `mrn` is null| 
-|`mrn`|false|String|required if `ramq` is null| 
-|`ep`|true|String|| 
+|Name|Required|Type| Description                  |
+|---|---|---|------------------------------|
+|`ep`|true|String| Two `ep` can have the same `mrn` | 
+|`ramq`|false|String| required if `mrn` is null    | 
+|`mrn`|false|String| required if `ramq` is null   |
 ### Response
 ```json
 {
@@ -169,6 +169,26 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
     "ramq": "RAMQ12341236",
     "mrn": "MRNTEST005"
 }
+```
+## GET /autocomplete/supervisor/`ep`/`prefix`
+
+### Parameters
+|Name|Required|Type|Description|
+|---|---|---|---|
+|`ep`|true|String|| 
+|`prefix`|true|String|to match supervisor `id firstName lastName`| 
+### Response
+```json
+[
+    {
+        "id": "PRR00003",
+        "name": "Dre test test"
+    },
+    {
+        "id": "PRR00031",
+        "name": "Dre foo bar"
+    }
+]
 ```
 
 # Security

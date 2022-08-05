@@ -6,14 +6,7 @@ import bio.ferlab.clin.portal.forms.models.builders.PatientBuilder;
 import bio.ferlab.clin.portal.forms.models.search.Search;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.util.Objects;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/search")
@@ -23,10 +16,10 @@ public class SearchController {
   private final FhirClient fhirClient;
   private final FhirToSearchMapper mapper;
   
-  @GetMapping("/patient")
-  public Search search(@RequestParam(required = false) String ramq,
-                       @RequestParam(required = false) String mrn,
-                       @RequestParam String ep){
+  @GetMapping("/patient/{ep}")
+  public Search search(@PathVariable String ep,
+                       @RequestParam(required = false) String ramq,
+                       @RequestParam(required = false) String mrn){
     final Patient patient = new Patient();
     patient.setRamq(ramq);
     patient.setMrn(mrn);

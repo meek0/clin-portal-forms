@@ -21,7 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.EnumSet;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
+import static bio.ferlab.clin.portal.forms.utils.FhirConsts.*;
 
 @Component
 @Getter
@@ -97,6 +97,15 @@ public class FhirClient {
     log.debug("Fetch practitioner roles by practitioner id {}", practitionerId);
     return this.getGenericClient().search().forResource(PractitionerRole.class)
         .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).encodedJson().execute();
+  }
+
+  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true)
+  public Bundle findPractitionerAndRoleByEp(String ep) {
+    log.debug("Fetch practitioner roles by ep {}", ep);
+    return this.getGenericClient().search().forResource(PractitionerRole.class)
+        .where(PractitionerRole.ORGANIZATION.hasId(ep))
+        .include(PractitionerRole.INCLUDE_PRACTITIONER)
+        .returnBundle(Bundle.class).encodedJson().execute();
   }
   
   public Bundle findPersonAndPatientByRamq(String ramq) {
