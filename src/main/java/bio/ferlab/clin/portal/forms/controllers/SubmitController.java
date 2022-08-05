@@ -119,14 +119,13 @@ public class SubmitController {
         .setUrl("ClinicalImpression")
         .setMethod(Bundle.HTTPVerb.POST);
     
-    obr.getObservations().forEach(o -> {
+    obr.getObservations().forEach(o ->
       bundle.addEntry()
           .setFullUrl(FhirUtils.formatResource(o))
           .setResource(o)
           .getRequest()
           .setUrl("Observation")
-          .setMethod(Bundle.HTTPVerb.POST);
-    });
+          .setMethod(Bundle.HTTPVerb.POST));
     
     fhirClient.submitForm(personRef, patientRef, bundle);
   }

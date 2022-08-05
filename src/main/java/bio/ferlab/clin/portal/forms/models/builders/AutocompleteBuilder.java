@@ -26,10 +26,38 @@ public class AutocompleteBuilder {
   private final FhirClient fhirClient;
   private final String ep; // assuming ep will be common to all auto-completes 
   
-  private String supervisor;
+  private List<Supervisor> supervisors;
   
   public AutocompleteBuilder withSupervisor(String prefix) {
-    this.supervisor = prefix;
+    this.supervisors = new ArrayList<>();
+    if (StringUtils.isNotBlank(prefix)) {
+      final Bundle bundle = this.fhirClient.findPractitionerAndRoleByEp(ep);
+      final BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
+      // from a performance point of view, it's easier to fetch all the practitioner + roles by ep
+      // and filter here instead of asking FHIR to query filter in database. 
+      // considering findPractitionerAndRoleByEp can be cached it will be better 
+      final List<PractitionerRole> roles = bundleExtractor.getAllResourcesOfType(PractitionerRole.class);
+      final List<Practitioner> practitioners = bundleExtractor.getAllResourcesOfType(Practitioner.class);
+      // not a stream.filter(...) because un-readable
+      for (Practitioner p : practitioners) {
+        final String pRef = FhirUtils.formatResource(p);
+        final HumanName name = p.getNameFirstRep();
+        // all the fields we want to match
+        if (Utils.isIndexOfAnyIgnoreCase(
+            prefix,
+            p.getIdElement().getIdPart(),
+            name.getNameAsSingleString())) {  // contains firstName and given names
+          for (PractitionerRole r : roles) {
+            if (pRef.equals(r.getPractitioner().getReference())) {
+              final Supervisor s = new Supervisor();
+              s.setName(name.getNameAsSingleString());
+              s.setId(r.getIdElement().getIdPart());
+              supervisors.add(s);
+            }
+          }
+        }
+      }
+    }
     return this;
   }
 
@@ -43,39 +71,7 @@ public class AutocompleteBuilder {
   }
   
   public Result build() {
-    if (StringUtils.isNotBlank(supervisor)) {
-      final Bundle bundle = this.fhirClient.findPractitionerAndRoleByEp(ep);
-      final BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
-      // from a performance point of view, it's easier to fetch all the practitioner + roles by ep
-      // and filter here instead of asking FHIR to query filter in database. 
-      // considering findPractitionerAndRoleByEp can be cached it will be better 
-      final List<PractitionerRole> roles = bundleExtractor.getAllResourcesOfType(PractitionerRole.class);
-      final List<Practitioner> practitioners = bundleExtractor.getAllResourcesOfType(Practitioner.class);
-
-      final List<Supervisor> supervisors = new ArrayList<>();
-      // not a stream.filter(...) because un-readable
-      for (Practitioner p : practitioners) {
-        final String pRef = FhirUtils.formatResource(p);
-        final HumanName name = p.getNameFirstRep();
-        // all the fields we want to match
-        if (Utils.indexOfAnyIgnoreCase(
-            supervisor,
-            p.getIdElement().getIdPart(),
-            name.getFamily(),
-            name.getGivenAsSingleString())) {
-          for (PractitionerRole r : roles) {
-            if (pRef.equals(r.getPractitioner().getReference())) {
-              final Supervisor s = new Supervisor();
-              s.setName(name.getNameAsSingleString());
-              s.setId(r.getIdElement().getIdPart());
-              supervisors.add(s);
-            }
-          }
-        }
-      }
-      return new Result(supervisors);
-    }
-    return new Result(List.of());
+    return new Result(this.supervisors);
   }
   
   @Getter

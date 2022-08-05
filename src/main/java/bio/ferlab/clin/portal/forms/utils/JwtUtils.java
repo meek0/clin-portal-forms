@@ -10,6 +10,8 @@ import java.util.Optional;
 
 public class JwtUtils {
   
+  private JwtUtils() {}
+  
   public static final String BEARER_PREFIX = "Bearer ";
   public static final String FHIR_PRACTITIONER_ID = "fhir_practitioner_id";
   
