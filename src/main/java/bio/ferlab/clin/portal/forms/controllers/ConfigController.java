@@ -9,7 +9,6 @@ import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.springframework.http.HttpStatus;
@@ -20,13 +19,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConstants.DEFAULT_EXAM_SUFFIX;
-import static bio.ferlab.clin.portal.forms.utils.FhirConstants.DEFAULT_HPO_SUFFIX;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.DEFAULT_EXAM_SUFFIX;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.DEFAULT_HPO_SUFFIX;
 
 @RestController
 @RequestMapping("/form")
 @RequiredArgsConstructor
-@Slf4j
 public class ConfigController {
 
   private final FhirConfiguration fhirConfiguration;

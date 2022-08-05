@@ -21,7 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.EnumSet;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConstants.*;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
 @Component
 @Getter
@@ -78,7 +78,9 @@ public class FhirClient {
     }
   }
   
+  @Cacheable(value = CacheConfiguration.CACHE_ORGANIZATIONS, sync = true)
   public Organization findOrganizationById(String id) {
+    log.debug("Fetch organization by id {}", id);
     return this.getGenericClient().read().resource(Organization.class).withId(id).encodedJson().execute();
   }
 

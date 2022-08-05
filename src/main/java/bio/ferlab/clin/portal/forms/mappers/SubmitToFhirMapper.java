@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConstants.*;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
 @Component
 public class SubmitToFhirMapper {

@@ -41,7 +41,6 @@ public class PatientBuilder {
   
   public PatientBuilder validateEp() {
     try {
-      // TODO change it by looking the role, because 
       this.fhirClient.findOrganizationById(patient.getEp());
     }catch(ResourceNotFoundException e){
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ep " + patient.getEp() + " is unknown");

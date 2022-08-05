@@ -150,7 +150,26 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
 ### Response
 
 `201 created`
+## GET /search/patient/`ramq`=foo&`mrn`=foo&`ep`=foo
 
+### Parameters
+|Name|Required|Type|Description|
+|---|---|---|---|
+|`ramq`|false|String|required if `mrn` is null| 
+|`mrn`|false|String|required if `ramq` is null| 
+|`ep`|true|String|| 
+### Response
+```json
+{
+    "first_name": "firstName",
+    "last_name": "LastName",
+    "gender": "male",
+    "ep": "CHUSJ",
+    "birth_date": "20/07/1090",
+    "ramq": "RAMQ12341236",
+    "mrn": "MRNTEST005"
+}
+```
 
 # Security
 

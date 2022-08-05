@@ -15,7 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConstants.*;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ObservationsBuilderTest {

@@ -18,7 +18,6 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/form")
 @RequiredArgsConstructor
-@Slf4j
 public class SubmitController {
 
   private final FhirClient fhirClient;

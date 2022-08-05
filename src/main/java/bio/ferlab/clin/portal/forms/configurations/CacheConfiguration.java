@@ -15,6 +15,7 @@ public class CacheConfiguration {
   
   public static final String CACHE_CODES_VALUES = "CACHE_CODES_VALUES";
   public static final String CACHE_ROLES = "CACHE_ROLES";
+  public static final String CACHE_ORGANIZATIONS = "CACHE_ORGANIZATIONS";
 
   @Scheduled(fixedRateString = "${cache.eviction}", timeUnit = TimeUnit.SECONDS)
   @CacheEvict(value = CACHE_CODES_VALUES, allEntries = true)
@@ -26,6 +27,12 @@ public class CacheConfiguration {
   @CacheEvict(value = CACHE_ROLES, allEntries = true)
   public void evictRoles() {
     log.debug("Evict practitioner roles from cache");
+  }
+
+  @Scheduled(fixedRateString = "${cache.eviction}", timeUnit = TimeUnit.SECONDS)
+  @CacheEvict(value = CACHE_ORGANIZATIONS, allEntries = true)
+  public void evictOrganizations() {
+    log.debug("Evict organizations from cache");
   }
   
 }

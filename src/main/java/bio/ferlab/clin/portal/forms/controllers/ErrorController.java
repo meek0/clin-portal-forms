@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
@@ -33,6 +34,11 @@ public class ErrorController {
   public ResponseEntity<String> handleException(AuthenticationException e) {
     // FHIR could complain about invalid auth
     return new ResponseEntity<>(e.getResponseBody(), HttpStatus.valueOf(e.getStatusCode()));
+  }
+
+  @ExceptionHandler(MissingServletRequestParameterException.class)
+  public ResponseEntity<String> handleException(MissingServletRequestParameterException e) {
+    return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
   }
   
   @ExceptionHandler(MethodArgumentNotValidException.class)
