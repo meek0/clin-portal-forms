@@ -15,7 +15,7 @@ fhir:
     - bmus
     - emg
 cache:
-  eviction: 3600000 # 1h
+  eviction: 3600 # 1h
 management:
   endpoint:
     health:

@@ -3,7 +3,7 @@ package bio.ferlab.clin.portal.forms.models.builders;
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
-import bio.ferlab.clin.portal.forms.utils.FhirConstants;
+import bio.ferlab.clin.portal.forms.utils.FhirConsts;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
@@ -153,7 +153,7 @@ class PatientBuilderTest {
 
     final Bundle bundleByRamq = new Bundle();
     final Person person = new Person();
-    person.getIdentifierFirstRep().setValue("ramq").getType().getCodingFirstRep().setCode(FhirConstants.CODE_RAMQ).setSystem(FhirConstants.SYSTEM_RAMQ);
+    person.getIdentifierFirstRep().setValue("ramq").getType().getCodingFirstRep().setCode(FhirConsts.CODE_RAMQ).setSystem(FhirConsts.SYSTEM_RAMQ);
     bundleByRamq.addEntry().setResource(person);
     
     when(fhirClient.findPersonAndPatientByRamq(any())).thenReturn(bundleByRamq);

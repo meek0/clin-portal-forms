@@ -1,9 +1,7 @@
 package bio.ferlab.clin.portal.forms.models.builders;
 
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
-import bio.ferlab.clin.portal.forms.models.submit.Analyse;
-import bio.ferlab.clin.portal.forms.models.submit.ClinicalSign;
-import bio.ferlab.clin.portal.forms.models.submit.Exam;
+import bio.ferlab.clin.portal.forms.models.submit.*;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import io.github.benas.randombeans.EnhancedRandomBuilder;
 import io.github.benas.randombeans.api.EnhancedRandom;
@@ -17,7 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConstants.*;
+import static bio.ferlab.clin.portal.forms.utils.FhirConsts.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class ObservationsBuilderTest {
@@ -26,11 +24,13 @@ class ObservationsBuilderTest {
   
   @Test
   void validate_empty_age_code() {
-    final List<ClinicalSign> signs = random.objects(ClinicalSign.class, 5).collect(Collectors.toList());
+    final List<Signs> signs = random.objects(Signs.class, 5).collect(Collectors.toList());
     signs.get(2).setIsObserved(true);
     signs.get(2).setAgeCode(null);
+    final ClinicalSigns clinicalSigns = new ClinicalSigns();
+    clinicalSigns.setSigns(signs);
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> { 
-      new ObservationsBuilder(null, null, null, null, signs, List.of(), null).validate();
+      new ObservationsBuilder(null, null, null, null, clinicalSigns, new ParaclinicalExams(), null).validate();
     });
     assertEquals("age_code can't be empty for clinical_signs[2].is_observed = true", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
@@ -38,12 +38,14 @@ class ObservationsBuilderTest {
 
   @Test
   void validate_empty_values() {
-    final List<Exam> exams = random.objects(Exam.class, 5).collect(Collectors.toList());
-    exams.get(3).setInterpretation(Exam.Interpretation.abnormal);
+    final List<Exams> exams = random.objects(Exams.class, 5).collect(Collectors.toList());
+    exams.get(3).setInterpretation(Exams.Interpretation.abnormal);
     exams.get(3).setValue(null);
     exams.get(3).setValues(null);
+    final ParaclinicalExams paraclinicalExams = new ParaclinicalExams();
+    paraclinicalExams.setExams(exams);
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-      new ObservationsBuilder(null, null, null, null, List.of(), exams,null).validate();
+      new ObservationsBuilder(null, null, null, null, new ClinicalSigns(), paraclinicalExams,null).validate();
     });
     assertEquals("value and values can't be both empty for paraclinical_exams[3].interpretation = abnormal", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
@@ -55,41 +57,50 @@ class ObservationsBuilderTest {
     patient.setId("foo");
     final Analyse analyse = random.nextObject(Analyse.class);
 
-    ClinicalSign cs1 = new ClinicalSign();
+    Signs cs1 = new Signs();
     cs1.setIsObserved(true);
     cs1.setAgeCode("age");
     cs1.setValue("sign");
 
-    ClinicalSign cs2 = new ClinicalSign();
+    Signs cs2 = new Signs();
     cs2.setIsObserved(false);
     cs2.setValue("sign");
     
-    final List<ClinicalSign> signs = List.of(cs1, cs2);
+    final List<Signs> signs = List.of(cs1, cs2);
     
-    Exam ex1 = new Exam();
+    Exams ex1 = new Exams();
     ex1.setCode("code1");
-    ex1.setInterpretation(Exam.Interpretation.normal);
+    ex1.setInterpretation(Exams.Interpretation.normal);
 
-    Exam ex2 = new Exam();
+    Exams ex2 = new Exams();
     ex2.setCode("code2");
     ex2.setValue("value");
-    ex2.setInterpretation(Exam.Interpretation.abnormal);
+    ex2.setInterpretation(Exams.Interpretation.abnormal);
 
-    Exam ex3 = new Exam();
+    Exams ex3 = new Exams();
     ex3.setCode("code3");
     ex3.setValues(List.of("value1", "value2"));
-    ex3.setInterpretation(Exam.Interpretation.abnormal);
+    ex3.setInterpretation(Exams.Interpretation.abnormal);
     
-    final List<Exam> exams = List.of(ex1, ex2, ex3);
+    final List<Exams> exams = List.of(ex1, ex2, ex3);
     
-    final ObservationsBuilder.Result result = new ObservationsBuilder(new SubmitToFhirMapper(), "code", patient, analyse, signs, exams, "ethnicity")
+    final ClinicalSigns clinicalSigns = new ClinicalSigns();
+    clinicalSigns.setSigns(signs);
+    clinicalSigns.setComment("foo");
+    
+    final ParaclinicalExams paraclinicalExams = new ParaclinicalExams();
+    paraclinicalExams.setExams(exams);
+    paraclinicalExams.setComment("bar");
+    
+    final ObservationsBuilder.Result result = 
+        new ObservationsBuilder(new SubmitToFhirMapper(), "code", patient, analyse, clinicalSigns, paraclinicalExams, "ethnicity")
         .build();
     
     final List<Observation> obs = result.getObservations();
 
     assertObservation(obs.get(0), patient, "DSTA", "exam", true, ANALYSIS_REQUEST_CODE, "code", true);
-    assertObservation(obs.get(1), patient, "OBSG", "exam", null, null, analyse.getObservation(), true);
-    assertObservation(obs.get(2), patient, "INVES", "exam", null, null, analyse.getInvestigation(), true);
+    assertObservation(obs.get(1), patient, "OBSG", "exam", null, null, clinicalSigns.getComment(), true);
+    assertObservation(obs.get(2), patient, "INVES", "exam", null, null, paraclinicalExams.getComment(), true);
     assertObservation(obs.get(3), patient, "ETHN", "exam", null, ETHNICITY_CODE, "ethnicity", true);
     assertObservation(obs.get(4), patient, "INDIC", "exam", null, null, analyse.getIndication(), true);
 

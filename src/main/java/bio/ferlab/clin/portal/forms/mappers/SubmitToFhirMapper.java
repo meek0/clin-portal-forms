@@ -1,9 +1,7 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
-import bio.ferlab.clin.portal.forms.models.submit.Analyse;
-import bio.ferlab.clin.portal.forms.models.submit.ClinicalSign;
-import bio.ferlab.clin.portal.forms.models.submit.Exam;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
+import bio.ferlab.clin.portal.forms.models.submit.*;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
@@ -21,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConstants.*;
+import static bio.ferlab.clin.portal.forms.utils.FhirConsts.*;
 
 @Component
 public class SubmitToFhirMapper {
@@ -131,8 +129,8 @@ public class SubmitToFhirMapper {
   public List<Observation> mapToObservations(String panelCode,
                                              org.hl7.fhir.r4.model.Patient patient,
                                              Analyse analyse,
-                                             List<ClinicalSign> clinicalSigns,
-                                             List<Exam> exams,
+                                             ClinicalSigns signs,
+                                             ParaclinicalExams exams,
                                              String ethnicity) {
     
     List<Observation> all = new ArrayList<>();
@@ -140,13 +138,13 @@ public class SubmitToFhirMapper {
     Observation dsta = createObservation(patient, "DSTA", "exam",true, ANALYSIS_REQUEST_CODE, panelCode);
     all.add(dsta);
     
-    if(StringUtils.isNotBlank(analyse.getObservation())) {
-      Observation obsg = createObservation(patient, "OBSG", "exam",null, null, analyse.getObservation());
+    if(StringUtils.isNotBlank(signs.getComment())) {
+      Observation obsg = createObservation(patient, "OBSG", "exam",null, null, signs.getComment());
       all.add(obsg);
     }
 
-    if(StringUtils.isNotBlank(analyse.getInvestigation())) {
-      Observation obsg = createObservation(patient, "INVES", "exam", null, null, analyse.getInvestigation());
+    if(StringUtils.isNotBlank(exams.getComment())) {
+      Observation obsg = createObservation(patient, "INVES", "exam", null, null, exams.getComment());
       all.add(obsg);
     }
     
@@ -158,7 +156,7 @@ public class SubmitToFhirMapper {
     Observation indic = createObservation(patient, "INDIC", "exam",null, null, analyse.getIndication());
     all.add(indic);
 
-    all.addAll(clinicalSigns.stream().map(o -> {
+    all.addAll(signs.getSigns().stream().map(o -> {
       Observation obs = createObservation(patient, "PHEN", "exam",o.getIsObserved(), HP_CODE, o.getValue());
       if(o.getAgeCode() != null) {
         obs.addExtension(AGE_AT_ONSET_EXT, new Coding().setCode(o.getAgeCode()));
@@ -166,7 +164,7 @@ public class SubmitToFhirMapper {
       return obs;
     }).collect(Collectors.toList()));
 
-    all.addAll(exams.stream().map(o -> {
+    all.addAll(exams.getExams().stream().map(o -> {
       Observation obs = createObservation(patient, o.getCode(), "procedure", null, null, o.getValue());
       obs.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(getInterpretationCode(o.getInterpretation()))));
       o.getValues().forEach(v -> {
@@ -178,7 +176,7 @@ public class SubmitToFhirMapper {
     return all;
   }
   
-  private String getInterpretationCode(Exam.Interpretation interpretation) {
+  private String getInterpretationCode(Exams.Interpretation interpretation) {
     switch (interpretation){
       case abnormal:
         return "A";

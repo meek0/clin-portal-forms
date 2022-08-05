@@ -7,7 +7,6 @@ import bio.ferlab.clin.portal.forms.models.submit.Request;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import bio.ferlab.clin.portal.forms.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.r4.model.Bundle;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +17,6 @@ import javax.validation.Valid;
 @RestController
 @RequestMapping("/form")
 @RequiredArgsConstructor
-@Slf4j
 public class SubmitController {
 
   private final FhirClient fhirClient;
@@ -32,6 +30,7 @@ public class SubmitController {
 
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
     final String panelCode = request.getAnalyse().getPanelCode();
+    final String ep = request.getPatient().getEp();
  
     final PatientBuilder patientBuilder = new PatientBuilder(fhirClient, mapper, request.getPatient());
     PatientBuilder.Result pbr = patientBuilder
@@ -41,9 +40,10 @@ public class SubmitController {
         .findByMrn()
         .build(true, true);
     
-    final PractitionerBuilder practitionerBuilder = new PractitionerBuilder(fhirClient, practitionerId, request.getPatient());
+    final PractitionerBuilder practitionerBuilder = new PractitionerBuilder(fhirClient, practitionerId);
     PractitionerBuilder.Result roleBr = practitionerBuilder
         .withSupervisor(request.getAnalyse().getResidentSupervisor())
+        .withEp(ep)
         .build();
     
     final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, panelCode, pbr.getPatient(), request.getAnalyse(),

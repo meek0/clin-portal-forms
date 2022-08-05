@@ -9,7 +9,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConstants.AGE_AT_EVENT_EXT;
+import static bio.ferlab.clin.portal.forms.utils.FhirConsts.AGE_AT_EVENT_EXT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 

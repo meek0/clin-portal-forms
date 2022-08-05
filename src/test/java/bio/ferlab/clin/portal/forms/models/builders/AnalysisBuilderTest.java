@@ -9,8 +9,8 @@ import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConstants.ANALYSIS_SERVICE_REQUEST;
-import static bio.ferlab.clin.portal.forms.utils.FhirConstants.SUPERVISOR_EXT;
+import static bio.ferlab.clin.portal.forms.utils.FhirConsts.ANALYSIS_SERVICE_REQUEST;
+import static bio.ferlab.clin.portal.forms.utils.FhirConsts.SUPERVISOR_EXT;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -28,7 +28,7 @@ class AnalysisBuilderTest {
       new AnalysisBuilder(fhirClient, null, "code", null, null, null, null, null)
           .withReflex(true);
     });
-    assertEquals("panel code 'code' is unknown", exception.getReason());
+    assertEquals("panel code code is unknown", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
   }
 

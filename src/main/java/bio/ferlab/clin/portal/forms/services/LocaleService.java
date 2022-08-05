@@ -2,7 +2,6 @@ package bio.ferlab.clin.portal.forms.services;
 
 import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 

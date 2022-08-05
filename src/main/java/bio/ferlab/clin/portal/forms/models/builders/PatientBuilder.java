@@ -94,7 +94,8 @@ public class PatientBuilder {
     // keep existing or create new person
     final Person newOrUpdatedPerson = existingPerson.orElseGet(() -> createIfMissing ? mapper.mapToPerson(patient, newOrUpdatedPatient) : null);
     
-    return new Result(newOrUpdatedPatient, existingPatient.isEmpty(), newOrUpdatedPerson, existingPerson.isEmpty());
+    return new Result(newOrUpdatedPatient, createIfMissing && existingPatient.isEmpty(), 
+        newOrUpdatedPerson, createIfMissing && existingPerson.isEmpty());
   }
     
   @AllArgsConstructor

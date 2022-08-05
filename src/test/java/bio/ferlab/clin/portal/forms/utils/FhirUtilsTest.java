@@ -6,6 +6,7 @@ import org.hl7.fhir.r4.model.Resource;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class FhirUtilsTest {
   
@@ -20,6 +21,14 @@ class FhirUtilsTest {
     final Resource patient = new Patient().setId("foo");
     final String expected = new Reference("Patient/foo").getReference();
     assertEquals(expected, FhirUtils.toReference(patient).getReference());
+  }
+  
+  @Test
+  void extractId() {
+    assertNull(FhirUtils.extractId(null));
+    assertNull(FhirUtils.extractId(new Reference()));
+    assertNull(FhirUtils.extractId(new Reference().setReference("foo")));
+    assertEquals("id", FhirUtils.extractId(new Reference().setReference("TypeResource/id")));
   }
 
 }

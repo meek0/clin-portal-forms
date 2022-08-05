@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Exam {
+public class Exams {
   
   public enum Interpretation {
     abnormal,
@@ -23,6 +23,6 @@ public class Exam {
   @NotNull
   private Interpretation interpretation;
   private String value;
-  private List<String> values= new ArrayList<>();
+  private List<String> values = new ArrayList<>();
   
 }

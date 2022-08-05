@@ -7,7 +7,7 @@ import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.junit.jupiter.api.Test;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConstants.SEQUENCING_SERVICE_REQUEST;
+import static bio.ferlab.clin.portal.forms.utils.FhirConsts.SEQUENCING_SERVICE_REQUEST;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
