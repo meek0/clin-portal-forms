@@ -95,55 +95,56 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
 ### Body
 ```json
 {
-    "analyse": {
-        "panel_code": "MMG",
-        "is_reflex": false,
-        "observation": "free comment observation",
-        "investigation": "free comment investigation",
-        "indication": "free comment indication",
-        "resident_supervisor": "PRR00102",
-        "comment": "free general comment"
-    },
-    "patient": {
-        "ep": "CHUSJ",
-        "ramq": "RAMQTEST",
-        "mrn": "MRNTEST",
-        "first_name": "Creation",
-        "last_name": "Prescription",
-        "birth_date": "20/07/1990",
-        "gender": "male",
-        "ethnicity": "LAT-AM"
-    },
-    "clinical_signs": [
-        {
-            "value": "HP:0001319",
-            "is_observed": true,
-            "age_code": "HP:0410280"
-        },
-        {
-            "value": "HP:0002194",
-            "is_observed": false
-        }
+  "analyse": {
+    "panel_code": "MMG",
+    "is_reflex": false,
+    "indication": "comment indication",
+    "resident_supervisor": "PRR00102",
+    "comment": "general comment"
+  },
+  "patient": {
+    "ep": "CHUSJ",
+    "ramq": "RAMQ12341236",
+    "mrn": "MRN001",
+    "first_name": "Creation",
+    "last_name": "Prescription",
+    "birth_date": "20/07/1990",
+    "gender": "male",
+    "ethnicity": "LAT-AM"
+  },
+  "clinical_signs": {
+    "signs": [
+      {
+        "value": "HP:0001319",
+        "is_observed": true,
+        "age_code": "HP:0410280"
+      },
+      {
+        "value": "HP:0002194",
+        "is_observed": false
+      }
     ],
-    "paraclinical_exams": [
-        {
-            "code": "CKIN",
-            "interpretation": "abnormal",
-            "value": "comment text"
-        },
-        {
-            "code": "GCNR",
-            "interpretation": "normal"
-        },
-        {
-            "code": "EMG",
-            "interpretation": "abnormal",
-            "values": [
-                "HP:0030006",
-                "HP:0030000"
-            ]
-        }
-    ]
+    "comment": "comment observation"
+  },
+  "paraclinical_exams": {
+    "exams": [
+      {
+        "code": "CKIN",
+        "interpretation": "abnormal",
+        "value": "comment text"
+      },
+      {
+        "code": "GCNR",
+        "interpretation": "normal"
+      },
+      {
+        "code": "EMG",
+        "interpretation": "abnormal",
+        "values": ["HP:0030006", "HP:0030000"]
+      }
+    ],
+    "comment": "comment investigation"
+  }
 }
 ```
 ### Response

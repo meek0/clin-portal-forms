@@ -12,17 +12,10 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Request {
+public class ParaclinicalExams {
+
   @Valid
   @NotNull
-  private Analyse analyse;
-  @Valid
-  @NotNull
-  private Patient patient;
-  @Valid
-  @NotNull
-  private ClinicalSigns clinicalSigns;
-  @Valid
-  @NotNull
-  private ParaclinicalExams paraclinicalExams;
+  List<Exams> exams = new ArrayList<>();
+  private String comment;
 }

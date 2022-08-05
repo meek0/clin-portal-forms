@@ -13,8 +13,6 @@ public class Analyse {
   @NotNull
   private String panelCode;
   private Boolean isReflex;
-  private String observation;
-  private String investigation;
   @NotNull
   private String indication;
   private String comment;

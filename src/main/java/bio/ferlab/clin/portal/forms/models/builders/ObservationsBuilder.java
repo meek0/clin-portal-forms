@@ -1,9 +1,7 @@
 package bio.ferlab.clin.portal.forms.models.builders;
 
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
-import bio.ferlab.clin.portal.forms.models.submit.Analyse;
-import bio.ferlab.clin.portal.forms.models.submit.ClinicalSign;
-import bio.ferlab.clin.portal.forms.models.submit.Exam;
+import bio.ferlab.clin.portal.forms.models.submit.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -21,20 +19,20 @@ public class ObservationsBuilder {
   private final String panelCode;
   private final Patient patient;
   private final Analyse analyse;
-  private final List<ClinicalSign> clinicalSigns;
-  private final List<Exam> exams;
+  private final ClinicalSigns signs;
+  private final ParaclinicalExams exams;
   private final String ethnicity;
   
   public ObservationsBuilder validate() {
-    for(int i=0; i<clinicalSigns.size();i++) {
-      final ClinicalSign cs = clinicalSigns.get(i);
+    for(int i = 0; i< signs.getSigns().size(); i++) {
+      final Signs cs = signs.getSigns().get(i);
       if (cs.getIsObserved() && cs.getAgeCode() == null) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("age_code can't be empty for clinical_signs[%s].is_observed = true", i));
       }
     }
-    for(int i=0; i<exams.size();i++) {
-      final Exam ex = exams.get(i);
-      if (Exam.Interpretation.abnormal.equals(ex.getInterpretation()) && ex.getValue() == null && CollectionUtils.isEmpty(ex.getValues())) {
+    for(int i=0; i<exams.getExams().size();i++) {
+      final Exams ex = exams.getExams().get(i);
+      if (Exams.Interpretation.abnormal.equals(ex.getInterpretation()) && ex.getValue() == null && CollectionUtils.isEmpty(ex.getValues())) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("value and values can't be both empty for paraclinical_exams[%s].interpretation = abnormal", i));
       }
     }
@@ -42,7 +40,7 @@ public class ObservationsBuilder {
   }
   
   public Result build() {
-    List<org.hl7.fhir.r4.model.Observation> obs = mapper.mapToObservations(panelCode, patient, analyse, clinicalSigns, exams, ethnicity);
+    List<org.hl7.fhir.r4.model.Observation> obs = mapper.mapToObservations(panelCode, patient, analyse, signs, exams, ethnicity);
     return new Result(obs);
   }
   
