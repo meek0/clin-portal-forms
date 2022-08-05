@@ -28,7 +28,7 @@ class JwtUtilsTest {
           .sign(algorithm);
       JwtUtils.getProperty(token, JwtUtils.FHIR_PRACTITIONER_ID);
     });
-    assertEquals("missing 'fhir_practitioner_id' in token", exception.getReason());
+    assertEquals("missing fhir_practitioner_id in token", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
   }
 

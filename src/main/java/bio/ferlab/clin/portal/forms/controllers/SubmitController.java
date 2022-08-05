@@ -32,6 +32,7 @@ public class SubmitController {
 
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
     final String panelCode = request.getAnalyse().getPanelCode();
+    final String ep = request.getPatient().getEp();
  
     final PatientBuilder patientBuilder = new PatientBuilder(fhirClient, mapper, request.getPatient());
     PatientBuilder.Result pbr = patientBuilder
@@ -41,9 +42,10 @@ public class SubmitController {
         .findByMrn()
         .build(true, true);
     
-    final PractitionerBuilder practitionerBuilder = new PractitionerBuilder(fhirClient, practitionerId, request.getPatient());
+    final PractitionerBuilder practitionerBuilder = new PractitionerBuilder(fhirClient, practitionerId);
     PractitionerBuilder.Result roleBr = practitionerBuilder
         .withSupervisor(request.getAnalyse().getResidentSupervisor())
+        .withEp(ep)
         .build();
     
     final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, panelCode, pbr.getPatient(), request.getAnalyse(),

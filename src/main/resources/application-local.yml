@@ -4,6 +4,8 @@ fhir:
   timeout: 600000
   url: http://localhost:8080/fhir
   validate: true
+cache:
+  eviction: 30 # 30s
 security:
   issuer: http://localhost:8081/auth/realms/master
 logging:

@@ -32,7 +32,7 @@ public class AnalysisBuilder {
     if (isReflex) {
       CodeSystem codes = this.fhirClient.findCodeSystemById("analysis-request-code");
       CodeSystem.ConceptDefinitionComponent code = codes.getConcept().stream().filter(c -> panelCode.equals(c.getCode())).findFirst()
-          .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "panel code '" + panelCode + "' is unknown"));
+          .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "panel code " + panelCode + " is unknown"));
       this.orderDetails = String.format("Reflex Panel: %s (%s)", code.getDisplay(), code.getCode());
     }
     return this;

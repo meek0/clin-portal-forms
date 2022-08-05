@@ -41,6 +41,7 @@ public class PatientBuilder {
   
   public PatientBuilder validateEp() {
     try {
+      // TODO change it by looking the role, because 
       this.fhirClient.findOrganizationById(patient.getEp());
     }catch(ResourceNotFoundException e){
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ep " + patient.getEp() + " is unknown");
@@ -94,7 +95,8 @@ public class PatientBuilder {
     // keep existing or create new person
     final Person newOrUpdatedPerson = existingPerson.orElseGet(() -> createIfMissing ? mapper.mapToPerson(patient, newOrUpdatedPatient) : null);
     
-    return new Result(newOrUpdatedPatient, existingPatient.isEmpty(), newOrUpdatedPerson, existingPerson.isEmpty());
+    return new Result(newOrUpdatedPatient, createIfMissing && existingPatient.isEmpty(), 
+        newOrUpdatedPerson, createIfMissing && existingPerson.isEmpty());
   }
     
   @AllArgsConstructor

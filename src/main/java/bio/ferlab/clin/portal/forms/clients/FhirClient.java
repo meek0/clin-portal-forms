@@ -1,5 +1,6 @@
 package bio.ferlab.clin.portal.forms.clients;
 
+import bio.ferlab.clin.portal.forms.configurations.CacheConfiguration;
 import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.context.FhirContext;
@@ -13,11 +14,14 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.EnumSet;
+
+import static bio.ferlab.clin.portal.forms.utils.FhirConstants.*;
 
 @Component
 @Getter
@@ -86,7 +90,9 @@ public class FhirClient {
     return this.getGenericClient().read().resource(PractitionerRole.class).withId(id).encodedJson().execute();
   }
   
+  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true)
   public Bundle findPractitionerRoleByPractitionerId(String practitionerId) {
+    log.debug("Fetch practitioner roles by practitioner id {}", practitionerId);
     return this.getGenericClient().search().forResource(PractitionerRole.class)
         .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).encodedJson().execute();
   }
@@ -110,6 +116,55 @@ public class FhirClient {
         .returnBundle(Bundle.class)
         .encodedJson()
         .execute();
+  }
+
+  @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true)
+  public Bundle fetchCodesAndValues() {
+    log.info("Fetch codes and values from FHIR");
+
+    Bundle bundle = new Bundle();
+    bundle.setType(Bundle.BundleType.BATCH);
+
+    bundle.addEntry().getRequest()
+        .setUrl("CodeSystem/analysis-request-code")
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+        .setUrl("CodeSystem/hp")
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+        .setUrl("CodeSystem/fmh-relationship-plus")
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+        .setUrl("CodeSystem/qc-ethnicity")
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+        .setUrl("CodeSystem/observation-code")
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+        .setUrl("ValueSet/age-at-onset")
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    for(String byType: fhirConfiguration.getTypesWithDefault()) {
+      bundle.addEntry().getRequest()
+          .setUrl("ValueSet/" + byType + DEFAULT_HPO_SUFFIX)
+          .setMethod(Bundle.HTTPVerb.GET);
+      bundle.addEntry().getRequest()
+          .setUrl("ValueSet/" + byType + DEFAULT_EXAM_SUFFIX)
+          .setMethod(Bundle.HTTPVerb.GET);
+    }
+
+    for(String byType: fhirConfiguration.getMultiValuesObservationCodes()) {
+      bundle.addEntry().getRequest()
+          .setUrl("ValueSet/" + byType + ABNORMALITIES_SUFFIX)
+          .setMethod(Bundle.HTTPVerb.GET);
+    }
+    
+    return this.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
   }
 
   public String toJson(IBaseResource resource) {

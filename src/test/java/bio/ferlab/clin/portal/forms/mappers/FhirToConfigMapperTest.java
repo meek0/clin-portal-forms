@@ -3,8 +3,6 @@ package bio.ferlab.clin.portal.forms.mappers;
 import bio.ferlab.clin.portal.forms.models.config.ValueName;
 import bio.ferlab.clin.portal.forms.services.LabelsService;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
-import io.github.benas.randombeans.EnhancedRandomBuilder;
-import io.github.benas.randombeans.api.EnhancedRandom;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.Organization;
@@ -18,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 

@@ -2,6 +2,12 @@ package bio.ferlab.clin.portal.forms.utils;
 
 public class FhirConstants {
 
+  private FhirConstants(){}
+  
+  public static final String DEFAULT_HPO_SUFFIX = "-default-hpo";
+  public static final String DEFAULT_EXAM_SUFFIX = "-default-exam";
+  public static final String ABNORMALITIES_SUFFIX = "-abnormalities";
+
   public static final String SYSTEM_RAMQ = "http://terminology.hl7.org/CodeSystem/v2-0203";
   public static final String CODE_RAMQ = "JHN";
   public static final String SYSTEM_MRN = "http://terminology.hl7.org/CodeSystem/v2-0203";

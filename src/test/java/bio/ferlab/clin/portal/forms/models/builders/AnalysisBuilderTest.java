@@ -28,7 +28,7 @@ class AnalysisBuilderTest {
       new AnalysisBuilder(fhirClient, null, "code", null, null, null, null, null)
           .withReflex(true);
     });
-    assertEquals("panel code 'code' is unknown", exception.getReason());
+    assertEquals("panel code code is unknown", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
   }
 
