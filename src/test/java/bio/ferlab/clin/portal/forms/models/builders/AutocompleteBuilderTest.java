@@ -3,18 +3,14 @@ package bio.ferlab.clin.portal.forms.models.builders;
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -26,16 +22,6 @@ class AutocompleteBuilderTest {
   @BeforeEach
   void beforeEach() {
     when(fhirClient.getContext()).thenReturn(fhirContext);
-  }
-  
-  @Test
-  void validateEp() {
-    when(fhirClient.findOrganizationById(any())).thenThrow(new ResourceNotFoundException("foo"));
-    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-      new AutocompleteBuilder(fhirClient, "foo").validateEp();
-    });
-    assertEquals("ep foo is unknown", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
   }
   
   @Test

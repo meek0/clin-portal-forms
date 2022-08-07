@@ -3,6 +3,7 @@ package bio.ferlab.clin.portal.forms.models.builders;
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
+import bio.ferlab.clin.portal.forms.utils.JwtUtils;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -60,6 +61,13 @@ public class PractitionerBuilder {
     }
     
     return new Result(practitionerRoles, practitionerRole, supervisorRole);
+  }
+  
+  // similar as new PractitionerBuilder(...).withEp(...).build() + extract practitioner id from token
+  public static void validateAccessToEp(FhirClient fhirClient, String authorization, String ep) {
+    final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
+    Result result = new PractitionerBuilder(fhirClient, practitionerId).withEp(ep).build();
+    assert(result.practitionerRole != null); // just in case the exception line 59 isn't thrown
   }
   
   @AllArgsConstructor

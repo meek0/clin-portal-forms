@@ -5,7 +5,6 @@ import bio.ferlab.clin.portal.forms.models.autocomplete.Supervisor;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import bio.ferlab.clin.portal.forms.utils.Utils;
-import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +13,6 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.HumanName;
 import org.hl7.fhir.r4.model.Practitioner;
 import org.hl7.fhir.r4.model.PractitionerRole;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,15 +54,6 @@ public class AutocompleteBuilder {
           }
         }
       }
-    }
-    return this;
-  }
-
-  public AutocompleteBuilder validateEp() {
-    try {
-      this.fhirClient.findOrganizationById(ep);
-    }catch(ResourceNotFoundException e){
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ep " + ep + " is unknown");
     }
     return this;
   }

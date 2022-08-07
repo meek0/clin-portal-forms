@@ -34,7 +34,6 @@ public class SubmitController {
  
     final PatientBuilder patientBuilder = new PatientBuilder(fhirClient, mapper, request.getPatient());
     PatientBuilder.Result pbr = patientBuilder
-        .validateEp()
         .validateRamqAndMrn()
         .findByRamq()
         .findByMrn()

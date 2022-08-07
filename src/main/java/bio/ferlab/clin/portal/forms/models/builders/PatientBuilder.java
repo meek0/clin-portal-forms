@@ -4,7 +4,6 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
-import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -35,15 +34,6 @@ public class PatientBuilder {
   public PatientBuilder validateRamqAndMrn() {
     if (StringUtils.isAllBlank(patient.getRamq(), patient.getMrn())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ramq and patient.mrn can't be both empty");
-    }
-    return this;
-  }
-  
-  public PatientBuilder validateEp() {
-    try {
-      this.fhirClient.findOrganizationById(patient.getEp());
-    }catch(ResourceNotFoundException e){
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ep " + patient.getEp() + " is unknown");
     }
     return this;
   }

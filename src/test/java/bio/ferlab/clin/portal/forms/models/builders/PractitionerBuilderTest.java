@@ -4,9 +4,12 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.PractitionerRole;
+import org.hl7.fhir.r4.model.Reference;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -16,9 +19,13 @@ import org.springframework.web.server.ResponseStatusException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class PractitionerBuilderTest {
+
+  private final Algorithm algorithm = Algorithm.HMAC256("secret");
 
   final FhirContext fhirContext = FhirContext.forR4();
   final FhirClient fhirClient = Mockito.mock(FhirClient.class);
@@ -87,6 +94,44 @@ class PractitionerBuilderTest {
     });
     assertEquals("supervisor sup is unknown", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+  }
+  
+  @Test
+  void validateAccessToEp_ok() {
+    final String token = JWT.create().withClaim("fhir_practitioner_id", "id").sign(algorithm);
+    final Bundle bundle = new Bundle();
+    
+    PractitionerRole role = new PractitionerRole();
+    role.setOrganization(new Reference("Organization/ep"));
+    
+    bundle.addEntry().setResource(role);
+    
+    when(fhirClient.findPractitionerRoleByPractitionerId(any())).thenReturn(bundle);
+    
+    PractitionerBuilder.validateAccessToEp(fhirClient, token, "ep");
+    
+    verify(fhirClient).findPractitionerRoleByPractitionerId(eq("id"));
+  }
+
+  @Test
+  void validateAccessToEp_ko() {
+    final String token = JWT.create().withClaim("fhir_practitioner_id", "id").sign(algorithm);
+    final Bundle bundle = new Bundle();
+
+    PractitionerRole role = new PractitionerRole();
+    role.setOrganization(new Reference("Organization/ep"));
+
+    bundle.addEntry().setResource(role);
+
+    when(fhirClient.findPractitionerRoleByPractitionerId(any())).thenReturn(bundle);
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+      PractitionerBuilder.validateAccessToEp(fhirClient, token, "another_ep");
+    });
+    assertEquals("practitioner id has no role in ep another_ep", exception.getReason());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    
+    verify(fhirClient).findPractitionerRoleByPractitionerId(eq("id"));
   }
 
 }
