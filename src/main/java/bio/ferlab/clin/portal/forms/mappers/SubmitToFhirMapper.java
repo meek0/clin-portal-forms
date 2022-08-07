@@ -120,9 +120,7 @@ public class SubmitToFhirMapper {
     clinicalImpression.setSubject(FhirUtils.toReference(patient));
     clinicalImpression.setStatus(ClinicalImpression.ClinicalImpressionStatus.COMPLETED);
     clinicalImpression.addExtension(AGE_AT_EVENT_EXT, new Age().setSystem(Enumerations.AgeUnits.D.getSystem()).setCode(Enumerations.AgeUnits.D.toCode()).setValue(mapToAge(person.getBirthDate())));
-    observations.forEach(o -> {
-      clinicalImpression.addInvestigation(new ClinicalImpression.ClinicalImpressionInvestigationComponent(new CodeableConcept().setText("Examination / signs")).addItem(FhirUtils.toReference(o)));
-    });
+    observations.forEach(o -> clinicalImpression.addInvestigation(new ClinicalImpression.ClinicalImpressionInvestigationComponent(new CodeableConcept().setText("Examination / signs")).addItem(FhirUtils.toReference(o))));
     return clinicalImpression;
   }
   
@@ -167,9 +165,7 @@ public class SubmitToFhirMapper {
     all.addAll(exams.getExams().stream().map(o -> {
       Observation obs = createObservation(patient, o.getCode(), "procedure", null, null, o.getValue());
       obs.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(getInterpretationCode(o.getInterpretation()))));
-      o.getValues().forEach(v -> {
-        obs.getValueCodeableConcept().addCoding(new Coding().setSystem(HP_CODE).setCode(v));
-      });
+      o.getValues().forEach(v -> obs.getValueCodeableConcept().addCoding(new Coding().setSystem(HP_CODE).setCode(v)));
       return obs;
     }).collect(Collectors.toList()));
     

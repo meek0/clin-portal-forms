@@ -3,6 +3,7 @@ package bio.ferlab.clin.portal.forms.controllers;
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.FhirToSearchMapper;
 import bio.ferlab.clin.portal.forms.models.builders.PatientBuilder;
+import bio.ferlab.clin.portal.forms.models.builders.PractitionerBuilder;
 import bio.ferlab.clin.portal.forms.models.search.Search;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import lombok.RequiredArgsConstructor;
@@ -18,18 +19,23 @@ public class SearchController {
   
   @GetMapping("/patient/{ep}")
   public Search search(@PathVariable String ep,
+                       @RequestHeader String authorization,
                        @RequestParam(required = false) String ramq,
                        @RequestParam(required = false) String mrn){
+
+    PractitionerBuilder.validateAccessToEp(fhirClient, authorization, ep);
+    
     final Patient patient = new Patient();
     patient.setRamq(ramq);
     patient.setMrn(mrn);
     patient.setEp(ep);
+    
     final PatientBuilder.Result result = new PatientBuilder(fhirClient, null, patient)
         .validateRamqAndMrn()
-        .validateEp()
         .findByMrn()
         .findByRamq()
         .build(false, false);
+    
     return mapper.mapToSearch(result.getPerson(), result.getPatient());
   }
 }

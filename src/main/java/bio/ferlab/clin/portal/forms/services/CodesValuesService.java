@@ -38,7 +38,7 @@ public class CodesValuesService {
     return (ValueSet) this.buildCodesAndValues().get(key);
   }
   
-  public Map<String, IBaseResource> buildCodesAndValues() {
+  private Map<String, IBaseResource> buildCodesAndValues() {
     final Bundle bundle = this.fhirClient.fetchCodesAndValues();
     
     BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);

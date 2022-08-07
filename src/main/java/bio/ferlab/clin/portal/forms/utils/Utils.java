@@ -6,7 +6,7 @@ public class Utils {
   
   private Utils() {}
   
-  public static boolean indexOfAnyIgnoreCase(String prefix, String...params){
+  public static boolean isIndexOfAnyIgnoreCase(String prefix, String...params){
     if (StringUtils.isNotBlank(prefix) && params != null) {
       for (String p : params) {
         if (org.apache.commons.lang3.StringUtils.isNotBlank(p)

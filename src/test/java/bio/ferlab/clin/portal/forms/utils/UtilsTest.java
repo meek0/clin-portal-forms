@@ -8,10 +8,10 @@ class UtilsTest {
 
   @Test
   void indexOfAnyIgnoreCase() {
-    assertFalse(Utils.indexOfAnyIgnoreCase(null, null));
-    assertFalse(Utils.indexOfAnyIgnoreCase(null, ""));
-    assertTrue(Utils.indexOfAnyIgnoreCase("F", "foo", "bar"));
-    assertTrue(Utils.indexOfAnyIgnoreCase("f", "FOO", "BAR"));
-    assertTrue(Utils.indexOfAnyIgnoreCase("foo", null, "FOO"));
+    assertFalse(Utils.isIndexOfAnyIgnoreCase(null, null));
+    assertFalse(Utils.isIndexOfAnyIgnoreCase(null, ""));
+    assertTrue(Utils.isIndexOfAnyIgnoreCase("F", "foo", "bar"));
+    assertTrue(Utils.isIndexOfAnyIgnoreCase("f", "FOO", "BAR"));
+    assertTrue(Utils.isIndexOfAnyIgnoreCase("foo", null, "FOO"));
   }
 }

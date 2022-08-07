@@ -6,7 +6,6 @@ import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import bio.ferlab.clin.portal.forms.utils.FhirConsts;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.server.exceptions.ResourceNotFoundException;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Organization;
@@ -41,19 +40,6 @@ class PatientBuilderTest {
       builder.validateRamqAndMrn();
     });
     assertEquals("patient.ramq and patient.mrn can't be both empty", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-  }
-
-  @Test
-  void validateEp() {
-    when(fhirClient.findOrganizationById(any())).thenThrow(new ResourceNotFoundException("Organization not found"));
-    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-      final Patient patient = new Patient();
-      patient.setEp("foo");
-      final PatientBuilder builder = new PatientBuilder(fhirClient, new SubmitToFhirMapper(), patient);
-      builder.validateEp();
-    });
-    assertEquals("patient.ep foo is unknown", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
   }
   

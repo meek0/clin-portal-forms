@@ -77,17 +77,13 @@ public class FhirClient {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors);
     }
   }
-  
-  @Cacheable(value = CacheConfiguration.CACHE_ORGANIZATIONS, sync = true)
-  public Organization findOrganizationById(String id) {
-    log.debug("Fetch organization by id {}", id);
-    return this.getGenericClient().read().resource(Organization.class).withId(id).encodedJson().execute();
-  }
 
+  @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true)
   public CodeSystem findCodeSystemById(String id) {
     return this.getGenericClient().read().resource(CodeSystem.class).withId(id).encodedJson().execute();
   }
-  
+
+  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true)
   public PractitionerRole findPractitionerRoleById(String id) {
     return this.getGenericClient().read().resource(PractitionerRole.class).withId(id).encodedJson().execute();
   }
@@ -101,13 +97,14 @@ public class FhirClient {
 
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true)
   public Bundle findPractitionerAndRoleByEp(String ep) {
-    log.debug("Fetch practitioner roles by ep {}", ep);
+    log.debug("Fetch practitioner and roles by ep {}", ep);
     return this.getGenericClient().search().forResource(PractitionerRole.class)
         .where(PractitionerRole.ORGANIZATION.hasId(ep))
         .include(PractitionerRole.INCLUDE_PRACTITIONER)
         .returnBundle(Bundle.class).encodedJson().execute();
   }
   
+  // data refreshed very often, don't cache
   public Bundle findPersonAndPatientByRamq(String ramq) {
     return this.getGenericClient().search()
         .forResource(Person.class)
@@ -117,7 +114,8 @@ public class FhirClient {
         .encodedJson()
         .execute();
   }
-  
+
+  // data refreshed very often, don't cache
   public Bundle findPersonAndPatientByMrnAndEp(String mrn, String ep) {
     return this.getGenericClient().search()
         .forResource(Patient.class)
