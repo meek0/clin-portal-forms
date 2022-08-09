@@ -15,7 +15,7 @@ public class Search {
   private String lastName;
   private String gender;
   private String ep;
-  @JsonFormat(pattern = "dd/MM/yyyy")
+  @JsonFormat(pattern = "yyyy-MM-dd")
   private Date birthDate;
   private String ramq;
   private String mrn;

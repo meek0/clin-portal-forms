@@ -108,7 +108,7 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
     "mrn": "MRN001",
     "first_name": "Creation",
     "last_name": "Prescription",
-    "birth_date": "20/07/1990",
+    "birth_date": "1990-07-20",
     "gender": "male",
     "ethnicity": "LAT-AM"
   },
@@ -165,7 +165,7 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
     "last_name": "LastName",
     "gender": "male",
     "ep": "CHUSJ",
-    "birth_date": "20/07/1090",
+    "birth_date": "1090-07-20",
     "ramq": "RAMQ12341236",
     "mrn": "MRNTEST005"
 }
