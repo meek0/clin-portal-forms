@@ -29,7 +29,7 @@ public class Patient {
   @NotNull
   private String lastName;
   @NotNull
-  @JsonFormat(pattern = "dd/MM/yyyy")
+  @JsonFormat(pattern = "yyyy-MM-dd")
   private LocalDate birthDate;
   @NotNull
   private Gender gender;
