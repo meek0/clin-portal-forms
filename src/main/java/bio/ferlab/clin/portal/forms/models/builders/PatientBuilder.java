@@ -32,8 +32,10 @@ public class PatientBuilder {
   private Optional<Person> personByMrn = Optional.empty();
   
   public PatientBuilder validateRamqAndMrn() {
-    if (StringUtils.isAllBlank(patient.getRamq(), patient.getMrn())) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ramq and patient.mrn can't be both empty");
+    if (!Boolean.TRUE.equals(patient.getAdditionalInfo().getIsNewBorn())) {
+      if (StringUtils.isAllBlank(patient.getRamq(), patient.getMrn())) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.ramq and patient.mrn can't be both empty");
+      }
     }
     return this;
   }

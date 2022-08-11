@@ -2,6 +2,7 @@ package bio.ferlab.clin.portal.forms.clients;
 
 import bio.ferlab.clin.portal.forms.configurations.CacheConfiguration;
 import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
+import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.PerformanceOptionsEnum;
@@ -20,8 +21,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.EnumSet;
+import java.util.List;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConsts.*;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
 @Component
 @Getter
@@ -126,6 +128,13 @@ public class FhirClient {
         .encodedJson()
         .execute();
   }
+  
+  /*public Patient findPatientByRamqAndEp(String ramq, String ep) {
+    Bundle bundle = this.findPersonAndPatientByRamq(ramq);
+    BundleExtractor bundleExtractor = new BundleExtractor(getContext(), bundle);
+    final List<Patient> patients = bundleExtractor.getAllResourcesOfType(Patient.class);
+    return patients.stream().filter(p -> p.getManagingOrganization().getReference().equals(FhirUtils.formatResource(new Organization().setId(ep)))).findFirst().orElse(null);
+  }*/
 
   @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true)
   public Bundle fetchCodesAndValues() {

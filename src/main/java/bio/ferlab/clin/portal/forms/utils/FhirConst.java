@@ -1,13 +1,15 @@
 package bio.ferlab.clin.portal.forms.utils;
 
-public class FhirConsts {
+public class FhirConst {
 
-  private FhirConsts(){}
+  private FhirConst(){}
   
   public static final String DEFAULT_HPO_SUFFIX = "-default-hpo";
   public static final String DEFAULT_EXAM_SUFFIX = "-default-exam";
   public static final String ABNORMALITIES_SUFFIX = "-abnormalities";
 
+  public static final String SYSTEM_MOTHER = "http://terminology.hl7.org/CodeSystem/v3-RoleCode";
+  public static final String CODE_MOTHER = "MTH";
   public static final String SYSTEM_RAMQ = "http://terminology.hl7.org/CodeSystem/v2-0203";
   public static final String CODE_RAMQ = "JHN";
   public static final String SYSTEM_MRN = "http://terminology.hl7.org/CodeSystem/v2-0203";

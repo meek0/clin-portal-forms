@@ -39,6 +39,10 @@ public class SubmitController {
         .findByMrn()
         .build(true, true);
     
+    final NewBornBuilder newBornBuilder = new NewBornBuilder(mapper, request.getPatient().getAdditionalInfo(), pbr.getPatient());
+    NewBornBuilder.Result nbr = newBornBuilder
+        .build();
+    
     final PractitionerBuilder practitionerBuilder = new PractitionerBuilder(fhirClient, practitionerId);
     PractitionerBuilder.Result roleBr = practitionerBuilder
         .withSupervisor(request.getAnalyse().getResidentSupervisor())
@@ -67,12 +71,13 @@ public class SubmitController {
     SequencingBuilder.Result sbr = sequencingBuilder
         .build();
     
-    submit(pbr, abr, sbr, cbr, obr);
+    submit(pbr, nbr, abr, sbr, cbr, obr);
     
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
   
   private void submit(PatientBuilder.Result pbr, 
+                      NewBornBuilder.Result nbr,
                       AnalysisBuilder.Result abr, 
                       SequencingBuilder.Result sbr, 
                       ClinicalImpressionBuilder.Result cbr,
@@ -96,6 +101,15 @@ public class SubmitController {
         .getRequest()
         .setUrl(personRef) // full url with ID required if PUT
         .setMethod(pbr.isPersonNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
+    
+    if (nbr.getRelatedPerson() != null) {
+      bundle.addEntry()
+          .setFullUrl(FhirUtils.formatResource(nbr.getRelatedPerson()))
+          .setResource(nbr.getRelatedPerson())
+          .getRequest()
+          .setUrl("RelatedPerson")
+          .setMethod(Bundle.HTTPVerb.POST);
+    }
 
     bundle.addEntry()
         .setFullUrl(FhirUtils.formatResource(abr.getAnalysis()))

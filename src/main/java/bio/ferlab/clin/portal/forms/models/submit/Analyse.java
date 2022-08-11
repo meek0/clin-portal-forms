@@ -4,16 +4,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Analyse {
-  @NotNull
+  @NotBlank
   private String panelCode;
   private Boolean isReflex;
-  @NotNull
+  @NotBlank
   private String indication;
   private String comment;
   private String residentSupervisor;

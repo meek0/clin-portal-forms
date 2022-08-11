@@ -147,6 +147,23 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
   }
 }
 ```
+**New born body example:**
+
+Specific for new borns, `mrn` and `ramq` can be empty in `patient` but `mother_ramq` is required in `additional_info`.
+
+```json
+"patient": {
+    "ep": "CHUSJ",
+    ...
+    // no mrn or ramq is needed
+    ...
+    "additional_info": {
+      "is_new_born": true,
+      "mother_ramq": "RAMQ12341236"
+    }
+}
+```
+
 ### Response
 
 `201 created`

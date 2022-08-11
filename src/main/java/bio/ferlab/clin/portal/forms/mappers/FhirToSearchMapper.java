@@ -1,7 +1,7 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
 import bio.ferlab.clin.portal.forms.models.search.Search;
-import bio.ferlab.clin.portal.forms.utils.FhirConsts;
+import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.Patient;
@@ -36,10 +36,10 @@ public class FhirToSearchMapper {
   }
   
   private String getRamq(Person person) {
-    return person.getIdentifier().stream().filter(i -> FhirConsts.SYSTEM_RAMQ.equals(i.getType().getCodingFirstRep().getSystem()) && FhirConsts.CODE_RAMQ.equals(i.getType().getCodingFirstRep().getCode())).map(Identifier::getValue).findFirst().orElse(null);
+    return person.getIdentifier().stream().filter(i -> FhirConst.SYSTEM_RAMQ.equals(i.getType().getCodingFirstRep().getSystem()) && FhirConst.CODE_RAMQ.equals(i.getType().getCodingFirstRep().getCode())).map(Identifier::getValue).findFirst().orElse(null);
   }
 
   private String getMrn(Patient patient) {
-    return patient.getIdentifier().stream().filter(i -> FhirConsts.SYSTEM_MRN.equals(i.getType().getCodingFirstRep().getSystem()) && FhirConsts.CODE_MRN.equals(i.getType().getCodingFirstRep().getCode())).map(Identifier::getValue).findFirst().orElse(null);
+    return patient.getIdentifier().stream().filter(i -> FhirConst.SYSTEM_MRN.equals(i.getType().getCodingFirstRep().getSystem()) && FhirConst.CODE_MRN.equals(i.getType().getCodingFirstRep().getCode())).map(Identifier::getValue).findFirst().orElse(null);
   }
 }
