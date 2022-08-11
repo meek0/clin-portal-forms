@@ -3,7 +3,7 @@ package bio.ferlab.clin.portal.forms.models.builders;
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
-import bio.ferlab.clin.portal.forms.utils.FhirConsts;
+import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.context.FhirContext;
 import org.hl7.fhir.r4.model.Bundle;
@@ -41,6 +41,13 @@ class PatientBuilderTest {
     });
     assertEquals("patient.ramq and patient.mrn can't be both empty", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+  }
+
+  @Test
+  void validateRamqAndMrn_new_born() {
+      final Patient patient = new Patient();
+      patient.getAdditionalInfo().setIsNewBorn(true);
+      new PatientBuilder(fhirClient, new SubmitToFhirMapper(), patient).validateRamqAndMrn();
   }
   
   @Test
@@ -139,7 +146,7 @@ class PatientBuilderTest {
 
     final Bundle bundleByRamq = new Bundle();
     final Person person = new Person();
-    person.getIdentifierFirstRep().setValue("ramq").getType().getCodingFirstRep().setCode(FhirConsts.CODE_RAMQ).setSystem(FhirConsts.SYSTEM_RAMQ);
+    person.getIdentifierFirstRep().setValue("ramq").getType().getCodingFirstRep().setCode(FhirConst.CODE_RAMQ).setSystem(FhirConst.SYSTEM_RAMQ);
     bundleByRamq.addEntry().setResource(person);
     
     when(fhirClient.findPersonAndPatientByRamq(any())).thenReturn(bundleByRamq);

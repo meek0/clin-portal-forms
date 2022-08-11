@@ -9,8 +9,8 @@ import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConsts.ANALYSIS_SERVICE_REQUEST;
-import static bio.ferlab.clin.portal.forms.utils.FhirConsts.SUPERVISOR_EXT;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.ANALYSIS_SERVICE_REQUEST;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.SUPERVISOR_EXT;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;

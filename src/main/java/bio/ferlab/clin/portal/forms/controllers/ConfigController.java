@@ -19,8 +19,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConsts.DEFAULT_EXAM_SUFFIX;
-import static bio.ferlab.clin.portal.forms.utils.FhirConsts.DEFAULT_HPO_SUFFIX;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.DEFAULT_EXAM_SUFFIX;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.DEFAULT_HPO_SUFFIX;
 
 @RestController
 @RequestMapping("/form")

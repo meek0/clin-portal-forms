@@ -1,7 +1,7 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
 import bio.ferlab.clin.portal.forms.models.search.Search;
-import bio.ferlab.clin.portal.forms.utils.FhirConsts;
+import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Person;
 import org.hl7.fhir.r4.model.Reference;
@@ -18,11 +18,11 @@ class FhirToSearchMapperTest {
   @Test
   void mapToSearch() {
     final Patient patient = new Patient();
-    patient.getIdentifierFirstRep().setValue("mrn").getType().getCodingFirstRep().setSystem(FhirConsts.SYSTEM_MRN).setCode(FhirConsts.CODE_MRN);
+    patient.getIdentifierFirstRep().setValue("mrn").getType().getCodingFirstRep().setSystem(FhirConst.SYSTEM_MRN).setCode(FhirConst.CODE_MRN);
     patient.setManagingOrganization(new Reference().setReference("Organization/foo"));
     
     final Person person = new Person();
-    person.getIdentifierFirstRep().setValue("ramq").getType().getCodingFirstRep().setSystem(FhirConsts.SYSTEM_RAMQ).setCode(FhirConsts.CODE_RAMQ);
+    person.getIdentifierFirstRep().setValue("ramq").getType().getCodingFirstRep().setSystem(FhirConst.SYSTEM_RAMQ).setCode(FhirConst.CODE_RAMQ);
     final Date now = new Date();
     person.setBirthDate(now);
     person.getNameFirstRep().setFamily("lastname").addGiven("firstname");

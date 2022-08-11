@@ -2,6 +2,7 @@ package bio.ferlab.clin.portal.forms.mappers;
 
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import bio.ferlab.clin.portal.forms.models.submit.*;
+import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConsts.*;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
 @Component
 public class SubmitToFhirMapper {
@@ -170,6 +171,16 @@ public class SubmitToFhirMapper {
     }).collect(Collectors.toList()));
     
     return all;
+  }
+  
+  public RelatedPerson mapToRelatedPerson(org.hl7.fhir.r4.model.Patient patient, String motherRamq) {
+    final RelatedPerson relatedPerson = new RelatedPerson();
+    relatedPerson.setId(UUID.randomUUID().toString());
+    this.updateIdentifier(relatedPerson.getIdentifier(), SYSTEM_RAMQ, CODE_RAMQ, motherRamq, null);
+    relatedPerson.setPatient(FhirUtils.toReference(patient));
+    relatedPerson.addRelationship().setText("Mother").addCoding().setSystem(SYSTEM_MOTHER).setCode(CODE_MOTHER);
+    relatedPerson.setActive(true);
+    return relatedPerson;
   }
   
   private String getInterpretationCode(Exams.Interpretation interpretation) {
