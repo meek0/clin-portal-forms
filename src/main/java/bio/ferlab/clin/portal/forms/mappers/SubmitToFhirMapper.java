@@ -2,7 +2,6 @@ package bio.ferlab.clin.portal.forms.mappers;
 
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import bio.ferlab.clin.portal.forms.models.submit.*;
-import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
@@ -76,12 +75,15 @@ public class SubmitToFhirMapper {
     }
   }
   
-  public ServiceRequest mapToAnalysis(String panelCode, org.hl7.fhir.r4.model.Patient patient, 
-                                      ClinicalImpression clinicalImpression, String orderDetails, 
+  public ServiceRequest mapToAnalysis(String panelCode, org.hl7.fhir.r4.model.Patient patient,
+                                      ClinicalImpression clinicalImpression, String orderDetails,
                                       PractitionerRole practitionerRole, PractitionerRole supervisorRole,
-                                      String comment) {
+                                      String comment, org.hl7.fhir.r4.model.Patient foetus) {
     final ServiceRequest serviceRequest = new ServiceRequest();
     serviceRequest.setId(UUID.randomUUID().toString());
+    if (foetus != null) {
+      serviceRequest.addCategory().setText("Prenatal");
+    }
     serviceRequest.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
     serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
     serviceRequest.setSubject(FhirUtils.toReference(patient));
@@ -101,12 +103,17 @@ public class SubmitToFhirMapper {
     return serviceRequest;
   }
 
-  public ServiceRequest mapToSequencing(String panelCode, org.hl7.fhir.r4.model.Patient patient, ServiceRequest analysis, PractitionerRole practitionerRole) {
+  public ServiceRequest mapToSequencing(String panelCode, org.hl7.fhir.r4.model.Patient patient, ServiceRequest analysis, PractitionerRole practitionerRole, org.hl7.fhir.r4.model.Patient foetus) {
     final ServiceRequest serviceRequest = new ServiceRequest();
     serviceRequest.setId(UUID.randomUUID().toString());
     serviceRequest.getMeta().addProfile(SEQUENCING_SERVICE_REQUEST);
     serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
-    serviceRequest.setSubject(FhirUtils.toReference(patient));
+    if (foetus != null) {
+      serviceRequest.addCategory().setText("Prenatal");
+      serviceRequest.setSubject(FhirUtils.toReference(foetus));
+    } else {
+      serviceRequest.setSubject(FhirUtils.toReference(patient));
+    }
     serviceRequest.setStatus(ServiceRequest.ServiceRequestStatus.ONHOLD);
     serviceRequest.addBasedOn(FhirUtils.toReference(analysis));
     serviceRequest.setRequester(FhirUtils.toReference(practitionerRole));
@@ -181,6 +188,39 @@ public class SubmitToFhirMapper {
     relatedPerson.addRelationship().setText("Mother").addCoding().setSystem(SYSTEM_MOTHER).setCode(CODE_MOTHER);
     relatedPerson.setActive(true);
     return relatedPerson;
+  }
+  
+  public org.hl7.fhir.r4.model.Patient mapToFoetus(AdditionalInfo additionalInfo, org.hl7.fhir.r4.model.Patient mother) {
+    final org.hl7.fhir.r4.model.Patient foetus = new org.hl7.fhir.r4.model.Patient();
+    foetus.setId(UUID.randomUUID().toString());
+    // foetus.addExtension().setValue(new CodeableConcept(new Coding().setSystem(SYSTEM_GESTATIONAL_AGE).setCode(CODE_GESTATIONAL_AGE)).setText(additionalInfo.getGestationalAge().name()));
+    foetus.setDeceased(new BooleanType(AdditionalInfo.GestationalAge.deceased.equals(additionalInfo.getGestationalAge())));
+    foetus.setGender(mapToGender(additionalInfo.getFoetusGender()));
+    final var link = new org.hl7.fhir.r4.model.Patient.PatientLinkComponent();
+    link.setOther(FhirUtils.toReference(mother));
+    link.setType(org.hl7.fhir.r4.model.Patient.LinkType.SEEALSO);
+    foetus.addLink(link);
+    return foetus;
+  }
+  
+  public Observation mapToObservation(AdditionalInfo additionalInfo, org.hl7.fhir.r4.model.Patient mother, org.hl7.fhir.r4.model.Patient foetus) {
+    final Observation observation = new Observation();
+    observation.setId(UUID.randomUUID().toString());
+    observation.setStatus(Observation.ObservationStatus.FINAL);
+    observation.setSubject(FhirUtils.toReference(mother));
+    observation.setFocus(List.of(FhirUtils.toReference(foetus)));
+    switch (additionalInfo.getGestationalAge()) {
+      case ddm:
+        observation.setCode(new CodeableConcept(new Coding().setSystem(SYSTEM_DDM).setCode(CODE_DDM)));
+        break;
+      case dpa:
+        observation.setCode(new CodeableConcept(new Coding().setSystem(SYSTEM_DPA).setCode(CODE_DPA)));
+        break;
+      default:
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.additional_info gestational_age should be ddm or dpa");
+    }
+    observation.getValueDateTimeType().setValue(mapToDate(additionalInfo.getGestationalDate()));
+    return observation;
   }
   
   private String getInterpretationCode(Exams.Interpretation interpretation) {

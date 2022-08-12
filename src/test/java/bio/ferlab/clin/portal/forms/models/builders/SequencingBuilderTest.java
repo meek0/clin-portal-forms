@@ -21,7 +21,7 @@ class SequencingBuilderTest {
     analysis.setId("foo");
     final PractitionerRole role = new PractitionerRole();
     role.setId("role");
-    final SequencingBuilder.Result result = new SequencingBuilder(new SubmitToFhirMapper(), "code", patient, analysis, role).build();
+    final SequencingBuilder.Result result = new SequencingBuilder(new SubmitToFhirMapper(), "code", patient, analysis, role, null).build();
     final ServiceRequest sr = result.getSequencing();
     
     assertNotNull(sr.getId());
@@ -33,6 +33,31 @@ class SequencingBuilderTest {
     assertEquals("code", sr.getCode().getCodingFirstRep().getCode());
     assertEquals(FhirUtils.formatResource(role), sr.getRequester().getReference());
     assertNotNull(sr.getAuthoredOn());
+  }
+
+  @Test
+  void build_foetus() {
+    final Patient patient = new Patient();
+    patient.setId("foo");
+    final ServiceRequest analysis = new ServiceRequest();
+    analysis.setId("foo");
+    final PractitionerRole role = new PractitionerRole();
+    role.setId("role");
+    final Patient foetus = new Patient();
+    foetus.setId("foetus");
+    final SequencingBuilder.Result result = new SequencingBuilder(new SubmitToFhirMapper(), "code", patient, analysis, role, foetus).build();
+    final ServiceRequest sr = result.getSequencing();
+
+    assertNotNull(sr.getId());
+    assertEquals(SEQUENCING_SERVICE_REQUEST, sr.getMeta().getProfile().get(0).getValue());
+    assertEquals(ServiceRequest.ServiceRequestIntent.ORDER, sr.getIntent());
+    assertEquals(ServiceRequest.ServiceRequestStatus.ONHOLD, sr.getStatus());
+    assertEquals(FhirUtils.formatResource(analysis), sr.getBasedOn().get(0).getReference());
+    assertEquals("code", sr.getCode().getCodingFirstRep().getCode());
+    assertEquals(FhirUtils.formatResource(role), sr.getRequester().getReference());
+    assertNotNull(sr.getAuthoredOn());
+    assertEquals("Prenatal", sr.getCategoryFirstRep().getText());
+    assertEquals("Patient/foetus", sr.getSubject().getReference());
   }
 
 }

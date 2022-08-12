@@ -20,11 +20,12 @@ public class AnalysisBuilder {
   private final PractitionerRole practitionerRole;
   private final PractitionerRole supervisorRole;
   private final String comment;
+  private final Patient foetus;
   
   private String orderDetails;
 
   public Result build() {
-    final ServiceRequest serviceRequest = mapper.mapToAnalysis(panelCode, patient, clinicalImpression, orderDetails, practitionerRole, supervisorRole, comment);
+    final ServiceRequest serviceRequest = mapper.mapToAnalysis(panelCode, patient, clinicalImpression, orderDetails, practitionerRole, supervisorRole, comment, foetus);
     return new Result(serviceRequest);
   }
   

@@ -25,7 +25,7 @@ class AnalysisBuilderTest {
     when(fhirClient.findCodeSystemById(any())).thenReturn(cs);
     
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-      new AnalysisBuilder(fhirClient, null, "code", null, null, null, null, null)
+      new AnalysisBuilder(fhirClient, null, "code", null, null, null, null, null, null)
           .withReflex(true);
     });
     assertEquals("panel code code is unknown", exception.getReason());
@@ -54,7 +54,7 @@ class AnalysisBuilderTest {
     cs.addConcept().setCode("code").setDisplay("display");
     when(fhirClient.findCodeSystemById(any())).thenReturn(cs);
     
-    final AnalysisBuilder.Result result = new AnalysisBuilder(fhirClient, new SubmitToFhirMapper(), "code", patient, clinicalImpression, role, supervisor, "comment")
+    final AnalysisBuilder.Result result = new AnalysisBuilder(fhirClient, new SubmitToFhirMapper(), "code", patient, clinicalImpression, role, supervisor, "comment", new Patient())
         .withReflex(true)
         .build();
     final ServiceRequest sr = result.getAnalysis();
@@ -74,5 +74,6 @@ class AnalysisBuilderTest {
     assertNotNull(note.getTime());
     assertEquals("comment", note.getText());
     assertEquals(FhirUtils.formatResource(practitioner), ((Reference)note.getAuthor()).getReference());
+    assertEquals("Prenatal", sr.getCategoryFirstRep().getText());
   }
 }

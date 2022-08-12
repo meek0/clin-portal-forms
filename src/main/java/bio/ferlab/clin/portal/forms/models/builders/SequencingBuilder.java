@@ -16,9 +16,10 @@ public class SequencingBuilder {
   private final Patient patient;
   private final ServiceRequest analysis;
   private final PractitionerRole practitionerRole;
+  private final Patient foetus;
   
   public Result build() {
-    final ServiceRequest serviceRequest = mapper.mapToSequencing(panelCode, patient, analysis, practitionerRole);
+    final ServiceRequest serviceRequest = mapper.mapToSequencing(panelCode, patient, analysis, practitionerRole, foetus);
     return new Result(serviceRequest);
   }
   

@@ -43,6 +43,10 @@ public class SubmitController {
     NewBornBuilder.Result nbr = newBornBuilder
         .build();
     
+    final FoetusBuilder foetusBuilder = new FoetusBuilder(mapper, request.getPatient().getAdditionalInfo(), pbr.getPatient());
+    FoetusBuilder.Result fbr = foetusBuilder
+        .build();
+    
     final PractitionerBuilder practitionerBuilder = new PractitionerBuilder(fhirClient, practitionerId);
     PractitionerBuilder.Result roleBr = practitionerBuilder
         .withSupervisor(request.getAnalyse().getResidentSupervisor())
@@ -61,23 +65,24 @@ public class SubmitController {
         .build();
     
     final AnalysisBuilder analysisBuilder = new AnalysisBuilder(fhirClient, mapper, panelCode, pbr.getPatient(), 
-        cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getAnalyse().getComment());
+        cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getAnalyse().getComment(), fbr.getFoetus());
     AnalysisBuilder.Result abr = analysisBuilder
         .withReflex(request.getAnalyse().getIsReflex())
         .build();
 
     final SequencingBuilder sequencingBuilder = new SequencingBuilder(mapper, panelCode, 
-        pbr.getPatient(), abr.getAnalysis(), roleBr.getPractitionerRole());
+        pbr.getPatient(), abr.getAnalysis(), roleBr.getPractitionerRole(), fbr.getFoetus());
     SequencingBuilder.Result sbr = sequencingBuilder
         .build();
     
-    submit(pbr, nbr, abr, sbr, cbr, obr);
+    submit(pbr, nbr, fbr, abr, sbr, cbr, obr);
     
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
   
   private void submit(PatientBuilder.Result pbr, 
                       NewBornBuilder.Result nbr,
+                      FoetusBuilder.Result fbr,
                       AnalysisBuilder.Result abr, 
                       SequencingBuilder.Result sbr, 
                       ClinicalImpressionBuilder.Result cbr,
@@ -108,6 +113,24 @@ public class SubmitController {
           .setResource(nbr.getRelatedPerson())
           .getRequest()
           .setUrl("RelatedPerson")
+          .setMethod(Bundle.HTTPVerb.POST);
+    }
+    
+    if (fbr.getFoetus() != null) {
+      bundle.addEntry()
+          .setFullUrl(FhirUtils.formatResource(fbr.getFoetus()))
+          .setResource(fbr.getFoetus())
+          .getRequest()
+          .setUrl("Patient")
+          .setMethod(Bundle.HTTPVerb.POST);
+    }
+
+    if (fbr.getObservation() != null) {
+      bundle.addEntry()
+          .setFullUrl(FhirUtils.formatResource(fbr.getObservation()))
+          .setResource(fbr.getObservation())
+          .getRequest()
+          .setUrl("Observation")
           .setMethod(Bundle.HTTPVerb.POST);
     }
 
