@@ -71,8 +71,8 @@ class NewBornBuilderTest {
     
     final CodeableConcept relation = relatedPerson.getRelationshipFirstRep();
     assertEquals("Mother", relation.getText());
-    assertEquals(FhirConst.SYSTEM_MOTHER, relation.getCodingFirstRep().getSystem());
-    assertEquals(FhirConst.CODE_MOTHER, relation.getCodingFirstRep().getCode());
+    assertEquals(FhirConst.SYSTEM_ROLE, relation.getCodingFirstRep().getSystem());
+    assertEquals(FhirConst.ROLE_CODE_MOTHER, relation.getCodingFirstRep().getCode());
   }
 
 }

@@ -53,8 +53,11 @@ public class SubmitController {
         .withEp(ep)
         .build();
     
-    final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, panelCode, pbr.getPatient(), request.getAnalyse(),
-        request.getClinicalSigns(), request.getParaclinicalExams(), request.getPatient().getEthnicity());
+    final FamilyMemberHistoryBuilder familyMemberHistoryBuilder = new FamilyMemberHistoryBuilder(mapper, request.getHistoryAndDiagnosis(), pbr.getPatient());
+    FamilyMemberHistoryBuilder.Result fmhr = familyMemberHistoryBuilder.build();
+    
+    final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, panelCode, pbr.getPatient(), request.getHistoryAndDiagnosis(),
+        request.getClinicalSigns(), request.getParaclinicalExams());
     ObservationsBuilder.Result obr = observationsBuilder
         .validate()
         .build();
@@ -75,7 +78,7 @@ public class SubmitController {
     SequencingBuilder.Result sbr = sequencingBuilder
         .build();
     
-    submit(pbr, nbr, fbr, abr, sbr, cbr, obr);
+    submit(pbr, nbr, fbr, abr, sbr, cbr, obr, fmhr);
     
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
@@ -86,7 +89,8 @@ public class SubmitController {
                       AnalysisBuilder.Result abr, 
                       SequencingBuilder.Result sbr, 
                       ClinicalImpressionBuilder.Result cbr,
-                      ObservationsBuilder.Result obr) {
+                      ObservationsBuilder.Result obr,
+                      FamilyMemberHistoryBuilder.Result fmhr) {
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.TRANSACTION);
     
@@ -162,6 +166,14 @@ public class SubmitController {
           .getRequest()
           .setUrl("Observation")
           .setMethod(Bundle.HTTPVerb.POST));
+    
+    fmhr.getHistories().forEach(h ->  
+      bundle.addEntry()
+        .setFullUrl(FhirUtils.formatResource(h))
+        .setResource(h)
+        .getRequest()
+        .setUrl("FamilyMemberHistory")
+        .setMethod(Bundle.HTTPVerb.POST));
     
     fhirClient.submitForm(personRef, patientRef, bundle);
   }

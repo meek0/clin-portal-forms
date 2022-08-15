@@ -18,10 +18,9 @@ public class ObservationsBuilder {
   private final SubmitToFhirMapper mapper;
   private final String panelCode;
   private final Patient patient;
-  private final Analyse analyse;
+  private final HistoryAndDiag historyAndDiag;
   private final ClinicalSigns signs;
   private final ParaclinicalExams exams;
-  private final String ethnicity;
   
   public ObservationsBuilder validate() {
     for(int i = 0; i< signs.getSigns().size(); i++) {
@@ -40,7 +39,7 @@ public class ObservationsBuilder {
   }
   
   public Result build() {
-    List<org.hl7.fhir.r4.model.Observation> obs = mapper.mapToObservations(panelCode, patient, analyse, signs, exams, ethnicity);
+    List<org.hl7.fhir.r4.model.Observation> obs = mapper.mapToObservations(panelCode, patient, historyAndDiag, signs, exams);
     return new Result(obs);
   }
   

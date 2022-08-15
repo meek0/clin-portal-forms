@@ -137,10 +137,9 @@ public class SubmitToFhirMapper {
   
   public List<Observation> mapToObservations(String panelCode,
                                              org.hl7.fhir.r4.model.Patient patient,
-                                             Analyse analyse,
+                                             HistoryAndDiag historyAndDiag,
                                              ClinicalSigns signs,
-                                             ParaclinicalExams exams,
-                                             String ethnicity) {
+                                             ParaclinicalExams exams) {
     
     List<Observation> all = new ArrayList<>();
 
@@ -157,12 +156,17 @@ public class SubmitToFhirMapper {
       all.add(obsg);
     }
     
-    if(StringUtils.isNotBlank(ethnicity)) {
-      Observation obsg = createObservation(patient, "ETHN", "exam",null, ETHNICITY_CODE, ethnicity);
+    if(StringUtils.isNotBlank(historyAndDiag.getEthnicity())) {
+      Observation obsg = createObservation(patient, "ETHN", "exam",null, ETHNICITY_CODE, historyAndDiag.getEthnicity());
       all.add(obsg);
     }
+    
+    if (Boolean.TRUE.equals(historyAndDiag.getInbreeding())) {
+      Observation cons = createObservation(patient, "CONS", "exam",null, null, historyAndDiag.getInbreeding());
+      all.add(cons);
+    }
 
-    Observation indic = createObservation(patient, "INDIC", "exam",null, null, analyse.getIndication());
+    Observation indic = createObservation(patient, "INDIC", "exam",null, null, historyAndDiag.getDiagnosticHypothesis());
     all.add(indic);
 
     all.addAll(signs.getSigns().stream().map(o -> {
@@ -183,12 +187,27 @@ public class SubmitToFhirMapper {
     return all;
   }
   
+  public List<FamilyMemberHistory> mapToFamilyMemberHistory(HistoryAndDiag historyAndDiag, org.hl7.fhir.r4.model.Patient patient) {
+    final List<FamilyMemberHistory> histories = new ArrayList<>();
+    for(HealthCondition healthCondition: historyAndDiag.getHealthConditions()) {
+      final FamilyMemberHistory history = new FamilyMemberHistory();
+      history.setId(UUID.randomUUID().toString());
+      history.setStatus(FamilyMemberHistory.FamilyHistoryStatus.COMPLETED);
+      history.getRelationship().addCoding().setSystem(SYSTEM_RELATIONSHIP).setCode(healthCondition.getParentalLink());
+      String sanitizedComment = StringUtils.isNotBlank(healthCondition.getCondition()) ? healthCondition.getCondition() : "";
+      history.addNote(new Annotation().setText(sanitizedComment));
+      history.setPatient(FhirUtils.toReference(patient));
+      histories.add(history);
+    }
+    return histories;
+  }
+  
   public RelatedPerson mapToRelatedPerson(org.hl7.fhir.r4.model.Patient patient, String motherRamq) {
     final RelatedPerson relatedPerson = new RelatedPerson();
     relatedPerson.setId(UUID.randomUUID().toString());
     this.updateIdentifier(relatedPerson.getIdentifier(), SYSTEM_RAMQ, CODE_RAMQ, motherRamq, null);
     relatedPerson.setPatient(FhirUtils.toReference(patient));
-    relatedPerson.addRelationship().setText("Mother").addCoding().setSystem(SYSTEM_MOTHER).setCode(CODE_MOTHER);
+    relatedPerson.addRelationship().setText("Mother").addCoding().setSystem(SYSTEM_ROLE).setCode(ROLE_CODE_MOTHER);
     relatedPerson.setActive(true);
     return relatedPerson;
   }
@@ -238,7 +257,7 @@ public class SubmitToFhirMapper {
     }
   }
   
-  private Observation createObservation(org.hl7.fhir.r4.model.Patient patient, String code, String category, Boolean isObserved, String system, String value) {
+  private Observation createObservation(org.hl7.fhir.r4.model.Patient patient, String code, String category, Boolean isObserved, String system, Object value) {
     Observation observation = new Observation();
     observation.setSubject(FhirUtils.toReference(patient));
     observation.setId(UUID.randomUUID().toString());
@@ -249,12 +268,17 @@ public class SubmitToFhirMapper {
     if(isObserved != null) {
       observation.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(isObserved ? "POS" : "NEG")));
     }
-    if (StringUtils.isNotBlank(value)) {
-      if (StringUtils.isNotBlank(system)) {
-        observation.setValue(new CodeableConcept(new Coding().setSystem(system).setCode(value)));
-      } else {
-        observation.setValue(new StringType(value));
+    if (value instanceof String) {
+      final String valueStr = value.toString();
+      if (StringUtils.isNotBlank(valueStr)) {
+        if (StringUtils.isNotBlank(system)) {
+          observation.setValue(new CodeableConcept(new Coding().setSystem(system).setCode(valueStr)));
+        } else {
+          observation.setValue(new StringType(valueStr));
+        }
       }
+    } else if (value instanceof Boolean) {
+      observation.setValue(new BooleanType((Boolean) value));
     }
     return observation;
   }

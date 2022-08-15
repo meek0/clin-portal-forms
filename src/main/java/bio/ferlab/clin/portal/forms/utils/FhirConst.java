@@ -15,8 +15,9 @@ public class FhirConst {
   public static final String CODE_DDM = "8665-2";
   public static final String SYSTEM_DPA = "https://loinc.org";
   public static final String CODE_DPA = "11778-8";
-  public static final String SYSTEM_MOTHER = "http://terminology.hl7.org/CodeSystem/v3-RoleCode";
-  public static final String CODE_MOTHER = "MTH";
+  public static final String SYSTEM_RELATIONSHIP = "http://fhir.cqgc.ferlab.bio/CodeSystem/fmh-relationship-plus";
+  public static final String SYSTEM_ROLE = "http://terminology.hl7.org/CodeSystem/v3-RoleCode";
+  public static final String ROLE_CODE_MOTHER = "MTH";
   public static final String SYSTEM_RAMQ = "http://terminology.hl7.org/CodeSystem/v2-0203";
   public static final String CODE_RAMQ = "JHN";
   public static final String SYSTEM_MRN = "http://terminology.hl7.org/CodeSystem/v2-0203";

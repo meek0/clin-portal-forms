@@ -30,7 +30,7 @@ class ObservationsBuilderTest {
     final ClinicalSigns clinicalSigns = new ClinicalSigns();
     clinicalSigns.setSigns(signs);
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> { 
-      new ObservationsBuilder(null, null, null, null, clinicalSigns, new ParaclinicalExams(), null).validate();
+      new ObservationsBuilder(null, null, null, null, clinicalSigns, new ParaclinicalExams()).validate();
     });
     assertEquals("age_code can't be empty for clinical_signs[2].is_observed = true", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
@@ -45,7 +45,7 @@ class ObservationsBuilderTest {
     final ParaclinicalExams paraclinicalExams = new ParaclinicalExams();
     paraclinicalExams.setExams(exams);
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-      new ObservationsBuilder(null, null, null, null, new ClinicalSigns(), paraclinicalExams,null).validate();
+      new ObservationsBuilder(null, null, null, null, new ClinicalSigns(), paraclinicalExams).validate();
     });
     assertEquals("value and values can't be both empty for paraclinical_exams[3].interpretation = abnormal", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
@@ -55,7 +55,8 @@ class ObservationsBuilderTest {
   void build() {
     final Patient patient = new Patient();
     patient.setId("foo");
-    final Analyse analyse = random.nextObject(Analyse.class);
+    final HistoryAndDiag historyAndDiag = random.nextObject(HistoryAndDiag.class);
+    historyAndDiag.setInbreeding(true);
 
     Signs cs1 = new Signs();
     cs1.setIsObserved(true);
@@ -93,7 +94,7 @@ class ObservationsBuilderTest {
     paraclinicalExams.setComment("bar");
     
     final ObservationsBuilder.Result result = 
-        new ObservationsBuilder(new SubmitToFhirMapper(), "code", patient, analyse, clinicalSigns, paraclinicalExams, "ethnicity")
+        new ObservationsBuilder(new SubmitToFhirMapper(), "code", patient, historyAndDiag, clinicalSigns, paraclinicalExams)
         .build();
     
     final List<Observation> obs = result.getObservations();
@@ -101,33 +102,35 @@ class ObservationsBuilderTest {
     assertObservation(obs.get(0), patient, "DSTA", "exam", true, ANALYSIS_REQUEST_CODE, "code", true);
     assertObservation(obs.get(1), patient, "OBSG", "exam", null, null, clinicalSigns.getComment(), true);
     assertObservation(obs.get(2), patient, "INVES", "exam", null, null, paraclinicalExams.getComment(), true);
-    assertObservation(obs.get(3), patient, "ETHN", "exam", null, ETHNICITY_CODE, "ethnicity", true);
-    assertObservation(obs.get(4), patient, "INDIC", "exam", null, null, analyse.getIndication(), true);
+    assertObservation(obs.get(3), patient, "ETHN", "exam", null, ETHNICITY_CODE, historyAndDiag.getEthnicity(), true);
+    assertObservation(obs.get(4), patient, "CONS", "exam", null, null, historyAndDiag.getInbreeding(), true);
 
-    assertObservation(obs.get(5), patient, "PHEN", "exam", true, HP_CODE, "sign", true);
-    assertEquals("age", ((Coding)obs.get(5).getExtensionByUrl(AGE_AT_ONSET_EXT).getValue()).getCode());
+    assertObservation(obs.get(5), patient, "INDIC", "exam", null, null, historyAndDiag.getDiagnosticHypothesis(), true);
 
-    assertObservation(obs.get(6), patient, "PHEN", "exam", false, HP_CODE, "sign", true);
-    assertNull(obs.get(6).getExtensionByUrl(AGE_AT_ONSET_EXT));
+    assertObservation(obs.get(6), patient, "PHEN", "exam", true, HP_CODE, "sign", true);
+    assertEquals("age", ((Coding)obs.get(6).getExtensionByUrl(AGE_AT_ONSET_EXT).getValue()).getCode());
 
-    assertObservation(obs.get(7), patient, "code1", "procedure", null, null, null, false);
-    assertEquals(OBSERVATION_INTERPRETATION,obs.get(7).getInterpretationFirstRep().getCodingFirstRep().getSystem());
-    assertEquals("N",obs.get(7).getInterpretationFirstRep().getCodingFirstRep().getCode());
+    assertObservation(obs.get(7), patient, "PHEN", "exam", false, HP_CODE, "sign", true);
+    assertNull(obs.get(7).getExtensionByUrl(AGE_AT_ONSET_EXT));
 
-    assertObservation(obs.get(8), patient, "code2", "procedure", null, null, "value", false);
+    assertObservation(obs.get(8), patient, "code1", "procedure", null, null, null, false);
     assertEquals(OBSERVATION_INTERPRETATION,obs.get(8).getInterpretationFirstRep().getCodingFirstRep().getSystem());
-    assertEquals("A",obs.get(8).getInterpretationFirstRep().getCodingFirstRep().getCode());
+    assertEquals("N",obs.get(8).getInterpretationFirstRep().getCodingFirstRep().getCode());
 
-    assertObservation(obs.get(9), patient, "code3", "procedure", null, null, null, false);
+    assertObservation(obs.get(9), patient, "code2", "procedure", null, null, "value", false);
     assertEquals(OBSERVATION_INTERPRETATION,obs.get(9).getInterpretationFirstRep().getCodingFirstRep().getSystem());
     assertEquals("A",obs.get(9).getInterpretationFirstRep().getCodingFirstRep().getCode());
-    assertEquals(HP_CODE,obs.get(9).getValueCodeableConcept().getCoding().get(0).getSystem());
-    assertEquals("value1",obs.get(9).getValueCodeableConcept().getCoding().get(0).getCode());
-    assertEquals(HP_CODE,obs.get(9).getValueCodeableConcept().getCoding().get(1).getSystem());
-    assertEquals("value2",obs.get(9).getValueCodeableConcept().getCoding().get(1).getCode());
+
+    assertObservation(obs.get(10), patient, "code3", "procedure", null, null, null, false);
+    assertEquals(OBSERVATION_INTERPRETATION,obs.get(10).getInterpretationFirstRep().getCodingFirstRep().getSystem());
+    assertEquals("A",obs.get(10).getInterpretationFirstRep().getCodingFirstRep().getCode());
+    assertEquals(HP_CODE,obs.get(10).getValueCodeableConcept().getCoding().get(0).getSystem());
+    assertEquals("value1",obs.get(10).getValueCodeableConcept().getCoding().get(0).getCode());
+    assertEquals(HP_CODE,obs.get(10).getValueCodeableConcept().getCoding().get(1).getSystem());
+    assertEquals("value2",obs.get(10).getValueCodeableConcept().getCoding().get(1).getCode());
   }
   
-  private void assertObservation(Observation obs, Patient patient, String code, String category, Boolean isObserved, String system, String value, boolean checkInterpretation) {
+  private void assertObservation(Observation obs, Patient patient, String code, String category, Boolean isObserved, String system, Object value, boolean checkInterpretation) {
     assertNotNull(obs.getId());
     assertEquals(FhirUtils.formatResource(patient), obs.getSubject().getReference());
     assertEquals(OBSERVATION_CODE, obs.getCode().getCodingFirstRep().getSystem());
@@ -143,11 +146,15 @@ class ObservationsBuilderTest {
       assertEquals(0, obs.getInterpretation().size());
     }
     if (value != null) {
-      if (system != null) {
-        assertEquals(system, obs.getValueCodeableConcept().getCodingFirstRep().getSystem());
-        assertEquals(value, obs.getValueCodeableConcept().getCodingFirstRep().getCode());
-      } else {
-        assertEquals(value, obs.getValueStringType().getValue());
+      if (value instanceof String) {
+        if (system != null) {
+          assertEquals(system, obs.getValueCodeableConcept().getCodingFirstRep().getSystem());
+          assertEquals(value, obs.getValueCodeableConcept().getCodingFirstRep().getCode());
+        } else {
+          assertEquals(value, obs.getValueStringType().getValue());
+        }
+      }else if(value instanceof Boolean) {
+        assertEquals(value, obs.getValueBooleanType().getValue());
       }
     }
   }

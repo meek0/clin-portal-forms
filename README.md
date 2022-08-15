@@ -98,7 +98,6 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
   "analyse": {
     "panel_code": "MMG",
     "is_reflex": false,
-    "indication": "comment indication",
     "resident_supervisor": "PRR00102",
     "comment": "general comment"
   },
@@ -109,8 +108,7 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
     "first_name": "Creation",
     "last_name": "Prescription",
     "birth_date": "1990-07-20",
-    "gender": "male",
-    "ethnicity": "LAT-AM"
+    "gender": "male"
   },
   "clinical_signs": {
     "signs": [
@@ -144,6 +142,17 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
       }
     ],
     "comment": "comment investigation"
+  },
+  "history_and_diagnosis": {
+    "diagnostic_hypothesis": "comment indication",
+    "ethnicity": "LAT-AM",
+    "inbreeding": true,
+    "health_conditions": [
+      {
+        "condition": "a health condition",
+        "parental_link": "MATMEM"
+      }
+    ]
   }
 }
 ```
