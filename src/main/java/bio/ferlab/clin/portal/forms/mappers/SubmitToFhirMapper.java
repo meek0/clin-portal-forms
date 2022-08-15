@@ -122,13 +122,16 @@ public class SubmitToFhirMapper {
     return serviceRequest;
   }
   
-  public ClinicalImpression mapToClinicalImpression(Person person, org.hl7.fhir.r4.model.Patient patient, List<Observation> observations) {
+  public ClinicalImpression mapToClinicalImpression(Person person, org.hl7.fhir.r4.model.Patient patient, List<Observation> observations, Observation foetusObservation) {
     final ClinicalImpression clinicalImpression = new ClinicalImpression();
     clinicalImpression.setId(UUID.randomUUID().toString());
     clinicalImpression.setSubject(FhirUtils.toReference(patient));
     clinicalImpression.setStatus(ClinicalImpression.ClinicalImpressionStatus.COMPLETED);
     clinicalImpression.addExtension(AGE_AT_EVENT_EXT, new Age().setSystem(Enumerations.AgeUnits.D.getSystem()).setCode(Enumerations.AgeUnits.D.toCode()).setValue(mapToAge(person.getBirthDate())));
     observations.forEach(o -> clinicalImpression.addInvestigation(new ClinicalImpression.ClinicalImpressionInvestigationComponent(new CodeableConcept().setText("Examination / signs")).addItem(FhirUtils.toReference(o))));
+    if (foetusObservation != null) {
+      clinicalImpression.addInvestigation(new ClinicalImpression.ClinicalImpressionInvestigationComponent(new CodeableConcept().setText("Examination / signs")).addItem(FhirUtils.toReference(foetusObservation)));
+    }
     return clinicalImpression;
   }
   
@@ -193,12 +196,13 @@ public class SubmitToFhirMapper {
   public org.hl7.fhir.r4.model.Patient mapToFoetus(AdditionalInfo additionalInfo, org.hl7.fhir.r4.model.Patient mother) {
     final org.hl7.fhir.r4.model.Patient foetus = new org.hl7.fhir.r4.model.Patient();
     foetus.setId(UUID.randomUUID().toString());
-    // foetus.addExtension().setValue(new CodeableConcept(new Coding().setSystem(SYSTEM_GESTATIONAL_AGE).setCode(CODE_GESTATIONAL_AGE)).setText(additionalInfo.getGestationalAge().name()));
+    //foetus.addExtension(GESTATIONAL_AGE_EXT, new CodeableConcept(new Coding().setSystem(SYSTEM_GESTATIONAL_AGE).setCode(CODE_GESTATIONAL_AGE)).setText(additionalInfo.getGestationalAge().name()));
     foetus.setDeceased(new BooleanType(AdditionalInfo.GestationalAge.deceased.equals(additionalInfo.getGestationalAge())));
     foetus.setGender(mapToGender(additionalInfo.getFoetusGender()));
     final var link = new org.hl7.fhir.r4.model.Patient.PatientLinkComponent();
     link.setOther(FhirUtils.toReference(mother));
     link.setType(org.hl7.fhir.r4.model.Patient.LinkType.SEEALSO);
+    foetus.setManagingOrganization(mother.getManagingOrganization()); // required for metatag
     foetus.addLink(link);
     return foetus;
   }

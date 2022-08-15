@@ -60,7 +60,7 @@ public class SubmitController {
         .build();
 
     final ClinicalImpressionBuilder clinicalImpressionBuilder = new ClinicalImpressionBuilder(mapper, 
-        pbr.getPerson(), pbr.getPatient(), obr.getObservations());
+        pbr.getPerson(), pbr.getPatient(), obr.getObservations(), fbr.getObservation());
     ClinicalImpressionBuilder.Result cbr = clinicalImpressionBuilder
         .build();
     

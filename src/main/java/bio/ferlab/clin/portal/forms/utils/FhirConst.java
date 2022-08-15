@@ -8,6 +8,7 @@ public class FhirConst {
   public static final String DEFAULT_EXAM_SUFFIX = "-default-exam";
   public static final String ABNORMALITIES_SUFFIX = "-abnormalities";
 
+  public static final String GESTATIONAL_AGE_EXT = "";
   public static final String SYSTEM_GESTATIONAL_AGE = "https://loinc.org";
   public static final String CODE_GESTATIONAL_AGE = "18185-9";
   public static final String SYSTEM_DDM = "https://loinc.org";

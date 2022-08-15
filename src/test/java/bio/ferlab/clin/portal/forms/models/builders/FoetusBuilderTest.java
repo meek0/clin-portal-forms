@@ -5,6 +5,7 @@ import bio.ferlab.clin.portal.forms.models.submit.AdditionalInfo;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import org.hl7.fhir.r4.model.Observation;
+import org.hl7.fhir.r4.model.Reference;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
@@ -98,10 +99,17 @@ class FoetusBuilderTest {
     additionalInfo.setGestationalDate(now);
     final org.hl7.fhir.r4.model.Patient mother = new org.hl7.fhir.r4.model.Patient();
     mother.setId("mother");
+    mother.setManagingOrganization(new Reference("Organization/org1"));
     FoetusBuilder.Result result = new FoetusBuilder(mapper, additionalInfo, mother).build();
     final org.hl7.fhir.r4.model.Patient foetus = result.getFoetus();
+    //final CodeableConcept ext = ((CodeableConcept) foetus.getExtension().get(0).getValue());
     final Observation observation = result.getObservation();
     assertNotNull(foetus.getId());
+    /*assertEquals("dpa", ext.getText());
+    assertEquals(FhirConst.GESTATIONAL_AGE_EXT, foetus.getExtension().get(0).getUrl());
+    assertEquals(FhirConst.SYSTEM_GESTATIONAL_AGE, ext.getCodingFirstRep().getSystem());
+    assertEquals(FhirConst.CODE_GESTATIONAL_AGE, ext.getCodingFirstRep().getCode());*/
+    assertEquals("Organization/org1", foetus.getManagingOrganization().getReference());
     assertEquals("Patient/mother", foetus.getLinkFirstRep().getOther().getReference());
     assertEquals("seealso", foetus.getLinkFirstRep().getType().toCode());
     assertEquals("female", foetus.getGender().toCode());

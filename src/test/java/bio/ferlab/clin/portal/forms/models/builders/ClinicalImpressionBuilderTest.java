@@ -26,8 +26,10 @@ class ClinicalImpressionBuilderTest {
     final Observation ob2 = new Observation();
     ob2.setId("ob2");
     final List<Observation> obs = List.of(ob1, ob2);
+    final Observation foetusObservation = new Observation();
+    foetusObservation.setId("foetusObs");
     
-    ClinicalImpressionBuilder.Result result = new ClinicalImpressionBuilder(new SubmitToFhirMapper(), person, patient, obs)
+    ClinicalImpressionBuilder.Result result = new ClinicalImpressionBuilder(new SubmitToFhirMapper(), person, patient, obs, foetusObservation)
         .build();
     
     final ClinicalImpression ci = result.getClinicalImpression();
@@ -35,10 +37,11 @@ class ClinicalImpressionBuilderTest {
     assertNotNull(ci.getId());
     assertEquals("Patient/foo", ci.getSubject().getReference());
     assertEquals(ClinicalImpression.ClinicalImpressionStatus.COMPLETED, ci.getStatus());
-    assertEquals(obs.size(), ci.getInvestigation().size());
+    assertEquals(3, ci.getInvestigation().size());
     assertEquals(5, ((Age)ci.getExtensionByUrl(AGE_AT_EVENT_EXT).getValue()).getValue().longValue());
     assertEquals("Observation/ob1", ci.getInvestigation().get(0).getItemFirstRep().getReference());
     assertEquals("Observation/ob2", ci.getInvestigation().get(1).getItemFirstRep().getReference());
+    assertEquals("Observation/foetusObs", ci.getInvestigation().get(2).getItemFirstRep().getReference());
   }
 
 }

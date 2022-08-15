@@ -18,9 +18,10 @@ public class ClinicalImpressionBuilder {
   private final Person person;
   private final Patient patient;
   private final List<Observation> observations;
+  private final Observation foetusObservation;
   
   public Result build() {
-    final ClinicalImpression clinicalImpression = mapper.mapToClinicalImpression(person, patient, observations);
+    final ClinicalImpression clinicalImpression = mapper.mapToClinicalImpression(person, patient, observations, foetusObservation);
     return new Result(clinicalImpression);
   }
   
