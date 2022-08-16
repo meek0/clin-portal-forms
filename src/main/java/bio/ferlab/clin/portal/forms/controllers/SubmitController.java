@@ -25,8 +25,6 @@ public class SubmitController {
   @PostMapping
   public ResponseEntity<String> submit(@RequestHeader String authorization,
                                        @Valid @RequestBody Request request) {
-  
-    // The following code is for SOLO only
 
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
     final String panelCode = request.getAnalyse().getPanelCode();
@@ -59,23 +57,26 @@ public class SubmitController {
     final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, panelCode, pbr.getPatient(), request.getHistoryAndDiagnosis(),
         request.getClinicalSigns(), request.getParaclinicalExams());
     ObservationsBuilder.Result obr = observationsBuilder
+        .withFoetus(fbr.getObservation())
         .validate()
         .build();
 
     final ClinicalImpressionBuilder clinicalImpressionBuilder = new ClinicalImpressionBuilder(mapper, 
-        pbr.getPerson(), pbr.getPatient(), obr.getObservations(), fbr.getObservation());
+        pbr.getPerson(), pbr.getPatient(), obr.getObservations());
     ClinicalImpressionBuilder.Result cbr = clinicalImpressionBuilder
         .build();
     
     final AnalysisBuilder analysisBuilder = new AnalysisBuilder(fhirClient, mapper, panelCode, pbr.getPatient(), 
-        cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getAnalyse().getComment(), fbr.getFoetus());
+        cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getAnalyse().getComment());
     AnalysisBuilder.Result abr = analysisBuilder
+        .withFoetus(fbr.getFoetus())
         .withReflex(request.getAnalyse().getIsReflex())
         .build();
 
     final SequencingBuilder sequencingBuilder = new SequencingBuilder(mapper, panelCode, 
-        pbr.getPatient(), abr.getAnalysis(), roleBr.getPractitionerRole(), fbr.getFoetus());
+        pbr.getPatient(), abr.getAnalysis(), roleBr.getPractitionerRole());
     SequencingBuilder.Result sbr = sequencingBuilder
+        .withFoetus(fbr.getFoetus())
         .build();
     
     submit(pbr, nbr, fbr, abr, sbr, cbr, obr, fmhr);
@@ -126,15 +127,6 @@ public class SubmitController {
           .setResource(fbr.getFoetus())
           .getRequest()
           .setUrl("Patient")
-          .setMethod(Bundle.HTTPVerb.POST);
-    }
-
-    if (fbr.getObservation() != null) {
-      bundle.addEntry()
-          .setFullUrl(FhirUtils.formatResource(fbr.getObservation()))
-          .setResource(fbr.getObservation())
-          .getRequest()
-          .setUrl("Observation")
           .setMethod(Bundle.HTTPVerb.POST);
     }
 

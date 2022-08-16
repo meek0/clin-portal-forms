@@ -21,7 +21,7 @@ class SequencingBuilderTest {
     analysis.setId("foo");
     final PractitionerRole role = new PractitionerRole();
     role.setId("role");
-    final SequencingBuilder.Result result = new SequencingBuilder(new SubmitToFhirMapper(), "code", patient, analysis, role, null).build();
+    final SequencingBuilder.Result result = new SequencingBuilder(new SubmitToFhirMapper(), "code", patient, analysis, role).build();
     final ServiceRequest sr = result.getSequencing();
     
     assertNotNull(sr.getId());
@@ -45,7 +45,9 @@ class SequencingBuilderTest {
     role.setId("role");
     final Patient foetus = new Patient();
     foetus.setId("foetus");
-    final SequencingBuilder.Result result = new SequencingBuilder(new SubmitToFhirMapper(), "code", patient, analysis, role, foetus).build();
+    final SequencingBuilder.Result result = new SequencingBuilder(new SubmitToFhirMapper(), "code", patient, analysis, role)
+        .withFoetus(foetus)
+        .build();
     final ServiceRequest sr = result.getSequencing();
 
     assertNotNull(sr.getId());

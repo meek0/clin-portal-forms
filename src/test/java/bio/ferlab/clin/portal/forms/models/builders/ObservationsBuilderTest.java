@@ -92,12 +92,18 @@ class ObservationsBuilderTest {
     final ParaclinicalExams paraclinicalExams = new ParaclinicalExams();
     paraclinicalExams.setExams(exams);
     paraclinicalExams.setComment("bar");
+
+    final Observation foetusObservation = new Observation();
+    foetusObservation.setId("foetusObs");
     
     final ObservationsBuilder.Result result = 
         new ObservationsBuilder(new SubmitToFhirMapper(), "code", patient, historyAndDiag, clinicalSigns, paraclinicalExams)
+        .withFoetus(foetusObservation)
         .build();
     
     final List<Observation> obs = result.getObservations();
+    
+    assertEquals(12, obs.size());
 
     assertObservation(obs.get(0), patient, "DSTA", "exam", true, ANALYSIS_REQUEST_CODE, "code", true);
     assertObservation(obs.get(1), patient, "OBSG", "exam", null, null, clinicalSigns.getComment(), true);
@@ -128,6 +134,8 @@ class ObservationsBuilderTest {
     assertEquals("value1",obs.get(10).getValueCodeableConcept().getCoding().get(0).getCode());
     assertEquals(HP_CODE,obs.get(10).getValueCodeableConcept().getCoding().get(1).getSystem());
     assertEquals("value2",obs.get(10).getValueCodeableConcept().getCoding().get(1).getCode());
+
+    assertEquals("foetusObs",obs.get(11).getId());
   }
   
   private void assertObservation(Observation obs, Patient patient, String code, String category, Boolean isObserved, String system, Object value, boolean checkInterpretation) {
