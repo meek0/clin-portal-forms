@@ -23,4 +23,7 @@ public class Request {
   @Valid
   @NotNull
   private ParaclinicalExams paraclinicalExams;
+  @Valid
+  @NotNull
+  private HistoryAndDiag historyAndDiagnosis;
 }

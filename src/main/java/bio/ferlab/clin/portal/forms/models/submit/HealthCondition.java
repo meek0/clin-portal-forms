@@ -9,10 +9,10 @@ import javax.validation.constraints.NotBlank;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Analyse {
+public class HealthCondition {
+  
   @NotBlank
-  private String panelCode;
-  private Boolean isReflex;
-  private String comment;
-  private String residentSupervisor;
+  private String condition;
+  @NotBlank
+  private String parentalLink;
 }

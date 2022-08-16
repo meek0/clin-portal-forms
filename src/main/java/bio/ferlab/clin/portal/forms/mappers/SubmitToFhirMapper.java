@@ -2,7 +2,6 @@ package bio.ferlab.clin.portal.forms.mappers;
 
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import bio.ferlab.clin.portal.forms.models.submit.*;
-import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
@@ -76,12 +75,15 @@ public class SubmitToFhirMapper {
     }
   }
   
-  public ServiceRequest mapToAnalysis(String panelCode, org.hl7.fhir.r4.model.Patient patient, 
-                                      ClinicalImpression clinicalImpression, String orderDetails, 
+  public ServiceRequest mapToAnalysis(String panelCode, org.hl7.fhir.r4.model.Patient patient,
+                                      ClinicalImpression clinicalImpression, String orderDetails,
                                       PractitionerRole practitionerRole, PractitionerRole supervisorRole,
-                                      String comment) {
+                                      String comment, org.hl7.fhir.r4.model.Patient foetus) {
     final ServiceRequest serviceRequest = new ServiceRequest();
     serviceRequest.setId(UUID.randomUUID().toString());
+    if (foetus != null) {
+      serviceRequest.addCategory().setText("Prenatal");
+    }
     serviceRequest.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
     serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
     serviceRequest.setSubject(FhirUtils.toReference(patient));
@@ -101,12 +103,17 @@ public class SubmitToFhirMapper {
     return serviceRequest;
   }
 
-  public ServiceRequest mapToSequencing(String panelCode, org.hl7.fhir.r4.model.Patient patient, ServiceRequest analysis, PractitionerRole practitionerRole) {
+  public ServiceRequest mapToSequencing(String panelCode, org.hl7.fhir.r4.model.Patient patient, ServiceRequest analysis, PractitionerRole practitionerRole, org.hl7.fhir.r4.model.Patient foetus) {
     final ServiceRequest serviceRequest = new ServiceRequest();
     serviceRequest.setId(UUID.randomUUID().toString());
     serviceRequest.getMeta().addProfile(SEQUENCING_SERVICE_REQUEST);
     serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
-    serviceRequest.setSubject(FhirUtils.toReference(patient));
+    if (foetus != null) {
+      serviceRequest.addCategory().setText("Prenatal");
+      serviceRequest.setSubject(FhirUtils.toReference(foetus));
+    } else {
+      serviceRequest.setSubject(FhirUtils.toReference(patient));
+    }
     serviceRequest.setStatus(ServiceRequest.ServiceRequestStatus.ONHOLD);
     serviceRequest.addBasedOn(FhirUtils.toReference(analysis));
     serviceRequest.setRequester(FhirUtils.toReference(practitionerRole));
@@ -127,10 +134,9 @@ public class SubmitToFhirMapper {
   
   public List<Observation> mapToObservations(String panelCode,
                                              org.hl7.fhir.r4.model.Patient patient,
-                                             Analyse analyse,
+                                             HistoryAndDiag historyAndDiag,
                                              ClinicalSigns signs,
-                                             ParaclinicalExams exams,
-                                             String ethnicity) {
+                                             ParaclinicalExams exams) {
     
     List<Observation> all = new ArrayList<>();
 
@@ -147,12 +153,17 @@ public class SubmitToFhirMapper {
       all.add(obsg);
     }
     
-    if(StringUtils.isNotBlank(ethnicity)) {
-      Observation obsg = createObservation(patient, "ETHN", "exam",null, ETHNICITY_CODE, ethnicity);
+    if(StringUtils.isNotBlank(historyAndDiag.getEthnicity())) {
+      Observation obsg = createObservation(patient, "ETHN", "exam",null, ETHNICITY_CODE, historyAndDiag.getEthnicity());
       all.add(obsg);
     }
+    
+    if (Boolean.TRUE.equals(historyAndDiag.getInbreeding())) {
+      Observation cons = createObservation(patient, "CONS", "exam",null, null, historyAndDiag.getInbreeding());
+      all.add(cons);
+    }
 
-    Observation indic = createObservation(patient, "INDIC", "exam",null, null, analyse.getIndication());
+    Observation indic = createObservation(patient, "INDIC", "exam",null, null, historyAndDiag.getDiagnosticHypothesis());
     all.add(indic);
 
     all.addAll(signs.getSigns().stream().map(o -> {
@@ -173,14 +184,63 @@ public class SubmitToFhirMapper {
     return all;
   }
   
+  public List<FamilyMemberHistory> mapToFamilyMemberHistory(HistoryAndDiag historyAndDiag, org.hl7.fhir.r4.model.Patient patient) {
+    final List<FamilyMemberHistory> histories = new ArrayList<>();
+    for(HealthCondition healthCondition: historyAndDiag.getHealthConditions()) {
+      final FamilyMemberHistory history = new FamilyMemberHistory();
+      history.setId(UUID.randomUUID().toString());
+      history.setStatus(FamilyMemberHistory.FamilyHistoryStatus.COMPLETED);
+      history.getRelationship().addCoding().setSystem(SYSTEM_RELATIONSHIP).setCode(healthCondition.getParentalLink());
+      String sanitizedComment = StringUtils.isNotBlank(healthCondition.getCondition()) ? healthCondition.getCondition() : "";
+      history.addNote(new Annotation().setText(sanitizedComment));
+      history.setPatient(FhirUtils.toReference(patient));
+      histories.add(history);
+    }
+    return histories;
+  }
+  
   public RelatedPerson mapToRelatedPerson(org.hl7.fhir.r4.model.Patient patient, String motherRamq) {
     final RelatedPerson relatedPerson = new RelatedPerson();
     relatedPerson.setId(UUID.randomUUID().toString());
     this.updateIdentifier(relatedPerson.getIdentifier(), SYSTEM_RAMQ, CODE_RAMQ, motherRamq, null);
     relatedPerson.setPatient(FhirUtils.toReference(patient));
-    relatedPerson.addRelationship().setText("Mother").addCoding().setSystem(SYSTEM_MOTHER).setCode(CODE_MOTHER);
+    relatedPerson.addRelationship().setText("Mother").addCoding().setSystem(SYSTEM_ROLE).setCode(ROLE_CODE_MOTHER);
     relatedPerson.setActive(true);
     return relatedPerson;
+  }
+  
+  public org.hl7.fhir.r4.model.Patient mapToFoetus(AdditionalInfo additionalInfo, org.hl7.fhir.r4.model.Patient mother) {
+    final org.hl7.fhir.r4.model.Patient foetus = new org.hl7.fhir.r4.model.Patient();
+    foetus.setId(UUID.randomUUID().toString());
+    //foetus.addExtension(GESTATIONAL_AGE_EXT, new CodeableConcept(new Coding().setSystem(SYSTEM_GESTATIONAL_AGE).setCode(CODE_GESTATIONAL_AGE)).setText(additionalInfo.getGestationalAge().name()));
+    foetus.setDeceased(new BooleanType(AdditionalInfo.GestationalAge.deceased.equals(additionalInfo.getGestationalAge())));
+    foetus.setGender(mapToGender(additionalInfo.getFoetusGender()));
+    final var link = new org.hl7.fhir.r4.model.Patient.PatientLinkComponent();
+    link.setOther(FhirUtils.toReference(mother));
+    link.setType(org.hl7.fhir.r4.model.Patient.LinkType.SEEALSO);
+    foetus.setManagingOrganization(mother.getManagingOrganization()); // required for metatag
+    foetus.addLink(link);
+    return foetus;
+  }
+  
+  public Observation mapToObservation(AdditionalInfo additionalInfo, org.hl7.fhir.r4.model.Patient mother, org.hl7.fhir.r4.model.Patient foetus) {
+    final Observation observation = new Observation();
+    observation.setId(UUID.randomUUID().toString());
+    observation.setStatus(Observation.ObservationStatus.FINAL);
+    observation.setSubject(FhirUtils.toReference(mother));
+    observation.setFocus(List.of(FhirUtils.toReference(foetus)));
+    switch (additionalInfo.getGestationalAge()) {
+      case ddm:
+        observation.setCode(new CodeableConcept(new Coding().setSystem(SYSTEM_DDM).setCode(CODE_DDM)));
+        break;
+      case dpa:
+        observation.setCode(new CodeableConcept(new Coding().setSystem(SYSTEM_DPA).setCode(CODE_DPA)));
+        break;
+      default:
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.additional_info gestational_age should be ddm or dpa");
+    }
+    observation.getValueDateTimeType().setValue(mapToDate(additionalInfo.getGestationalDate()));
+    return observation;
   }
   
   private String getInterpretationCode(Exams.Interpretation interpretation) {
@@ -194,7 +254,7 @@ public class SubmitToFhirMapper {
     }
   }
   
-  private Observation createObservation(org.hl7.fhir.r4.model.Patient patient, String code, String category, Boolean isObserved, String system, String value) {
+  private Observation createObservation(org.hl7.fhir.r4.model.Patient patient, String code, String category, Boolean isObserved, String system, Object value) {
     Observation observation = new Observation();
     observation.setSubject(FhirUtils.toReference(patient));
     observation.setId(UUID.randomUUID().toString());
@@ -205,12 +265,17 @@ public class SubmitToFhirMapper {
     if(isObserved != null) {
       observation.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(isObserved ? "POS" : "NEG")));
     }
-    if (StringUtils.isNotBlank(value)) {
-      if (StringUtils.isNotBlank(system)) {
-        observation.setValue(new CodeableConcept(new Coding().setSystem(system).setCode(value)));
-      } else {
-        observation.setValue(new StringType(value));
+    if (value instanceof String) {
+      final String valueStr = value.toString();
+      if (StringUtils.isNotBlank(valueStr)) {
+        if (StringUtils.isNotBlank(system)) {
+          observation.setValue(new CodeableConcept(new Coding().setSystem(system).setCode(valueStr)));
+        } else {
+          observation.setValue(new StringType(valueStr));
+        }
       }
+    } else if (value instanceof Boolean) {
+      observation.setValue(new BooleanType((Boolean) value));
     }
     return observation;
   }

@@ -35,7 +35,6 @@ public class Patient {
   private LocalDate birthDate;
   @NotNull
   private Gender gender;
-  private String ethnicity;
   @Valid
   @NotNull
   private AdditionalInfo additionalInfo = new AdditionalInfo();

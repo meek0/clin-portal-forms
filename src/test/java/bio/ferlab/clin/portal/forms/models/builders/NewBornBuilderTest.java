@@ -36,7 +36,7 @@ class NewBornBuilderTest {
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
       new NewBornBuilder(new SubmitToFhirMapper(), additionalInfo, patient).build();
     });
-    assertEquals("patient.additional_info is_new_born and isPrenatalDiagnosis can't be both true", exception.getReason());
+    assertEquals("patient.additional_info is_new_born and is_prenatal_diagnosis can't be both true", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
   }
 
@@ -71,8 +71,8 @@ class NewBornBuilderTest {
     
     final CodeableConcept relation = relatedPerson.getRelationshipFirstRep();
     assertEquals("Mother", relation.getText());
-    assertEquals(FhirConst.SYSTEM_MOTHER, relation.getCodingFirstRep().getSystem());
-    assertEquals(FhirConst.CODE_MOTHER, relation.getCodingFirstRep().getCode());
+    assertEquals(FhirConst.SYSTEM_ROLE, relation.getCodingFirstRep().getSystem());
+    assertEquals(FhirConst.ROLE_CODE_MOTHER, relation.getCodingFirstRep().getCode());
   }
 
 }

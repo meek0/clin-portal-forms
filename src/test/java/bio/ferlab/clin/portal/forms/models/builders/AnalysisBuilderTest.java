@@ -55,6 +55,7 @@ class AnalysisBuilderTest {
     when(fhirClient.findCodeSystemById(any())).thenReturn(cs);
     
     final AnalysisBuilder.Result result = new AnalysisBuilder(fhirClient, new SubmitToFhirMapper(), "code", patient, clinicalImpression, role, supervisor, "comment")
+        .withFoetus(new Patient())
         .withReflex(true)
         .build();
     final ServiceRequest sr = result.getAnalysis();
@@ -74,5 +75,6 @@ class AnalysisBuilderTest {
     assertNotNull(note.getTime());
     assertEquals("comment", note.getText());
     assertEquals(FhirUtils.formatResource(practitioner), ((Reference)note.getAuthor()).getReference());
+    assertEquals("Prenatal", sr.getCategoryFirstRep().getText());
   }
 }

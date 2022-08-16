@@ -98,7 +98,6 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
   "analyse": {
     "panel_code": "MMG",
     "is_reflex": false,
-    "indication": "comment indication",
     "resident_supervisor": "PRR00102",
     "comment": "general comment"
   },
@@ -109,8 +108,7 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
     "first_name": "Creation",
     "last_name": "Prescription",
     "birth_date": "1990-07-20",
-    "gender": "male",
-    "ethnicity": "LAT-AM"
+    "gender": "male"
   },
   "clinical_signs": {
     "signs": [
@@ -144,22 +142,51 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
       }
     ],
     "comment": "comment investigation"
+  },
+  "history_and_diagnosis": {
+    "diagnostic_hypothesis": "comment indication",
+    "ethnicity": "LAT-AM",
+    "inbreeding": true,
+    "health_conditions": [
+      {
+        "condition": "a health condition",
+        "parental_link": "MATMEM"
+      }
+    ]
   }
 }
 ```
-**New born body example:**
+### New born body example
 
-Specific for new borns, `mrn` and `ramq` can be empty in `patient` but `mother_ramq` is required in `additional_info`.
+For new borns, `mrn` and `ramq` can be empty in `patient` but `mother_ramq` is required in `additional_info`.
 
 ```json
 "patient": {
     "ep": "CHUSJ",
     ...
-    // no mrn or ramq is needed
+    // no mrn or ramq needed
     ...
     "additional_info": {
       "is_new_born": true,
       "mother_ramq": "RAMQ12341236"
+    }
+}
+```
+
+### Foetus body example
+
+For foetus, `mrn` and `ramq` are the one from the mother.
+
+```json
+"patient": {
+    "ep": "CHUSJ",
+    "ramq": "RAMQ12341236",
+    "mrn": "MRN001",
+    "additional_info": {
+      "is_prenatal_diagnosis": true,
+      "foetus_gender": [male|female|unknown],
+      "gestational_age": [ddm|dpa|deceased],
+      "gestational_date": "2022-08-12"  // required if gestational_age is ddm | dpa
     }
 }
 ```

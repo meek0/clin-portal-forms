@@ -27,6 +27,8 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 class AutocompleteControllerTest {
+  
+  // was just a PoC to see how easy it's to Start an entire spring boot context and mock some services
 
   private final FhirContext fhirContext = FhirContext.forR4();
   private final Algorithm algorithm = Algorithm.HMAC256("secret");

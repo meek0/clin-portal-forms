@@ -35,7 +35,7 @@ class ClinicalImpressionBuilderTest {
     assertNotNull(ci.getId());
     assertEquals("Patient/foo", ci.getSubject().getReference());
     assertEquals(ClinicalImpression.ClinicalImpressionStatus.COMPLETED, ci.getStatus());
-    assertEquals(obs.size(), ci.getInvestigation().size());
+    assertEquals(2, ci.getInvestigation().size());
     assertEquals(5, ((Age)ci.getExtensionByUrl(AGE_AT_EVENT_EXT).getValue()).getValue().longValue());
     assertEquals("Observation/ob1", ci.getInvestigation().get(0).getItemFirstRep().getReference());
     assertEquals("Observation/ob2", ci.getInvestigation().get(1).getItemFirstRep().getReference());

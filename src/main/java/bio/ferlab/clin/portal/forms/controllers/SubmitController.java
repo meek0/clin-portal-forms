@@ -25,8 +25,6 @@ public class SubmitController {
   @PostMapping
   public ResponseEntity<String> submit(@RequestHeader String authorization,
                                        @Valid @RequestBody Request request) {
-  
-    // The following code is for SOLO only
 
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
     final String panelCode = request.getAnalyse().getPanelCode();
@@ -43,15 +41,23 @@ public class SubmitController {
     NewBornBuilder.Result nbr = newBornBuilder
         .build();
     
+    final FoetusBuilder foetusBuilder = new FoetusBuilder(mapper, request.getPatient().getAdditionalInfo(), pbr.getPatient());
+    FoetusBuilder.Result fbr = foetusBuilder
+        .build();
+    
     final PractitionerBuilder practitionerBuilder = new PractitionerBuilder(fhirClient, practitionerId);
     PractitionerBuilder.Result roleBr = practitionerBuilder
         .withSupervisor(request.getAnalyse().getResidentSupervisor())
         .withEp(ep)
         .build();
     
-    final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, panelCode, pbr.getPatient(), request.getAnalyse(),
-        request.getClinicalSigns(), request.getParaclinicalExams(), request.getPatient().getEthnicity());
+    final FamilyMemberHistoryBuilder familyMemberHistoryBuilder = new FamilyMemberHistoryBuilder(mapper, request.getHistoryAndDiagnosis(), pbr.getPatient());
+    FamilyMemberHistoryBuilder.Result fmhr = familyMemberHistoryBuilder.build();
+    
+    final ObservationsBuilder observationsBuilder = new ObservationsBuilder(mapper, panelCode, pbr.getPatient(), request.getHistoryAndDiagnosis(),
+        request.getClinicalSigns(), request.getParaclinicalExams());
     ObservationsBuilder.Result obr = observationsBuilder
+        .withFoetus(fbr.getObservation())
         .validate()
         .build();
 
@@ -63,25 +69,29 @@ public class SubmitController {
     final AnalysisBuilder analysisBuilder = new AnalysisBuilder(fhirClient, mapper, panelCode, pbr.getPatient(), 
         cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getAnalyse().getComment());
     AnalysisBuilder.Result abr = analysisBuilder
+        .withFoetus(fbr.getFoetus())
         .withReflex(request.getAnalyse().getIsReflex())
         .build();
 
     final SequencingBuilder sequencingBuilder = new SequencingBuilder(mapper, panelCode, 
         pbr.getPatient(), abr.getAnalysis(), roleBr.getPractitionerRole());
     SequencingBuilder.Result sbr = sequencingBuilder
+        .withFoetus(fbr.getFoetus())
         .build();
     
-    submit(pbr, nbr, abr, sbr, cbr, obr);
+    submit(pbr, nbr, fbr, abr, sbr, cbr, obr, fmhr);
     
     return ResponseEntity.status(HttpStatus.CREATED).build();
   }
   
   private void submit(PatientBuilder.Result pbr, 
                       NewBornBuilder.Result nbr,
+                      FoetusBuilder.Result fbr,
                       AnalysisBuilder.Result abr, 
                       SequencingBuilder.Result sbr, 
                       ClinicalImpressionBuilder.Result cbr,
-                      ObservationsBuilder.Result obr) {
+                      ObservationsBuilder.Result obr,
+                      FamilyMemberHistoryBuilder.Result fmhr) {
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.TRANSACTION);
     
@@ -108,6 +118,15 @@ public class SubmitController {
           .setResource(nbr.getRelatedPerson())
           .getRequest()
           .setUrl("RelatedPerson")
+          .setMethod(Bundle.HTTPVerb.POST);
+    }
+    
+    if (fbr.getFoetus() != null) {
+      bundle.addEntry()
+          .setFullUrl(FhirUtils.formatResource(fbr.getFoetus()))
+          .setResource(fbr.getFoetus())
+          .getRequest()
+          .setUrl("Patient")
           .setMethod(Bundle.HTTPVerb.POST);
     }
 
@@ -139,6 +158,14 @@ public class SubmitController {
           .getRequest()
           .setUrl("Observation")
           .setMethod(Bundle.HTTPVerb.POST));
+    
+    fmhr.getHistories().forEach(h ->  
+      bundle.addEntry()
+        .setFullUrl(FhirUtils.formatResource(h))
+        .setResource(h)
+        .getRequest()
+        .setUrl("FamilyMemberHistory")
+        .setMethod(Bundle.HTTPVerb.POST));
     
     fhirClient.submitForm(personRef, patientRef, bundle);
   }

@@ -5,6 +5,7 @@ import bio.ferlab.clin.portal.forms.models.submit.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Patient;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
@@ -18,10 +19,15 @@ public class ObservationsBuilder {
   private final SubmitToFhirMapper mapper;
   private final String panelCode;
   private final Patient patient;
-  private final Analyse analyse;
+  private final HistoryAndDiag historyAndDiag;
   private final ClinicalSigns signs;
   private final ParaclinicalExams exams;
-  private final String ethnicity;
+  private Observation foetusObservation;
+  
+  public ObservationsBuilder withFoetus(Observation o) {
+    this.foetusObservation = o;
+    return this;
+  }
   
   public ObservationsBuilder validate() {
     for(int i = 0; i< signs.getSigns().size(); i++) {
@@ -40,7 +46,10 @@ public class ObservationsBuilder {
   }
   
   public Result build() {
-    List<org.hl7.fhir.r4.model.Observation> obs = mapper.mapToObservations(panelCode, patient, analyse, signs, exams, ethnicity);
+    List<org.hl7.fhir.r4.model.Observation> obs = mapper.mapToObservations(panelCode, patient, historyAndDiag, signs, exams);
+    if (foetusObservation != null) {
+      obs.add(foetusObservation);
+    }
     return new Result(obs);
   }
   
