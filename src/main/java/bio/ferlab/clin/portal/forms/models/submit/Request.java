@@ -13,7 +13,7 @@ import javax.validation.constraints.NotNull;
 public class Request {
   @Valid
   @NotNull
-  private Analyse analyse;
+  private Analysis analysis;
   @Valid
   @NotNull
   private Patient patient;
