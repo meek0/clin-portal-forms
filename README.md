@@ -95,7 +95,7 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
 ### Body
 ```json
 {
-  "analyse": {
+  "analysis": {
     "panel_code": "MMG",
     "is_reflex": false,
     "resident_supervisor": "PRR00102",

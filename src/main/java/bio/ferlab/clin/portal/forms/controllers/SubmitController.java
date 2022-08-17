@@ -27,7 +27,7 @@ public class SubmitController {
                                        @Valid @RequestBody Request request) {
 
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
-    final String panelCode = request.getAnalyse().getPanelCode();
+    final String panelCode = request.getAnalysis().getPanelCode();
     final String ep = request.getPatient().getEp();
  
     final PatientBuilder patientBuilder = new PatientBuilder(fhirClient, mapper, request.getPatient());
@@ -47,7 +47,7 @@ public class SubmitController {
     
     final PractitionerBuilder practitionerBuilder = new PractitionerBuilder(fhirClient, practitionerId);
     PractitionerBuilder.Result roleBr = practitionerBuilder
-        .withSupervisor(request.getAnalyse().getResidentSupervisor())
+        .withSupervisor(request.getAnalysis().getResidentSupervisor())
         .withEp(ep)
         .build();
     
@@ -67,10 +67,10 @@ public class SubmitController {
         .build();
     
     final AnalysisBuilder analysisBuilder = new AnalysisBuilder(fhirClient, mapper, panelCode, pbr.getPatient(), 
-        cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getAnalyse().getComment());
+        cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getAnalysis().getComment());
     AnalysisBuilder.Result abr = analysisBuilder
         .withFoetus(fbr.getFoetus())
-        .withReflex(request.getAnalyse().getIsReflex())
+        .withReflex(request.getAnalysis().getIsReflex())
         .build();
 
     final SequencingBuilder sequencingBuilder = new SequencingBuilder(mapper, panelCode, 

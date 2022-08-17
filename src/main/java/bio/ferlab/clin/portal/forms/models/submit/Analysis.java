@@ -9,7 +9,7 @@ import javax.validation.constraints.NotBlank;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Analyse {
+public class Analysis {
   @NotBlank
   private String panelCode;
   private Boolean isReflex;
