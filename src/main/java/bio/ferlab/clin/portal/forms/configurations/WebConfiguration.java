@@ -31,7 +31,7 @@ public class WebConfiguration implements WebMvcConfigurer {
         .addMapping("/**")
         .allowedOrigins(securityConfiguration.getCors().toArray(String[]::new))
         .allowedMethods(HttpMethod.GET.name(), HttpMethod.POST.name())
-        .allowedHeaders(HttpHeaders.AUTHORIZATION)
+        .allowedHeaders(HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE)
         .allowCredentials(true)
         .maxAge(3600);
   }
