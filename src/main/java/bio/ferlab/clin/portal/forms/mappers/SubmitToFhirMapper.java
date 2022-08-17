@@ -13,10 +13,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
@@ -174,11 +171,13 @@ public class SubmitToFhirMapper {
       return obs;
     }).collect(Collectors.toList()));
 
-    all.addAll(exams.getExams().stream().map(o -> {
-      Observation obs = createObservation(patient, o.getCode(), "procedure", null, null, o.getValue());
-      obs.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(getInterpretationCode(o.getInterpretation()))));
-      o.getValues().forEach(v -> obs.getValueCodeableConcept().addCoding(new Coding().setSystem(HP_CODE).setCode(v)));
-      return obs;
+    all.addAll(exams.getExams().stream()
+      .filter(o -> EnumSet.of(Exams.Interpretation.normal, Exams.Interpretation.abnormal).contains(o.getInterpretation()))
+      .map(o -> {
+        Observation obs = createObservation(patient, o.getCode(), "procedure", null, null, o.getValue());
+        obs.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(getInterpretationCode(o.getInterpretation()))));
+        o.getValues().forEach(v -> obs.getValueCodeableConcept().addCoding(new Coding().setSystem(HP_CODE).setCode(v)));
+        return obs;
     }).collect(Collectors.toList()));
     
     return all;

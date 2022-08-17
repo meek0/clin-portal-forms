@@ -16,7 +16,8 @@ public class Exams {
   
   public enum Interpretation {
     abnormal,
-    normal
+    normal,
+    not_done
   }
   
   @NotBlank

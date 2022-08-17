@@ -82,8 +82,11 @@ class ObservationsBuilderTest {
     ex3.setCode("code3");
     ex3.setValues(List.of("value1", "value2"));
     ex3.setInterpretation(Exams.Interpretation.abnormal);
+
+    Exams ex4 = new Exams();  // should be ignored
+    ex4.setInterpretation(Exams.Interpretation.not_done);
     
-    final List<Exams> exams = List.of(ex1, ex2, ex3);
+    final List<Exams> exams = List.of(ex1, ex2, ex3, ex4);
     
     final ClinicalSigns clinicalSigns = new ClinicalSigns();
     clinicalSigns.setSigns(signs);
