@@ -1,10 +1,7 @@
 package bio.ferlab.clin.portal.forms.utils;
 
 import ca.uhn.fhir.context.FhirContext;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Organization;
-import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.Practitioner;
+import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,6 +36,19 @@ class BundleExtractorTest {
     assertEquals("id2", extractor.getNextResourcesOfType(Patient.class).getId());
     assertEquals("id3", extractor.getNextResourcesOfType(Patient.class).getId());
     assertNull(extractor.getNextResourcesOfType(Patient.class));
+  }
+  
+  @Test
+  void getFirstResourcesOfType() {
+    final Bundle bundle = new Bundle();
+    bundle.addEntry().setResource(new Patient().setId("id1"));
+    Bundle internalBundle = new Bundle();
+    internalBundle.addEntry().setResource(new Practitioner().setId("id2"));
+    bundle.addEntry().setResource(internalBundle);
+    final BundleExtractor extractor = new BundleExtractor(fhirContext, bundle);
+    assertEquals("id1", extractor.getFirstResourcesOfType(Patient.class).getId());
+    assertEquals("id2", extractor.getFirstResourcesOfType(Practitioner.class).getId());
+    assertNull(extractor.getNextResourcesOfType(Person.class));
   }
 
 }

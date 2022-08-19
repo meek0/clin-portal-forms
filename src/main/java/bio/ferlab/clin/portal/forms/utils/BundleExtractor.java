@@ -4,6 +4,7 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.util.BundleUtil;
 import org.hl7.fhir.instance.model.api.IBaseBundle;
 import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.r4.model.Bundle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +31,7 @@ public class BundleExtractor {
     return results;
   }
   
-  public <T extends IBaseResource> T getNextResourcesOfType(Class<T> clazz) {
+  public synchronized <T extends IBaseResource> T getNextResourcesOfType(Class<T> clazz) {
     List<IBaseResource> allRes = BundleUtil.toListOfResources(fhirContext, bundle);
     if (allRes.size() > currentIndex) {
       IBaseResource res = allRes.get(currentIndex++);
@@ -46,6 +47,21 @@ public class BundleExtractor {
     for(IBaseResource res : allRes) {
       if(res.getClass().equals(clazz)){
         return (T)res;
+      } else if (res instanceof Bundle) { // search can return bundle inside bundle
+        T fromBundle = getResourcesOfTypeInBundle(clazz, (IBaseBundle) res);
+        if (fromBundle !=null) {
+          return fromBundle;
+        }
+      }
+    }
+    return null;
+  }
+  
+  private <T extends IBaseResource> T getResourcesOfTypeInBundle(Class<T> clazz, IBaseBundle bundle) {
+    List<IBaseResource> allBundleRes = BundleUtil.toListOfResources(fhirContext, bundle);
+    for (IBaseResource resBundle : allBundleRes) {
+      if (resBundle.getClass().equals(clazz)) {
+        return (T) resBundle;
       }
     }
     return null;

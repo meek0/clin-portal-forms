@@ -73,18 +73,16 @@ class PrescriptionBuilderTest {
     serviceRequestBundle.addEntry().setResource(patient);
     when(fhirClient.findServiceRequestById(any())).thenReturn(serviceRequestBundle);
     final Practitioner practitioner = new Practitioner();
-    when(fhirClient.findPractitionerById(any())).thenReturn(practitioner);
     final Person person = new Person();
     person.addName().setFamily("name");
     person.addIdentifier().setValue("ramq");
-    final Bundle personBundle = new Bundle();
-    personBundle.addEntry().setResource(person);
-    when(fhirClient.findPersonByPatientId(any())).thenReturn(personBundle);
     final RelatedPerson relatedPerson = new RelatedPerson();
     relatedPerson.addIdentifier().setValue("ramq2");
-    final Bundle relatedBundle = new Bundle();
-    relatedBundle.addEntry().setResource(relatedPerson);
-    when(fhirClient.findRelatedPersonByPatientId(any())).thenReturn(relatedBundle);
+    final Bundle allBundle = new Bundle();
+    allBundle.addEntry().setResource(practitioner);
+    allBundle.addEntry().setResource(person);
+    allBundle.addEntry().setResource(relatedPerson);
+    when(fhirClient.fetchAdditionalPrescriptionData(any(), any())).thenReturn(allBundle);
     
     final var result = new PrescriptionBuilder(fhirClient, new FhirToSearchMapper(), "practitionerId", "foo", null).build();
 

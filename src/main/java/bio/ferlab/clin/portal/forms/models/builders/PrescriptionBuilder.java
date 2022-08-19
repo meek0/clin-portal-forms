@@ -48,14 +48,11 @@ public class PrescriptionBuilder {
       final Patient patient = extractor.getFirstResourcesOfType(Patient.class);
       // the following condition is important, if role exists and belongs to the user eps then we found one valid analysis
       if (practitionerRole != null  && eps.contains(FhirUtils.extractId(practitionerRole.getOrganization()))) {
-        // find practitioner from the role
-        final Practitioner practitioner = this.fhirClient.findPractitionerById(FhirUtils.extractId(practitionerRole.getPractitioner()));
-        // find person + mother from patient
-        final Bundle personBundle = this.fhirClient.findPersonByPatientId(patient.getIdElement().getIdPart());
-        final Person person = new BundleExtractor(fhirClient.getContext(), personBundle).getFirstResourcesOfType(Person.class);
-        final Bundle motherBundle = this.fhirClient.findRelatedPersonByPatientId(patient.getIdElement().getIdPart());
-        final RelatedPerson mother = new BundleExtractor(fhirClient.getContext(), motherBundle).getFirstResourcesOfType(RelatedPerson.class);
-
+        final Bundle allBundle = this.fhirClient.fetchAdditionalPrescriptionData(FhirUtils.extractId(practitionerRole.getPractitioner()), patient.getIdElement().getIdPart());
+        final BundleExtractor allExtractor = new BundleExtractor(this.fhirClient.getContext(), allBundle);
+        final Practitioner practitioner = allExtractor.getFirstResourcesOfType(Practitioner.class);
+        final Person person = allExtractor.getFirstResourcesOfType(Person.class);
+        final RelatedPerson mother = allExtractor.getFirstResourcesOfType(RelatedPerson.class);
         prescriptions.add(mapper.mapToSearchPrescription(analysis, practitioner, patient, person, mother));
       }
     } else if (StringUtils.isNotBlank(ramq)) {

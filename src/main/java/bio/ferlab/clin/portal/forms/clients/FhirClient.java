@@ -105,23 +105,26 @@ public class FhirClient {
         .include(PractitionerRole.INCLUDE_PRACTITIONER)
         .returnBundle(Bundle.class).encodedJson().execute();
   }
+  
+  public Bundle fetchAdditionalPrescriptionData(String practitionerId, String patientId) {
+    final Bundle bundle = new Bundle();
+    bundle.setType(Bundle.BundleType.BATCH);
+    
+    bundle.addEntry().getRequest()
+        .setUrl("Practitioner/" + practitionerId)
+        .setMethod(Bundle.HTTPVerb.GET);
 
-  @Cacheable(value = CacheConfiguration.CACHE_PRACTITIONERS, sync = true, keyGenerator = "customKeyGenerator")
-  public Practitioner findPractitionerById(String id) {
-    log.debug("Fetch practitioner by id {}", id);
-    return this.getGenericClient().read().resource(Practitioner.class).withId(id).encodedJson().execute();
+    bundle.addEntry().getRequest()
+        .setUrl("Person?link=" + patientId)
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+        .setUrl("RelatedPerson?patient=" + patientId)
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    return this.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
   }
   
-  public Bundle findPersonByPatientId(String id){
-    return this.getGenericClient().search().forResource(Person.class).where(Person.LINK.hasId(id))
-        .returnBundle(Bundle.class).encodedJson().execute();
-  }
-  
-  public Bundle findRelatedPersonByPatientId(String id) {
-    return this.getGenericClient().search().forResource(RelatedPerson.class).where(RelatedPerson.PATIENT.hasId(id))
-        .returnBundle(Bundle.class).encodedJson().execute();
-  }
-
   // data refreshed very often, don't cache
   public Bundle findServiceRequestById(String id) {
     return this.getGenericClient().search().forResource(ServiceRequest.class)
