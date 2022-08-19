@@ -214,6 +214,28 @@ For foetus, `mrn` and `ramq` are the one from the mother.
     "mrn": "MRNTEST005"
 }
 ```
+## GET /search/prescription?`id`=foo&`ramq`=foo
+
+### Parameters
+| Name   |Required|Type| Description                |
+|--------|---|---|----------------------------|
+| `id`   |false|String| required if `ramq` is null | 
+| `ramq` |false|String| required if `id` is null   |
+### Response
+```json
+[
+  {
+    "analysis_id": "80735",
+    "panel_code": "MMG",
+    "prescriber": "Dre test test",
+    "date": "2022-08-02",
+    "patient_id": "80733",
+    "patient_name": "Creation Prescription",
+    "patient_ramq": "XXXX12345689",
+    "mother_ramq": "RAMQ12341236"
+  }
+]
+```
 ## GET /autocomplete/supervisor/`ep`/`prefix`
 
 ### Parameters

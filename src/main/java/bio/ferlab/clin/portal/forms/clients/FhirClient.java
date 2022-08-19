@@ -2,7 +2,6 @@ package bio.ferlab.clin.portal.forms.clients;
 
 import bio.ferlab.clin.portal.forms.configurations.CacheConfiguration;
 import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
-import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.PerformanceOptionsEnum;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.EnumSet;
-import java.util.List;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
@@ -75,35 +73,64 @@ public class FhirClient {
       logDebug(response);
     } catch(PreconditionFailedException | UnprocessableEntityException | InvalidRequestException e) {  // FHIR Server custom validation chain failed
       final String errors = toJson(e.getOperationOutcome());
-      log.error("Failed to submit bundle:\n{}\n{}", toJson(bundle), errors);
+      log.debug("Failed to submit bundle:\n{}\n{}", toJson(bundle), errors);  // don't log in production <= sensitive data
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors);
     }
   }
 
-  @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true)
+  @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true, keyGenerator = "customKeyGenerator")
   public CodeSystem findCodeSystemById(String id) {
+    log.debug("Fetch code system by id {}", id);
     return this.getGenericClient().read().resource(CodeSystem.class).withId(id).encodedJson().execute();
   }
 
-  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true)
+  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public PractitionerRole findPractitionerRoleById(String id) {
+    log.debug("Fetch practitioner role by id {}", id);
     return this.getGenericClient().read().resource(PractitionerRole.class).withId(id).encodedJson().execute();
   }
   
-  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true)
+  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findPractitionerRoleByPractitionerId(String practitionerId) {
     log.debug("Fetch practitioner roles by practitioner id {}", practitionerId);
     return this.getGenericClient().search().forResource(PractitionerRole.class)
         .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).encodedJson().execute();
   }
 
-  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true)
+  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findPractitionerAndRoleByEp(String ep) {
     log.debug("Fetch practitioner and roles by ep {}", ep);
     return this.getGenericClient().search().forResource(PractitionerRole.class)
         .where(PractitionerRole.ORGANIZATION.hasId(ep))
         .include(PractitionerRole.INCLUDE_PRACTITIONER)
         .returnBundle(Bundle.class).encodedJson().execute();
+  }
+
+  @Cacheable(value = CacheConfiguration.CACHE_PRACTITIONERS, sync = true, keyGenerator = "customKeyGenerator")
+  public Practitioner findPractitionerById(String id) {
+    log.debug("Fetch practitioner by id {}", id);
+    return this.getGenericClient().read().resource(Practitioner.class).withId(id).encodedJson().execute();
+  }
+  
+  public Bundle findPersonByPatientId(String id){
+    return this.getGenericClient().search().forResource(Person.class).where(Person.LINK.hasId(id))
+        .returnBundle(Bundle.class).encodedJson().execute();
+  }
+  
+  public Bundle findRelatedPersonByPatientId(String id) {
+    return this.getGenericClient().search().forResource(RelatedPerson.class).where(RelatedPerson.PATIENT.hasId(id))
+        .returnBundle(Bundle.class).encodedJson().execute();
+  }
+
+  // data refreshed very often, don't cache
+  public Bundle findServiceRequestById(String id) {
+    return this.getGenericClient().search().forResource(ServiceRequest.class)
+        .where(ServiceRequest.RES_ID.exactly().code(id))
+        .include(ServiceRequest.INCLUDE_REQUESTER)
+        .include(ServiceRequest.INCLUDE_PATIENT)
+        .returnBundle(Bundle.class)
+        .encodedJson()
+        .execute();
   }
   
   // data refreshed very often, don't cache
@@ -128,15 +155,8 @@ public class FhirClient {
         .encodedJson()
         .execute();
   }
-  
-  /*public Patient findPatientByRamqAndEp(String ramq, String ep) {
-    Bundle bundle = this.findPersonAndPatientByRamq(ramq);
-    BundleExtractor bundleExtractor = new BundleExtractor(getContext(), bundle);
-    final List<Patient> patients = bundleExtractor.getAllResourcesOfType(Patient.class);
-    return patients.stream().filter(p -> p.getManagingOrganization().getReference().equals(FhirUtils.formatResource(new Organization().setId(ep)))).findFirst().orElse(null);
-  }*/
 
-  @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true)
+  @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle fetchCodesAndValues() {
     log.info("Fetch codes and values from FHIR");
 

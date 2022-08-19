@@ -1,6 +1,6 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
-import bio.ferlab.clin.portal.forms.models.search.Search;
+import bio.ferlab.clin.portal.forms.models.search.SearchPatient;
 import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.Person;
@@ -27,7 +27,7 @@ class FhirToSearchMapperTest {
     person.setBirthDate(now);
     person.getNameFirstRep().setFamily("lastname").addGiven("firstname");
     
-    final Search search = mapper.mapToSearch(person, patient);
+    final SearchPatient search = mapper.mapToSearch(person, patient);
     
     assertEquals("firstname", search.getFirstName());
     assertEquals("lastname", search.getLastName());

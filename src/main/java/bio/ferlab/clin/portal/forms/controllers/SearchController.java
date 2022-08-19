@@ -4,10 +4,15 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.FhirToSearchMapper;
 import bio.ferlab.clin.portal.forms.models.builders.PatientBuilder;
 import bio.ferlab.clin.portal.forms.models.builders.PractitionerBuilder;
-import bio.ferlab.clin.portal.forms.models.search.Search;
+import bio.ferlab.clin.portal.forms.models.builders.PrescriptionBuilder;
+import bio.ferlab.clin.portal.forms.models.search.SearchPatient;
+import bio.ferlab.clin.portal.forms.models.search.SearchPrescription;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
+import bio.ferlab.clin.portal.forms.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/search")
@@ -18,10 +23,10 @@ public class SearchController {
   private final FhirToSearchMapper mapper;
   
   @GetMapping("/patient/{ep}")
-  public Search search(@PathVariable String ep,
-                       @RequestHeader String authorization,
-                       @RequestParam(required = false) String ramq,
-                       @RequestParam(required = false) String mrn){
+  public SearchPatient patient(@PathVariable String ep,
+                               @RequestHeader String authorization,
+                               @RequestParam(required = false) String ramq,
+                               @RequestParam(required = false) String mrn){
 
     PractitionerBuilder.validateAccessToEp(fhirClient, authorization, ep);
     
@@ -37,5 +42,19 @@ public class SearchController {
         .build(false, false);
     
     return mapper.mapToSearch(result.getPerson(), result.getPatient());
+  }
+
+  @GetMapping("/prescription")
+  public List<SearchPrescription> prescription(@RequestHeader String authorization,
+                                         @RequestParam(required = false) String id,
+                                         @RequestParam(required = false) String ramq){
+
+    final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
+
+    final PrescriptionBuilder.Result result = new PrescriptionBuilder(fhirClient, mapper, practitionerId, id, ramq)
+      .validate()
+      .build();
+    
+    return result.getPrescriptions();
   }
 }

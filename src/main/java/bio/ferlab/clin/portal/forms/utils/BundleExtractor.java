@@ -40,4 +40,14 @@ public class BundleExtractor {
     }
     return null;
   }
+
+  public <T extends IBaseResource> T getFirstResourcesOfType(Class<T> clazz) {
+    List<IBaseResource> allRes = BundleUtil.toListOfResources(fhirContext, bundle);
+    for(IBaseResource res : allRes) {
+      if(res.getClass().equals(clazz)){
+        return (T)res;
+      }
+    }
+    return null;
+  }
 }
