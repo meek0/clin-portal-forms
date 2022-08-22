@@ -240,6 +240,9 @@ For foetus, `mrn` and `ramq` are the one from the mother.
     "patient_name": "Creation Prescription",
     "patient_ramq": "XXXX12345689",
     "mother_ramq": "RAMQ12341236"
+  },
+  {
+    ...
   }
 ]
 ```

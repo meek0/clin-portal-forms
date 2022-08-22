@@ -18,9 +18,13 @@ class BundleExtractorTest {
     bundle.addEntry().setResource(new Patient());
     bundle.addEntry().setResource(new Bundle());
     bundle.addEntry().setResource(new Practitioner());
+    final Bundle internalBundle = new Bundle();
+    internalBundle.addEntry().setResource(new Practitioner().setId("id2"));
+    bundle.addEntry().setResource(internalBundle);
     final BundleExtractor extractor = new BundleExtractor(fhirContext, bundle);
     assertEquals(2, extractor.getAllResourcesOfType(Patient.class).size());
     assertEquals(0, extractor.getAllResourcesOfType(Organization.class).size());
+    assertEquals(2, extractor.getAllResourcesOfType(Practitioner.class).size());
   }
   
   @Test
@@ -42,13 +46,13 @@ class BundleExtractorTest {
   void getFirstResourcesOfType() {
     final Bundle bundle = new Bundle();
     bundle.addEntry().setResource(new Patient().setId("id1"));
-    Bundle internalBundle = new Bundle();
+    final Bundle internalBundle = new Bundle();
     internalBundle.addEntry().setResource(new Practitioner().setId("id2"));
     bundle.addEntry().setResource(internalBundle);
     final BundleExtractor extractor = new BundleExtractor(fhirContext, bundle);
     assertEquals("id1", extractor.getFirstResourcesOfType(Patient.class).getId());
     assertEquals("id2", extractor.getFirstResourcesOfType(Practitioner.class).getId());
-    assertNull(extractor.getNextResourcesOfType(Person.class));
+    assertNull(extractor.getFirstResourcesOfType(Person.class));
   }
   
   @Test
@@ -59,6 +63,7 @@ class BundleExtractorTest {
     bundle.addEntry().setResponse(new Bundle.BundleEntryResponseComponent().setLocation("Resource/foo"));
     final BundleExtractor extractor = new BundleExtractor(fhirContext, bundle);
     assertNull(extractor.extractIdFromResponse(0));
+    assertNull(extractor.extractIdFromResponse(10));
     assertNull(null, extractor.extractIdFromResponse(1));
     assertEquals("foo", extractor.extractIdFromResponse(2));
   }

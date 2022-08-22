@@ -26,6 +26,8 @@ public class BundleExtractor {
     for(IBaseResource res : allRes) {
       if(res.getClass().equals(clazz)){
         results.add((T)res);
+      } else if (res instanceof Bundle) { // search can return bundle inside bundle
+        results.addAll(getAllResourcesOfTypeInBundle(clazz, (IBaseBundle) res));
       }
     }
     return results;
@@ -67,14 +69,20 @@ public class BundleExtractor {
     }
     return null;
   }
-  
-  private <T extends IBaseResource> T getResourcesOfTypeInBundle(Class<T> clazz, IBaseBundle bundle) {
+
+  private <T extends IBaseResource> List<T> getAllResourcesOfTypeInBundle(Class<T> clazz, IBaseBundle bundle) {
+    List<T> results = new ArrayList<>();
     List<IBaseResource> allBundleRes = BundleUtil.toListOfResources(fhirContext, bundle);
     for (IBaseResource resBundle : allBundleRes) {
       if (resBundle.getClass().equals(clazz)) {
-        return (T) resBundle;
+        results.add((T) resBundle);
       }
     }
-    return null;
+    return results;
+  }
+  
+  private <T extends IBaseResource> T getResourcesOfTypeInBundle(Class<T> clazz, IBaseBundle bundle) {
+    List<T> all = getAllResourcesOfTypeInBundle(clazz, bundle);
+    return all.isEmpty() ? null : all.get(0);
   }
 }

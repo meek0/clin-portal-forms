@@ -20,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.EnumSet;
+import java.util.List;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
@@ -123,6 +124,19 @@ public class FhirClient {
         .setUrl("RelatedPerson?patient=" + patientId)
         .setMethod(Bundle.HTTPVerb.GET);
 
+    return this.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
+  }
+  
+  public Bundle fetchServiceRequestsByPatientIds(List<String> patientIds) {
+    final Bundle bundle = new Bundle();
+    bundle.setType(Bundle.BundleType.BATCH);
+    
+    patientIds.forEach(id -> {
+      bundle.addEntry().getRequest()
+          .setUrl("ServiceRequest?patient=" + id)
+          .setMethod(Bundle.HTTPVerb.GET);
+    });
+    
     return this.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
   }
   

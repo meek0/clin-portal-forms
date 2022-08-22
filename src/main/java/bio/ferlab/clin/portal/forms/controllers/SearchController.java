@@ -4,7 +4,7 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.FhirToSearchMapper;
 import bio.ferlab.clin.portal.forms.models.builders.PatientBuilder;
 import bio.ferlab.clin.portal.forms.models.builders.PractitionerBuilder;
-import bio.ferlab.clin.portal.forms.models.builders.PrescriptionBuilder;
+import bio.ferlab.clin.portal.forms.models.builders.SearchPrescriptionBuilder;
 import bio.ferlab.clin.portal.forms.models.search.SearchPatient;
 import bio.ferlab.clin.portal.forms.models.search.SearchPrescription;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
@@ -51,7 +51,7 @@ public class SearchController {
 
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
 
-    final PrescriptionBuilder.Result result = new PrescriptionBuilder(fhirClient, mapper, practitionerId, id, ramq)
+    final SearchPrescriptionBuilder.Result result = new SearchPrescriptionBuilder(fhirClient, mapper, practitionerId, id, ramq)
       .validate()
       .build();
     
