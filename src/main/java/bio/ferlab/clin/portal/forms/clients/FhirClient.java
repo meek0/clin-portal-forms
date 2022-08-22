@@ -2,7 +2,6 @@ package bio.ferlab.clin.portal.forms.clients;
 
 import bio.ferlab.clin.portal.forms.configurations.CacheConfiguration;
 import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
-import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.PerformanceOptionsEnum;
@@ -64,7 +63,7 @@ public class FhirClient {
     }
   }
   
-  public void submitForm(String personRef, String patientRef, Bundle bundle) {
+  public Bundle submitForm(String personRef, String patientRef, Bundle bundle) {
     try {
       logDebug(bundle);
       if (fhirConfiguration.isValidate()) {
@@ -73,37 +72,83 @@ public class FhirClient {
       log.info("Submit bundle for {} {} with {} entries",personRef, patientRef, bundle.getEntry().size());
       Bundle response = this.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
       logDebug(response);
+      return response;
     } catch(PreconditionFailedException | UnprocessableEntityException | InvalidRequestException e) {  // FHIR Server custom validation chain failed
       final String errors = toJson(e.getOperationOutcome());
-      log.error("Failed to submit bundle:\n{}\n{}", toJson(bundle), errors);
+      log.debug("Failed to submit bundle:\n{}\n{}", toJson(bundle), errors);  // don't log in production <= sensitive data
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors);
     }
   }
 
-  @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true)
+  @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true, keyGenerator = "customKeyGenerator")
   public CodeSystem findCodeSystemById(String id) {
+    log.debug("Fetch code system by id {}", id);
     return this.getGenericClient().read().resource(CodeSystem.class).withId(id).encodedJson().execute();
   }
 
-  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true)
+  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public PractitionerRole findPractitionerRoleById(String id) {
+    log.debug("Fetch practitioner role by id {}", id);
     return this.getGenericClient().read().resource(PractitionerRole.class).withId(id).encodedJson().execute();
   }
   
-  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true)
+  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findPractitionerRoleByPractitionerId(String practitionerId) {
     log.debug("Fetch practitioner roles by practitioner id {}", practitionerId);
     return this.getGenericClient().search().forResource(PractitionerRole.class)
         .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).encodedJson().execute();
   }
 
-  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true)
+  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findPractitionerAndRoleByEp(String ep) {
     log.debug("Fetch practitioner and roles by ep {}", ep);
     return this.getGenericClient().search().forResource(PractitionerRole.class)
         .where(PractitionerRole.ORGANIZATION.hasId(ep))
         .include(PractitionerRole.INCLUDE_PRACTITIONER)
         .returnBundle(Bundle.class).encodedJson().execute();
+  }
+  
+  public Bundle fetchAdditionalPrescriptionData(String practitionerId, String patientId) {
+    final Bundle bundle = new Bundle();
+    bundle.setType(Bundle.BundleType.BATCH);
+    
+    bundle.addEntry().getRequest()
+        .setUrl("Practitioner/" + practitionerId)
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+        .setUrl("Person?link=" + patientId)
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+        .setUrl("RelatedPerson?patient=" + patientId)
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    return this.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
+  }
+  
+  public Bundle fetchServiceRequestsByPatientIds(List<String> patientIds) {
+    final Bundle bundle = new Bundle();
+    bundle.setType(Bundle.BundleType.BATCH);
+    
+    patientIds.forEach(id -> {
+      bundle.addEntry().getRequest()
+          .setUrl("ServiceRequest?patient=" + id)
+          .setMethod(Bundle.HTTPVerb.GET);
+    });
+    
+    return this.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
+  }
+  
+  // data refreshed very often, don't cache
+  public Bundle findServiceRequestById(String id) {
+    return this.getGenericClient().search().forResource(ServiceRequest.class)
+        .where(ServiceRequest.RES_ID.exactly().code(id))
+        .include(ServiceRequest.INCLUDE_REQUESTER)
+        .include(ServiceRequest.INCLUDE_PATIENT)
+        .returnBundle(Bundle.class)
+        .encodedJson()
+        .execute();
   }
   
   // data refreshed very often, don't cache
@@ -128,15 +173,8 @@ public class FhirClient {
         .encodedJson()
         .execute();
   }
-  
-  /*public Patient findPatientByRamqAndEp(String ramq, String ep) {
-    Bundle bundle = this.findPersonAndPatientByRamq(ramq);
-    BundleExtractor bundleExtractor = new BundleExtractor(getContext(), bundle);
-    final List<Patient> patients = bundleExtractor.getAllResourcesOfType(Patient.class);
-    return patients.stream().filter(p -> p.getManagingOrganization().getReference().equals(FhirUtils.formatResource(new Organization().setId(ep)))).findFirst().orElse(null);
-  }*/
 
-  @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true)
+  @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle fetchCodesAndValues() {
     log.info("Fetch codes and values from FHIR");
 

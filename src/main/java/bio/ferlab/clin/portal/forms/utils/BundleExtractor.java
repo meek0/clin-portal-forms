@@ -4,6 +4,7 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.util.BundleUtil;
 import org.hl7.fhir.instance.model.api.IBaseBundle;
 import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.r4.model.Bundle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,10 +12,10 @@ import java.util.List;
 public class BundleExtractor {
 
   private final FhirContext fhirContext;
-  private final IBaseBundle bundle;
+  private final Bundle bundle;
   private int currentIndex = 0;
   
-  public BundleExtractor(FhirContext fhirContext, IBaseBundle bundle)  {
+  public BundleExtractor(FhirContext fhirContext, Bundle bundle)  {
     this.fhirContext = fhirContext;
     this.bundle = bundle;
   }
@@ -25,12 +26,14 @@ public class BundleExtractor {
     for(IBaseResource res : allRes) {
       if(res.getClass().equals(clazz)){
         results.add((T)res);
+      } else if (res instanceof Bundle) { // search can return bundle inside bundle
+        results.addAll(getAllResourcesOfTypeInBundle(clazz, (IBaseBundle) res));
       }
     }
     return results;
   }
   
-  public <T extends IBaseResource> T getNextResourcesOfType(Class<T> clazz) {
+  public synchronized <T extends IBaseResource> T getNextResourcesOfType(Class<T> clazz) {
     List<IBaseResource> allRes = BundleUtil.toListOfResources(fhirContext, bundle);
     if (allRes.size() > currentIndex) {
       IBaseResource res = allRes.get(currentIndex++);
@@ -39,5 +42,47 @@ public class BundleExtractor {
       }
     }
     return null;
+  }
+
+  public <T extends IBaseResource> T getFirstResourcesOfType(Class<T> clazz) {
+    List<IBaseResource> allRes = BundleUtil.toListOfResources(fhirContext, bundle);
+    for(IBaseResource res : allRes) {
+      if(res.getClass().equals(clazz)){
+        return (T)res;
+      } else if (res instanceof Bundle) { // search can return bundle inside bundle
+        T fromBundle = getResourcesOfTypeInBundle(clazz, (IBaseBundle) res);
+        if (fromBundle !=null) {
+          return fromBundle;
+        }
+      }
+    }
+    return null;
+  }
+  
+  public String extractIdFromResponse(int index) {
+    var entries = bundle.getEntry();
+    if (entries.size() > index) {
+      var entry = entries.get(index);
+      if (entry != null) {
+        return FhirUtils.extractId(entry.getResponse().getLocation());
+      }
+    }
+    return null;
+  }
+
+  private <T extends IBaseResource> List<T> getAllResourcesOfTypeInBundle(Class<T> clazz, IBaseBundle bundle) {
+    List<T> results = new ArrayList<>();
+    List<IBaseResource> allBundleRes = BundleUtil.toListOfResources(fhirContext, bundle);
+    for (IBaseResource resBundle : allBundleRes) {
+      if (resBundle.getClass().equals(clazz)) {
+        results.add((T) resBundle);
+      }
+    }
+    return results;
+  }
+  
+  private <T extends IBaseResource> T getResourcesOfTypeInBundle(Class<T> clazz, IBaseBundle bundle) {
+    List<T> all = getAllResourcesOfTypeInBundle(clazz, bundle);
+    return all.isEmpty() ? null : all.get(0);
   }
 }

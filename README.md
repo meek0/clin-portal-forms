@@ -193,7 +193,12 @@ For foetus, `mrn` and `ramq` are the one from the mother.
 
 ### Response
 
-`201 created`
+`200 OK`
+```json
+{
+  "id": "created_prescription_id"
+}
+```
 ## GET /search/patient/`ep`?`ramq`=foo&`mrn`=foo
 
 ### Parameters
@@ -213,6 +218,33 @@ For foetus, `mrn` and `ramq` are the one from the mother.
     "ramq": "RAMQ12341236",
     "mrn": "MRNTEST005"
 }
+```
+## GET /search/prescription?`id`=foo&`ramq`=foo
+
+### Parameters
+| Name   |Required|Type| Description                |
+|--------|---|---|----------------------------|
+| `id`   |false|String| required if `ramq` is null | 
+| `ramq` |false|String| required if `id` is null   |
+### Response
+```json
+[
+  {
+    "id": "prescription_id",
+    "ep": "bar",
+    "panel_code": "MMG",
+    "prescriber_id": "role_id",
+    "prescriber_name": "Dre test test",
+    "date": "2022-08-02",
+    "patient_id": "foo",
+    "patient_name": "Creation Prescription",
+    "patient_ramq": "XXXX12345689",
+    "mother_ramq": "RAMQ12341236"
+  },
+  {
+    ...
+  }
+]
 ```
 ## GET /autocomplete/supervisor/`ep`/`prefix`
 

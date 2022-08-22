@@ -25,10 +25,18 @@ class FhirUtilsTest {
   
   @Test
   void extractId() {
-    assertNull(FhirUtils.extractId(null));
+    assertNull(FhirUtils.extractId((Reference) null));
     assertNull(FhirUtils.extractId(new Reference()));
     assertNull(FhirUtils.extractId(new Reference().setReference("foo")));
     assertEquals("id", FhirUtils.extractId(new Reference().setReference("TypeResource/id")));
+  }
+
+  @Test
+  void extractId_string() {
+    assertNull(FhirUtils.extractId((String) null));
+    assertNull(FhirUtils.extractId(""));
+    assertNull(FhirUtils.extractId("foo"));
+    assertEquals("100307", FhirUtils.extractId("Patient/100307/_history/2"));
   }
 
 }

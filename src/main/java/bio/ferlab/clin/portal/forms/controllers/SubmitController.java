@@ -4,11 +4,12 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.builders.*;
 import bio.ferlab.clin.portal.forms.models.submit.Request;
+import bio.ferlab.clin.portal.forms.models.submit.Response;
+import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import bio.ferlab.clin.portal.forms.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.hl7.fhir.r4.model.Bundle;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,8 +24,8 @@ public class SubmitController {
   private final SubmitToFhirMapper mapper;
 
   @PostMapping
-  public ResponseEntity<String> submit(@RequestHeader String authorization,
-                                       @Valid @RequestBody Request request) {
+  public ResponseEntity<Response> submit(@RequestHeader String authorization,
+                                         @Valid @RequestBody Request request) {
 
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
     final String panelCode = request.getAnalysis().getPanelCode();
@@ -79,12 +80,12 @@ public class SubmitController {
         .withFoetus(fbr.getFoetus())
         .build();
     
-    submit(pbr, nbr, fbr, abr, sbr, cbr, obr, fmhr);
+    final Response res = new Response(submit(pbr, nbr, fbr, abr, sbr, cbr, obr, fmhr));
     
-    return ResponseEntity.status(HttpStatus.CREATED).build();
+    return ResponseEntity.ok(res);
   }
   
-  private void submit(PatientBuilder.Result pbr, 
+  private String submit(PatientBuilder.Result pbr, 
                       NewBornBuilder.Result nbr,
                       FoetusBuilder.Result fbr,
                       AnalysisBuilder.Result abr, 
@@ -112,6 +113,13 @@ public class SubmitController {
         .setUrl(personRef) // full url with ID required if PUT
         .setMethod(pbr.isPersonNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
     
+    bundle.addEntry()
+        .setFullUrl(FhirUtils.formatResource(abr.getAnalysis()))
+        .setResource(abr.getAnalysis())
+        .getRequest()
+        .setUrl("ServiceRequest")
+        .setMethod(Bundle.HTTPVerb.POST);
+    
     if (nbr.getRelatedPerson() != null) {
       bundle.addEntry()
           .setFullUrl(FhirUtils.formatResource(nbr.getRelatedPerson()))
@@ -129,13 +137,6 @@ public class SubmitController {
           .setUrl("Patient")
           .setMethod(Bundle.HTTPVerb.POST);
     }
-
-    bundle.addEntry()
-        .setFullUrl(FhirUtils.formatResource(abr.getAnalysis()))
-        .setResource(abr.getAnalysis())
-        .getRequest()
-        .setUrl("ServiceRequest")
-        .setMethod(Bundle.HTTPVerb.POST);
 
     bundle.addEntry()
         .setFullUrl(FhirUtils.formatResource(sbr.getSequencing()))
@@ -167,7 +168,8 @@ public class SubmitController {
         .setUrl("FamilyMemberHistory")
         .setMethod(Bundle.HTTPVerb.POST));
     
-    fhirClient.submitForm(personRef, patientRef, bundle);
+   final Bundle response = fhirClient.submitForm(personRef, patientRef, bundle);
+   return new BundleExtractor(fhirClient.getContext(), response).extractIdFromResponse(2);
   }
   
 }

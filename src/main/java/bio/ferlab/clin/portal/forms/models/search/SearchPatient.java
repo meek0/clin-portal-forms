@@ -10,7 +10,7 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Search {
+public class SearchPatient {
   private String firstName;
   private String lastName;
   private String gender;
