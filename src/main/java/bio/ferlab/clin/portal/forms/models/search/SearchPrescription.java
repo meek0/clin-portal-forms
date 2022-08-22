@@ -8,9 +8,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SearchPrescription {
-  private String analysisId;
+  private String id;
+  private String ep;
   private String panelCode;
-  private String prescriber;
+  private String prescriberId;
+  private String prescriberName;
   private String date;
   private String patientId;
   private String patientName;

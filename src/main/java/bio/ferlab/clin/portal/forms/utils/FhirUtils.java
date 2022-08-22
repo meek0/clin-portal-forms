@@ -16,6 +16,10 @@ public class FhirUtils {
     return new Reference(formatResource(resource));
   }
   
+  public static String extractId(String url) {
+    return extractId(new Reference(url));
+  }
+  
   public static String extractId(Reference reference) {
     if (reference != null) {
       final String ref = reference.getReference();

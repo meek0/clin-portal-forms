@@ -53,7 +53,7 @@ public class PrescriptionBuilder {
         final Practitioner practitioner = allExtractor.getFirstResourcesOfType(Practitioner.class);
         final Person person = allExtractor.getFirstResourcesOfType(Person.class);
         final RelatedPerson mother = allExtractor.getFirstResourcesOfType(RelatedPerson.class);
-        prescriptions.add(mapper.mapToSearchPrescription(analysis, practitioner, patient, person, mother));
+        prescriptions.add(mapper.mapToSearchPrescription(analysis, practitioner, practitionerRole, patient, person, mother));
       }
     } else if (StringUtils.isNotBlank(ramq)) {
       throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "search prescription by ramq isn't implemented yet");

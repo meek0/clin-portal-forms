@@ -12,10 +12,10 @@ import java.util.List;
 public class BundleExtractor {
 
   private final FhirContext fhirContext;
-  private final IBaseBundle bundle;
+  private final Bundle bundle;
   private int currentIndex = 0;
   
-  public BundleExtractor(FhirContext fhirContext, IBaseBundle bundle)  {
+  public BundleExtractor(FhirContext fhirContext, Bundle bundle)  {
     this.fhirContext = fhirContext;
     this.bundle = bundle;
   }
@@ -52,6 +52,17 @@ public class BundleExtractor {
         if (fromBundle !=null) {
           return fromBundle;
         }
+      }
+    }
+    return null;
+  }
+  
+  public String extractIdFromResponse(int index) {
+    var entries = bundle.getEntry();
+    if (entries.size() > index) {
+      var entry = entries.get(index);
+      if (entry != null) {
+        return FhirUtils.extractId(entry.getResponse().getLocation());
       }
     }
     return null;

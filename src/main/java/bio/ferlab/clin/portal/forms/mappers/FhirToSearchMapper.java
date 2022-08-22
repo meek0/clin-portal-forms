@@ -37,11 +37,14 @@ public class FhirToSearchMapper {
   
   public SearchPrescription mapToSearchPrescription(ServiceRequest analysis,
                                                     Practitioner practitioner,
+                                                    PractitionerRole role,
                                                     Patient patient, Person person, RelatedPerson mother) {
     final SearchPrescription prescription = new SearchPrescription();
-    prescription.setAnalysisId(analysis.getIdElement().getIdPart());
+    prescription.setId(analysis.getIdElement().getIdPart());
+    prescription.setEp(FhirUtils.extractId(role.getOrganization()));
+    prescription.setPrescriberId(role.getIdElement().getIdPart());
     if (practitioner.hasName()) {
-      prescription.setPrescriber(practitioner.getNameFirstRep().getNameAsSingleString());
+      prescription.setPrescriberName(practitioner.getNameFirstRep().getNameAsSingleString());
     }
     if (analysis.hasAuthoredOn()) {
       prescription.setDate(new SimpleDateFormat("yyyy-MM-dd").format(analysis.getAuthoredOn()));

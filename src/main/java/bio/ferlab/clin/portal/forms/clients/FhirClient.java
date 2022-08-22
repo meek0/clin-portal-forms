@@ -62,7 +62,7 @@ public class FhirClient {
     }
   }
   
-  public void submitForm(String personRef, String patientRef, Bundle bundle) {
+  public Bundle submitForm(String personRef, String patientRef, Bundle bundle) {
     try {
       logDebug(bundle);
       if (fhirConfiguration.isValidate()) {
@@ -71,6 +71,7 @@ public class FhirClient {
       log.info("Submit bundle for {} {} with {} entries",personRef, patientRef, bundle.getEntry().size());
       Bundle response = this.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
       logDebug(response);
+      return response;
     } catch(PreconditionFailedException | UnprocessableEntityException | InvalidRequestException e) {  // FHIR Server custom validation chain failed
       final String errors = toJson(e.getOperationOutcome());
       log.debug("Failed to submit bundle:\n{}\n{}", toJson(bundle), errors);  // don't log in production <= sensitive data

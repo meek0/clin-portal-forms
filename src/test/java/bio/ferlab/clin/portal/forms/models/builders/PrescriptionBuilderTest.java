@@ -64,6 +64,7 @@ class PrescriptionBuilderTest {
     analysis.setAuthoredOn(new Date());
     analysis.getCode().addCoding().setCode("panel");
     final PractitionerRole role = new PractitionerRole();
+    role.setId("id2");
     role.setOrganization(new Reference("Organization/org2"));
     final Patient patient = new Patient();
     patient.setId("patient");
@@ -73,6 +74,7 @@ class PrescriptionBuilderTest {
     serviceRequestBundle.addEntry().setResource(patient);
     when(fhirClient.findServiceRequestById(any())).thenReturn(serviceRequestBundle);
     final Practitioner practitioner = new Practitioner();
+    practitioner.addName().setFamily("name2");
     final Person person = new Person();
     person.addName().setFamily("name");
     person.addIdentifier().setValue("ramq");
@@ -88,8 +90,10 @@ class PrescriptionBuilderTest {
 
     assertEquals(1, result.getPrescriptions().size());
     SearchPrescription sp = result.getPrescriptions().get(0);
-    assertEquals(analysis.getIdElement().getIdPart(), sp.getAnalysisId());
+    assertEquals(analysis.getIdElement().getIdPart(), sp.getId());
     assertNotNull(sp.getDate());
+    assertEquals("id2", sp.getPrescriberId());
+    assertEquals("name2", sp.getPrescriberName());
     assertEquals("patient", sp.getPatientId());
     assertEquals("panel", sp.getPanelCode());
     assertEquals("name", sp.getPatientName());

@@ -30,6 +30,7 @@ class FhirToSearchMapperTest {
     final SearchPatient search = mapper.mapToSearch(person, patient);
     
     assertEquals("firstname", search.getFirstName());
+    assertEquals("foo", search.getEp());
     assertEquals("lastname", search.getLastName());
     assertEquals("foo", search.getEp());
     assertEquals(now, search.getBirthDate());
