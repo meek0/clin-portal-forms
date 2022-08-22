@@ -4,6 +4,7 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.FhirToSearchMapper;
 import bio.ferlab.clin.portal.forms.models.search.SearchPrescription;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
+import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -48,7 +49,7 @@ public class SearchPrescriptionBuilder {
       final PractitionerRole practitionerRole = extractor.getFirstResourcesOfType(PractitionerRole.class);
       final Patient patient = extractor.getFirstResourcesOfType(Patient.class);
       // the following condition is important, if role exists and belongs to the user eps then we found one valid analysis
-      if (practitionerRole != null  && eps.contains(FhirUtils.extractId(practitionerRole.getOrganization()))) {
+      if (isAnalysis(analysis) && isValidEp(practitionerRole, eps)) {
         final Bundle allBundle = this.fhirClient.fetchAdditionalPrescriptionData(FhirUtils.extractId(practitionerRole.getPractitioner()), patient.getIdElement().getIdPart());
         final BundleExtractor allExtractor = new BundleExtractor(this.fhirClient.getContext(), allBundle);
         final Practitioner practitioner = allExtractor.getFirstResourcesOfType(Practitioner.class);
@@ -70,6 +71,14 @@ public class SearchPrescriptionBuilder {
       serviceRequestIds.forEach(srId -> prescriptions.addAll(new SearchPrescriptionBuilder(fhirClient, mapper, practitionerId, srId, null).validate().build().getPrescriptions()));
     }
     return new Result(prescriptions);
+  }
+  
+  private boolean isValidEp(PractitionerRole role, List<String> eps) {
+    return role != null  && eps.contains(FhirUtils.extractId(role.getOrganization()));
+  }
+
+  private boolean isAnalysis(ServiceRequest serviceRequest) {
+    return serviceRequest != null && serviceRequest.getMeta().getProfile().stream().anyMatch(s -> FhirConst.ANALYSIS_SERVICE_REQUEST.equals(s.getValue()));
   }
   
   @Getter
