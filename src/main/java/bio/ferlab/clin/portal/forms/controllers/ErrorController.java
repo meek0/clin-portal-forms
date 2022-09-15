@@ -1,9 +1,11 @@
 package bio.ferlab.clin.portal.forms.controllers;
 
+import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
 import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -25,6 +27,17 @@ public class ErrorController {
     return new ResponseEntity<>("internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
   }
 
+  @ExceptionHandler(FhirClientConnectionException.class)
+  public ResponseEntity<String> handleException(FhirClientConnectionException e) {
+    log.error("", e); // hide from the user + log the reason
+    return new ResponseEntity<>("failed to connect to fhir", HttpStatus.BAD_REQUEST);
+  }
+  
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<String> handleException(HttpMessageNotReadableException e) {
+    return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+  }
+  
   @ExceptionHandler(ResponseStatusException.class)
   public ResponseEntity<String> handleException(ResponseStatusException e) {
     return new ResponseEntity<>(e.getReason(), e.getStatus());
