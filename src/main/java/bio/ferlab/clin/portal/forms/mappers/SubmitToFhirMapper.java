@@ -89,7 +89,7 @@ public class SubmitToFhirMapper {
     serviceRequest.setCode(new CodeableConcept().addCoding(new Coding().setSystem(ANALYSIS_REQUEST_CODE).setCode(panelCode)));
     serviceRequest.setAuthoredOn(new Date());
     serviceRequest.setRequester(FhirUtils.toReference(practitionerRole));
-    String sanitizedComment = StringUtils.isNotBlank(comment) ? comment : "";
+    String sanitizedComment = StringUtils.isNotBlank(comment) ? comment : "--";
     serviceRequest.addNote(new Annotation().setText(sanitizedComment).setTime(new Date()).setAuthor(practitionerRole.getPractitioner()));
     if (StringUtils.isNotBlank(orderDetails)) {
       serviceRequest.addOrderDetail(new CodeableConcept().setText(orderDetails));

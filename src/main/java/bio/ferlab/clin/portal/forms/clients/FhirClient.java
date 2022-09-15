@@ -58,8 +58,9 @@ public class FhirClient {
     boolean containsError = oo.getIssue().stream()
         .anyMatch(issue -> EnumSet.of(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueSeverity.FATAL).contains(issue.getSeverity()));
     if (containsError) {
-      // no need to return to the user the errors as they most likely come from bad mapping inside this API
-      throw new RuntimeException("Validation of resource contains error:\n"+ toJson(resource)+"\n" + toJson(oo));
+      final String errors = toJson(oo);
+      log.debug("Failed to validate resource:\n{}", errors);  // don't log in production <= sensitive data
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors);
     }
   }
   
@@ -75,7 +76,7 @@ public class FhirClient {
       return response;
     } catch(PreconditionFailedException | UnprocessableEntityException | InvalidRequestException e) {  // FHIR Server custom validation chain failed
       final String errors = toJson(e.getOperationOutcome());
-      log.debug("Failed to submit bundle:\n{}\n{}", toJson(bundle), errors);  // don't log in production <= sensitive data
+      log.debug("Failed to submit bundle:\n{}", errors);  // don't log in production <= sensitive data
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors);
     }
   }
