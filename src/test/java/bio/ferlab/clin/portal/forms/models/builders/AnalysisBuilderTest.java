@@ -54,7 +54,7 @@ class AnalysisBuilderTest {
     cs.addConcept().setCode("code").setDisplay("display");
     when(fhirClient.findCodeSystemById(any())).thenReturn(cs);
     
-    final AnalysisBuilder.Result result = new AnalysisBuilder(fhirClient, new SubmitToFhirMapper(), "code", patient, clinicalImpression, role, supervisor, "comment")
+    final AnalysisBuilder.Result result = new AnalysisBuilder(fhirClient, new SubmitToFhirMapper(), "code", patient, clinicalImpression, role, supervisor, "")
         .withFoetus(new Patient())
         .withReflex(true)
         .build();
@@ -73,7 +73,7 @@ class AnalysisBuilderTest {
     assertEquals("Reflex Panel: display (code)", sr.getOrderDetailFirstRep().getText());
     final Annotation note = sr.getNoteFirstRep();
     assertNotNull(note.getTime());
-    assertEquals("comment", note.getText());
+    assertEquals("--", note.getText());
     assertEquals(FhirUtils.formatResource(practitioner), ((Reference)note.getAuthor()).getReference());
     assertEquals("Prenatal", sr.getCategoryFirstRep().getText());
   }
