@@ -4,10 +4,7 @@ import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hl7.fhir.r4.model.ClinicalImpression;
-import org.hl7.fhir.r4.model.Observation;
-import org.hl7.fhir.r4.model.Patient;
-import org.hl7.fhir.r4.model.Person;
+import org.hl7.fhir.r4.model.*;
 
 import java.util.List;
 
@@ -18,9 +15,10 @@ public class ClinicalImpressionBuilder {
   private final Person person;
   private final Patient patient;
   private final List<Observation> observations;
+  private final List<FamilyMemberHistory> histories;
   
   public Result build() {
-    final ClinicalImpression clinicalImpression = mapper.mapToClinicalImpression(person, patient, observations);
+    final ClinicalImpression clinicalImpression = mapper.mapToClinicalImpression(person, patient, observations, histories);
     return new Result(clinicalImpression);
   }
   

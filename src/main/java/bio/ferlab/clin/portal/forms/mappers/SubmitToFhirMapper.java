@@ -119,13 +119,17 @@ public class SubmitToFhirMapper {
     return serviceRequest;
   }
   
-  public ClinicalImpression mapToClinicalImpression(Person person, org.hl7.fhir.r4.model.Patient patient, List<Observation> observations) {
+  public ClinicalImpression mapToClinicalImpression(Person person, org.hl7.fhir.r4.model.Patient patient, 
+                                                    List<Observation> observations, 
+                                                    List<FamilyMemberHistory> histories) {
     final ClinicalImpression clinicalImpression = new ClinicalImpression();
     clinicalImpression.setId(UUID.randomUUID().toString());
     clinicalImpression.setSubject(FhirUtils.toReference(patient));
     clinicalImpression.setStatus(ClinicalImpression.ClinicalImpressionStatus.COMPLETED);
     clinicalImpression.addExtension(AGE_AT_EVENT_EXT, new Age().setSystem(Enumerations.AgeUnits.D.getSystem()).setCode(Enumerations.AgeUnits.D.toCode()).setValue(mapToAge(person.getBirthDate())));
-    observations.forEach(o -> clinicalImpression.addInvestigation(new ClinicalImpression.ClinicalImpressionInvestigationComponent(new CodeableConcept().setText("Examination / signs")).addItem(FhirUtils.toReference(o))));
+    clinicalImpression.addInvestigation(new ClinicalImpression.ClinicalImpressionInvestigationComponent(new CodeableConcept().setText("Examination / signs")));
+    observations.forEach(o -> clinicalImpression.getInvestigationFirstRep().addItem(FhirUtils.toReference(o)));
+    histories.forEach(o -> clinicalImpression.getInvestigationFirstRep().addItem(FhirUtils.toReference(o)));
     return clinicalImpression;
   }
   
