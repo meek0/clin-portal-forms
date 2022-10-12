@@ -2,6 +2,7 @@ package bio.ferlab.clin.portal.forms.controllers;
 
 import ca.uhn.fhir.rest.client.exceptions.FhirClientConnectionException;
 import ca.uhn.fhir.rest.server.exceptions.AuthenticationException;
+import ca.uhn.fhir.rest.server.exceptions.ForbiddenOperationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,6 +42,12 @@ public class ErrorController {
   @ExceptionHandler(ResponseStatusException.class)
   public ResponseEntity<String> handleException(ResponseStatusException e) {
     return new ResponseEntity<>(e.getReason(), e.getStatus());
+  }
+  
+  @ExceptionHandler(ForbiddenOperationException.class)
+  public ResponseEntity<String> handleException(ForbiddenOperationException e) {
+    // FHIR could complain about invalid auth
+    return new ResponseEntity<>(e.getResponseBody(), HttpStatus.valueOf(e.getStatusCode()));
   }
 
   @ExceptionHandler(AuthenticationException.class)

@@ -159,7 +159,7 @@ public class SubmitToFhirMapper {
       all.add(obsg);
     }
     
-    if (Boolean.TRUE.equals(historyAndDiag.getInbreeding())) {
+    if (historyAndDiag.getInbreeding() != null) {
       Observation cons = createObservation(patient, "CONS", "exam",null, null, historyAndDiag.getInbreeding());
       all.add(cons);
     }
