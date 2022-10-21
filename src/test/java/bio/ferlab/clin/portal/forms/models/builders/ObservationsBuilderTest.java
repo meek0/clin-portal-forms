@@ -56,7 +56,7 @@ class ObservationsBuilderTest {
     final Patient patient = new Patient();
     patient.setId("foo");
     final HistoryAndDiag historyAndDiag = random.nextObject(HistoryAndDiag.class);
-    historyAndDiag.setInbreeding(true);
+    historyAndDiag.setInbreeding(false);
 
     Signs cs1 = new Signs();
     cs1.setIsObserved(true);
