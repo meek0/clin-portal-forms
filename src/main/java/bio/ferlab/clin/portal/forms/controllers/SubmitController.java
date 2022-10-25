@@ -67,7 +67,7 @@ public class SubmitController {
     ClinicalImpressionBuilder.Result cbr = clinicalImpressionBuilder
         .build();
     
-    final AnalysisBuilder analysisBuilder = new AnalysisBuilder(fhirClient, mapper, panelCode, pbr.getPatient(), 
+    final AnalysisBuilder analysisBuilder = new AnalysisBuilder(mapper, panelCode, pbr.getPatient(), 
         cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getAnalysis().getComment());
     AnalysisBuilder.Result abr = analysisBuilder
         .withFoetus(fbr.getFoetus())

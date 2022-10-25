@@ -1,36 +1,16 @@
 package bio.ferlab.clin.portal.forms.models.builders;
 
-import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.ANALYSIS_SERVICE_REQUEST;
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.SUPERVISOR_EXT;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class AnalysisBuilderTest {
-  
-  final FhirClient fhirClient = Mockito.mock(FhirClient.class);
-
-  @Test
-  void withReflex_panel_unknown() {
-    final CodeSystem cs = new CodeSystem();
-    when(fhirClient.findCodeSystemById(any())).thenReturn(cs);
-    
-    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-      new AnalysisBuilder(fhirClient, null, "code", null, null, null, null, null)
-          .withReflex(true);
-    });
-    assertEquals("panel code code is unknown", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
-  }
 
   @Test
   void build() {
@@ -49,12 +29,8 @@ class AnalysisBuilderTest {
     
     final PractitionerRole supervisor = new PractitionerRole();
     supervisor.setId("foo");
-
-    final CodeSystem cs = new CodeSystem();
-    cs.addConcept().setCode("code").setDisplay("display");
-    when(fhirClient.findCodeSystemById(any())).thenReturn(cs);
     
-    final AnalysisBuilder.Result result = new AnalysisBuilder(fhirClient, new SubmitToFhirMapper(), "code", patient, clinicalImpression, role, supervisor, "")
+    final AnalysisBuilder.Result result = new AnalysisBuilder(new SubmitToFhirMapper(), "code", patient, clinicalImpression, role, supervisor, "")
         .withFoetus(new Patient())
         .withReflex(true)
         .build();
@@ -70,7 +46,7 @@ class AnalysisBuilderTest {
     assertNotNull(sr.getAuthoredOn());
     assertEquals(FhirUtils.formatResource(role), sr.getRequester().getReference());
     assertEquals(FhirUtils.formatResource(supervisor), ((Reference)sr.getExtensionByUrl(SUPERVISOR_EXT).getValue()).getReference());
-    assertEquals("Reflex Panel: display (code)", sr.getOrderDetailFirstRep().getText());
+    assertEquals("Reflex Panel: Global Muscular diseases (MMG)", sr.getOrderDetailFirstRep().getText());
     final Annotation note = sr.getNoteFirstRep();
     assertNotNull(note.getTime());
     assertEquals("--", note.getText());

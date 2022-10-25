@@ -234,10 +234,10 @@ public class SubmitToFhirMapper {
     observation.setFocus(List.of(FhirUtils.toReference(foetus)));
     switch (additionalInfo.getGestationalAge()) {
       case ddm:
-        observation.setCode(new CodeableConcept(new Coding().setSystem(SYSTEM_DDM).setCode(CODE_DDM)));
+        observation.setCode(new CodeableConcept(new Coding().setSystem(SYSTEM_DDM).setCode(CODE_DDM).setDisplay(DISPLAY_DDM)));
         break;
       case dpa:
-        observation.setCode(new CodeableConcept(new Coding().setSystem(SYSTEM_DPA).setCode(CODE_DPA)));
+        observation.setCode(new CodeableConcept(new Coding().setSystem(SYSTEM_DPA).setCode(CODE_DPA).setDisplay(DISPLAY_DPA)));
         break;
       default:
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.additional_info gestational_age should be ddm or dpa");
