@@ -1,18 +1,17 @@
 package bio.ferlab.clin.portal.forms.models.builders;
 
-import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.hl7.fhir.r4.model.*;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
+import org.hl7.fhir.r4.model.ClinicalImpression;
+import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.PractitionerRole;
+import org.hl7.fhir.r4.model.ServiceRequest;
 
 @RequiredArgsConstructor
 public class AnalysisBuilder {
-  
-  private final FhirClient fhirClient;
+
   private final SubmitToFhirMapper mapper;
   private final String panelCode;
   private final Patient patient;
@@ -36,10 +35,7 @@ public class AnalysisBuilder {
   
   public AnalysisBuilder withReflex(boolean isReflex) {
     if (isReflex) {
-      CodeSystem codes = this.fhirClient.findCodeSystemById("analysis-request-code");
-      CodeSystem.ConceptDefinitionComponent code = codes.getConcept().stream().filter(c -> panelCode.equals(c.getCode())).findFirst()
-          .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "panel code " + panelCode + " is unknown"));
-      this.orderDetails = String.format("Reflex Panel: %s (%s)", code.getDisplay(), code.getCode());
+      this.orderDetails = String.format("Reflex Panel: %s (%s)", "Global Muscular diseases", "MMG");
     }
     return this;
   }

@@ -1,0 +1,13 @@
+server:
+  port: 7979
+fhir:
+  timeout: 600000
+  url: https://fhir.qa.cqgc.hsj.rtss.qc.ca/fhir
+  validate: true
+cache:
+  eviction: 30 # 30s
+security:
+  issuer: https://auth.qa.cqgc.hsj.rtss.qc.ca/auth/realms/clin
+logging:
+  level:
+    bio.ferlab.clin.portal.forms: DEBUG
