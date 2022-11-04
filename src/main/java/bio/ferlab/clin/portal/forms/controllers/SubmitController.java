@@ -79,8 +79,8 @@ public class SubmitController {
         cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getAnalysis().getComment());
     AnalysisBuilder.Result abr = analysisBuilder
         .withFoetus(fbr.getFoetus())
-        .withMother(motherResult.getPatient() != null ? motherResult.getPatient().getPatient() : null)
-        .withFather(fatherResult.getPatient() != null ? fatherResult.getPatient().getPatient() : null)
+        .withMother(motherResult.getPatient())
+        .withFather(fatherResult.getPatient())
         .withReflex(request.getAnalysis().getIsReflex())
         .build();
 
@@ -113,12 +113,12 @@ public class SubmitController {
     
     this.addPatientToBundle(bundle, pbr);
     
-    if (motherResult.getPatient() != null) {
-      this.addPatientToBundle(bundle, motherResult.getPatient());
+    if (motherResult.getPatientResult() != null) {
+      this.addPatientToBundle(bundle, motherResult.getPatientResult());
     }
 
-    if (fatherResult.getPatient() != null) {
-      this.addPatientToBundle(bundle, fatherResult.getPatient());
+    if (fatherResult.getPatientResult() != null) {
+      this.addPatientToBundle(bundle, fatherResult.getPatientResult());
     }
     
     bundle.addEntry()

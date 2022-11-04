@@ -6,6 +6,7 @@ import bio.ferlab.clin.portal.forms.models.submit.Parent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.hl7.fhir.r4.model.Patient;
 
 @RequiredArgsConstructor
 public class ParentBuilder {
@@ -15,19 +16,23 @@ public class ParentBuilder {
   private final bio.ferlab.clin.portal.forms.models.submit.Parent parent;
 
   public ParentBuilder.Result build() {
-    PatientBuilder.Result patient = null;
+    PatientBuilder.Result patientResult = null;
     if (parent != null) {
       parent.validate();
       if (Parent.Moment.now.equals(parent.getParentEnterMoment())){
-        patient = PatientBuilder.findUpdateOrCreate(fhirClient, parent);
+        patientResult = PatientBuilder.findUpdateOrCreate(fhirClient, parent);
       }
     }
-    return new Result(patient);
+    return new Result(patientResult);
   }
 
   @AllArgsConstructor
   @Getter
   public static class Result {
-    PatientBuilder.Result patient;
+    PatientBuilder.Result patientResult;
+    
+    public Patient getPatient() {
+      return patientResult != null ? patientResult.getPatient() : null;
+    }
   }
 }
