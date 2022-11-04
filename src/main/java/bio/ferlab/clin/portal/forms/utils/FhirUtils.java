@@ -29,4 +29,8 @@ public class FhirUtils {
     }
     return null;
   }
+  
+  public static String sanitizeNoteComment(String comment) {
+    return StringUtils.isNotBlank(comment) ? comment : "--";
+  }
 }

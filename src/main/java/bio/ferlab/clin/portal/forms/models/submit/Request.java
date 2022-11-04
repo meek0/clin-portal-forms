@@ -18,6 +18,10 @@ public class Request {
   @NotNull
   private Patient patient;
   @Valid
+  private Parent mother;
+  @Valid
+  private Parent father;
+  @Valid
   @NotNull
   private ClinicalSigns clinicalSigns;
   @Valid

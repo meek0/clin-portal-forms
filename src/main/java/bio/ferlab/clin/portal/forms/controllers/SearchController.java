@@ -7,7 +7,6 @@ import bio.ferlab.clin.portal.forms.models.builders.PractitionerBuilder;
 import bio.ferlab.clin.portal.forms.models.builders.SearchPrescriptionBuilder;
 import bio.ferlab.clin.portal.forms.models.search.SearchPatient;
 import bio.ferlab.clin.portal.forms.models.search.SearchPrescription;
-import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import bio.ferlab.clin.portal.forms.utils.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -30,16 +29,7 @@ public class SearchController {
 
     PractitionerBuilder.validateAccessToEp(fhirClient, authorization, ep);
     
-    final Patient patient = new Patient();
-    patient.setRamq(ramq);
-    patient.setMrn(mrn);
-    patient.setEp(ep);
-    
-    final PatientBuilder.Result result = new PatientBuilder(fhirClient, null, patient)
-        .validateRamqAndMrn()
-        .findByMrn()
-        .findByRamq()
-        .build(false, false);
+    final PatientBuilder.Result result = PatientBuilder.find(fhirClient, ramq, mrn, ep);
     
     return mapper.mapToSearch(result.getPerson(), result.getPatient());
   }

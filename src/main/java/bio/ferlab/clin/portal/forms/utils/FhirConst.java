@@ -44,4 +44,11 @@ public class FhirConst {
   
   public static final String ETHNICITY_CODE = "http://fhir.cqgc.ferlab.bio/CodeSystem/qc-ethnicity";
 
+  public static final String FAMILY_MEMBER = "http://fhir.cqgc.ferlab.bio/StructureDefinition/family-member";
+  public static final String FAMILY_MEMBER_MOTHER_CODE = "MTH";
+  public static final String FAMILY_MEMBER_FATHER_CODE = "FTH";
+  
+  public static final String SYSTEM_MISSING_PARENT = "http://fhir.cqgc.ferlab.bio/CodeSystem/missing-parent-status";
+  public static final String CODE_MISSING_PARENT = "TEMPORARY";
+
 }

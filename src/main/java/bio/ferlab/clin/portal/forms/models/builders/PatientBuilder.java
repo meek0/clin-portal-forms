@@ -2,6 +2,7 @@ package bio.ferlab.clin.portal.forms.models.builders;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
+import bio.ferlab.clin.portal.forms.models.submit.Parent;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import lombok.AllArgsConstructor;
@@ -88,6 +89,36 @@ public class PatientBuilder {
     
     return new Result(newOrUpdatedPatient, createIfMissing && existingPatient.isEmpty(), 
         newOrUpdatedPerson, createIfMissing && existingPerson.isEmpty());
+  }
+  
+  public static Result find(FhirClient fhirClient, String ramq, String mrn, String ep) {
+    final bio.ferlab.clin.portal.forms.models.submit.Patient patient = new bio.ferlab.clin.portal.forms.models.submit.Patient();
+    patient.setRamq(ramq);
+    patient.setMrn(mrn);
+    patient.setEp(ep);
+
+    return new PatientBuilder(fhirClient, null, patient)
+        .validateRamqAndMrn()
+        .findByMrn()
+        .findByRamq()
+        .build(false, false);
+  }
+
+  public static Result findUpdateOrCreate(FhirClient fhirClient, Parent parent) {
+    final bio.ferlab.clin.portal.forms.models.submit.Patient patient = new bio.ferlab.clin.portal.forms.models.submit.Patient();
+    patient.setRamq(parent.getRamq());
+    patient.setMrn(parent.getMrn());
+    patient.setEp(parent.getEp());
+    patient.setGender(parent.getGender());
+    patient.setBirthDate(parent.getBirthDate());
+    patient.setLastName(parent.getLastName());
+    patient.setFirstName(parent.getFirstName());
+
+    return new PatientBuilder(fhirClient, new SubmitToFhirMapper(), patient)
+        .validateRamqAndMrn()
+        .findByMrn()
+        .findByRamq()
+        .build(true, true);
   }
     
   @AllArgsConstructor

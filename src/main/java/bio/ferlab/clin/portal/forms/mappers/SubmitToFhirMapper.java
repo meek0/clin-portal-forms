@@ -73,6 +73,7 @@ public class SubmitToFhirMapper {
   }
   
   public ServiceRequest mapToAnalysis(String panelCode, org.hl7.fhir.r4.model.Patient patient,
+                                      org.hl7.fhir.r4.model.Patient mother, org.hl7.fhir.r4.model.Patient father,
                                       ClinicalImpression clinicalImpression, String orderDetails,
                                       PractitionerRole practitionerRole, PractitionerRole supervisorRole,
                                       String comment, org.hl7.fhir.r4.model.Patient foetus) {
@@ -89,14 +90,16 @@ public class SubmitToFhirMapper {
     serviceRequest.setCode(new CodeableConcept().addCoding(new Coding().setSystem(ANALYSIS_REQUEST_CODE).setCode(panelCode)));
     serviceRequest.setAuthoredOn(new Date());
     serviceRequest.setRequester(FhirUtils.toReference(practitionerRole));
-    String sanitizedComment = StringUtils.isNotBlank(comment) ? comment : "--";
+    String sanitizedComment = FhirUtils.sanitizeNoteComment(comment);
     serviceRequest.addNote(new Annotation().setText(sanitizedComment).setTime(new Date()).setAuthor(practitionerRole.getPractitioner()));
     if (StringUtils.isNotBlank(orderDetails)) {
       serviceRequest.addOrderDetail(new CodeableConcept().setText(orderDetails));
     }
-    if(supervisorRole != null) {
+    if (supervisorRole != null) {
       serviceRequest.addExtension(SUPERVISOR_EXT, FhirUtils.toReference(supervisorRole));
     }
+    this.addFamilyMember(serviceRequest, mother, FAMILY_MEMBER_MOTHER_CODE);
+    this.addFamilyMember(serviceRequest, father, FAMILY_MEMBER_FATHER_CODE);
     return serviceRequest;
   }
 
@@ -135,6 +138,7 @@ public class SubmitToFhirMapper {
   
   public List<Observation> mapToObservations(String panelCode,
                                              org.hl7.fhir.r4.model.Patient patient,
+                                             Parent mother, Parent father,
                                              HistoryAndDiag historyAndDiag,
                                              ClinicalSigns signs,
                                              ParaclinicalExams exams) {
@@ -184,6 +188,9 @@ public class SubmitToFhirMapper {
         return obs;
     }).collect(Collectors.toList()));
     
+    addParentObservation(all, patient, mother, "MMTH");
+    addParentObservation(all, patient, father, "MFTH");
+    
     return all;
   }
   
@@ -194,7 +201,7 @@ public class SubmitToFhirMapper {
       history.setId(UUID.randomUUID().toString());
       history.setStatus(FamilyMemberHistory.FamilyHistoryStatus.COMPLETED);
       history.getRelationship().addCoding().setSystem(SYSTEM_RELATIONSHIP).setCode(healthCondition.getParentalLink());
-      String sanitizedComment = StringUtils.isNotBlank(healthCondition.getCondition()) ? healthCondition.getCondition() : "";
+      String sanitizedComment = FhirUtils.sanitizeNoteComment(healthCondition.getCondition());
       history.addNote(new Annotation().setText(sanitizedComment));
       history.setPatient(FhirUtils.toReference(patient));
       histories.add(history);
@@ -244,6 +251,31 @@ public class SubmitToFhirMapper {
     }
     observation.getValueDateTimeType().setValue(mapToDate(additionalInfo.getGestationalDate()));
     return observation;
+  }
+
+  private void addFamilyMember(ServiceRequest serviceRequest, org.hl7.fhir.r4.model.Patient patient, String code) {
+    if (patient != null) {
+      final Extension familyMemberExt = new Extension(FAMILY_MEMBER);
+      final Extension parentExt = new Extension("parent");
+      parentExt.setValue(FhirUtils.toReference(patient));
+      final Extension parentRelationExt = new Extension("parent-relationship");
+      final CodeableConcept cc = new CodeableConcept();
+      cc.getCodingFirstRep().setSystem(SYSTEM_ROLE).setCode(code);
+      parentRelationExt.setValue(cc);
+      familyMemberExt.addExtension(parentExt);
+      familyMemberExt.addExtension(parentRelationExt);
+      serviceRequest.addExtension(familyMemberExt);
+    }
+  }
+  
+  private void addParentObservation(List<Observation> observations, org.hl7.fhir.r4.model.Patient patient, Parent parent, String code) {
+    if (parent != null && EnumSet.of(Parent.Moment.later, Parent.Moment.never).contains(parent.getParentEnterMoment())) {
+      final Observation obs = createObservation(patient, code, "social-history", null, SYSTEM_MISSING_PARENT, CODE_MISSING_PARENT);
+      obs.setEffective(new Period().setStart(mapToDate(LocalDate.now())));
+      String sanitizedComment = FhirUtils.sanitizeNoteComment(parent.getParentNoInfoReason());
+      obs.addNote(new Annotation().setText(sanitizedComment));
+      observations.add(obs);
+    }
   }
   
   private String getInterpretationCode(Exams.Interpretation interpretation) {
