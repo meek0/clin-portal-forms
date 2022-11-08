@@ -86,6 +86,14 @@ class ParentBuilderTest {
     assertNotNull(result.getPatientResult().getPatient());
     assertTrue(result.getPatientResult().isPersonNew());
     assertTrue(result.getPatientResult().isPatientNew());
+    assertNotNull(result.getPatient());
+  }
+
+  @Test
+  void build_ignored() {
+    final ParentBuilder builder = new ParentBuilder(fhirClient, mapper, null);
+    final ParentBuilder.Result result = builder.build();
+    assertNull(result.getPatient());
   }
 
 }
