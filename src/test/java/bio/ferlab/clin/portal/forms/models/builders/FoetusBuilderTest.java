@@ -83,6 +83,10 @@ class FoetusBuilderTest {
     FoetusBuilder.Result result = new FoetusBuilder(mapper, additionalInfo, mother).build();
     final org.hl7.fhir.r4.model.Patient foetus = result.getFoetus();
     assertNull(result.getObservation());
+    /*final CodeableConcept value = (CodeableConcept) foetus.getExtensionByUrl("http://fhir.cqgc.ferlab.bio/StructureDefinition/gestational-age").getValue();
+    assertEquals("https://loinc.org", value.getCodingFirstRep().getSystem());
+    assertEquals("18185-9", value.getCodingFirstRep().getCode());
+    assertEquals("deceased", value.getText());*/
     assertEquals("Patient/mother", foetus.getLinkFirstRep().getOther().getReference());
     assertEquals("seealso", foetus.getLinkFirstRep().getType().toCode());
     assertEquals("other", foetus.getGender().toCode());
@@ -105,10 +109,10 @@ class FoetusBuilderTest {
     //final CodeableConcept ext = ((CodeableConcept) foetus.getExtension().get(0).getValue());
     final Observation observation = result.getObservation();
     assertNotNull(foetus.getId());
-    /*assertEquals("dpa", ext.getText());
-    assertEquals(FhirConst.GESTATIONAL_AGE_EXT, foetus.getExtension().get(0).getUrl());
-    assertEquals(FhirConst.SYSTEM_GESTATIONAL_AGE, ext.getCodingFirstRep().getSystem());
-    assertEquals(FhirConst.CODE_GESTATIONAL_AGE, ext.getCodingFirstRep().getCode());*/
+    /*final CodeableConcept value = (CodeableConcept) foetus.getExtensionByUrl("http://fhir.cqgc.ferlab.bio/StructureDefinition/gestational-age").getValue();
+    assertEquals("https://loinc.org", value.getCodingFirstRep().getSystem());
+    assertEquals("18185-9", value.getCodingFirstRep().getCode());
+    assertEquals("dpa", value.getText());*/
     assertEquals("Organization/org1", foetus.getManagingOrganization().getReference());
     assertEquals("Patient/mother", foetus.getLinkFirstRep().getOther().getReference());
     assertEquals("seealso", foetus.getLinkFirstRep().getType().toCode());

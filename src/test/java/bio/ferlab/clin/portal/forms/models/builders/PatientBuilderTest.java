@@ -2,6 +2,7 @@ package bio.ferlab.clin.portal.forms.models.builders;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
+import bio.ferlab.clin.portal.forms.models.submit.Parent;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
@@ -155,7 +156,42 @@ class PatientBuilderTest {
     PatientBuilder.Result result = builder.findByRamq().build(true, true);
     
     assertEquals("new_ramq", result.getPerson().getIdentifierFirstRep().getValue());
+  }
 
+  @Test
+  void find(){
+    final Bundle bundleByMrn = new Bundle();
+    bundleByMrn.addEntry().setResource(new org.hl7.fhir.r4.model.Patient().setId("p1"));
+
+    when(fhirClient.findPersonAndPatientByMrnAndEp(any(), any())).thenReturn(bundleByMrn);
+
+    final PatientBuilder.Result result = PatientBuilder.find(fhirClient, null, "mrn", "ep");
+
+    assertEquals("p1", result.getPatient().getId());
+  }
+
+  @Test
+  void findUpdateOrCreate(){
+    // most of the logic already covered by previous tests
+    // simplify by checking if patient/person are created or not
+    final Bundle bundleByMrn = new Bundle();
+    bundleByMrn.addEntry().setResource(new org.hl7.fhir.r4.model.Patient().setId("p1"));
+
+    final Parent parent = new Parent();
+    parent.setEp("ep");
+    parent.setMrn("mrn");
+    // no ramq to simplify the test
+    parent.setBirthDate(LocalDate.now());
+    parent.setGender(Patient.Gender.other);
+    parent.setFirstName("firstname");
+    parent.setLastName("lastNamae");
+
+    when(fhirClient.findPersonAndPatientByMrnAndEp(any(), any())).thenReturn(bundleByMrn);
+
+    final PatientBuilder.Result result = PatientBuilder.findUpdateOrCreate(fhirClient, parent);
+
+    assertFalse(result.isPatientNew());
+    assertTrue(result.isPersonNew());
   }
 
 }

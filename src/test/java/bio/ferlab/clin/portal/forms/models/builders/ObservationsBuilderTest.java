@@ -98,15 +98,23 @@ class ObservationsBuilderTest {
 
     final Observation foetusObservation = new Observation();
     foetusObservation.setId("foetusObs");
+
+    final Parent mother = new Parent();
+    mother.setParentEnterMoment(Parent.Moment.now); // ignored
+
+    final Parent father = new Parent();
+    father.setParentEnterMoment(Parent.Moment.later);
     
     final ObservationsBuilder.Result result = 
         new ObservationsBuilder(new SubmitToFhirMapper(), "code", patient, historyAndDiag, clinicalSigns, paraclinicalExams)
         .withFoetus(foetusObservation)
+        .withMother(mother)
+        .withFather(father)
         .build();
     
     final List<Observation> obs = result.getObservations();
     
-    assertEquals(12, obs.size());
+    assertEquals(13, obs.size());
 
     assertObservation(obs.get(0), patient, "DSTA", "exam", true, ANALYSIS_REQUEST_CODE, "code", true);
     assertObservation(obs.get(1), patient, "OBSG", "exam", null, null, clinicalSigns.getComment(), true);
@@ -138,8 +146,10 @@ class ObservationsBuilderTest {
     assertEquals(HP_CODE,obs.get(10).getValueCodeableConcept().getCoding().get(1).getSystem());
     assertEquals("value2",obs.get(10).getValueCodeableConcept().getCoding().get(1).getCode());
 
-    assertEquals("foetusObs",obs.get(11).getId());
-  }
+    assertObservation(obs.get(11), patient, "MFTH", "social-history", null, SYSTEM_MISSING_PARENT, CODE_MISSING_PARENT, false);
+
+    assertEquals("foetusObs",obs.get(12).getId());
+ }
   
   private void assertObservation(Observation obs, Patient patient, String code, String category, Boolean isObserved, String system, Object value, boolean checkInterpretation) {
     assertNotNull(obs.getId());

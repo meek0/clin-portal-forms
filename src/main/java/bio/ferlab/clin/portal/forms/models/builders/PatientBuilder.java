@@ -70,7 +70,8 @@ public class PatientBuilder {
   }
   
   public Result build(boolean createIfMissing, boolean updateExisting){
-    
+
+    // RAMQ has priority over MRN
     Optional<Person> existingPerson = this.personByRamq.or(() -> this.personByMrn);
     Optional<Patient> existingPatient = this.patientByRamq.or(() -> this.patientByMrn);
     
