@@ -5,8 +5,7 @@ import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.Test;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConst.ANALYSIS_SERVICE_REQUEST;
-import static bio.ferlab.clin.portal.forms.utils.FhirConst.SUPERVISOR_EXT;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -31,9 +30,10 @@ class AnalysisBuilderTest {
     supervisor.setId("foo");
     
     final AnalysisBuilder.Result result = new AnalysisBuilder(new SubmitToFhirMapper(), "code", patient, clinicalImpression, role, supervisor, "")
-        .withFoetus(new Patient())
-        .withReflex(true)
-        .build();
+      .withFoetus(new Patient())
+      .withReflex(true)
+      .withMother(new Patient())
+      .build();
     final ServiceRequest sr = result.getAnalysis();
 
     assertNotNull(sr.getId());
@@ -52,5 +52,14 @@ class AnalysisBuilderTest {
     assertEquals("--", note.getText());
     assertEquals(FhirUtils.formatResource(practitioner), ((Reference)note.getAuthor()).getReference());
     assertEquals("Prenatal", sr.getCategoryFirstRep().getText());
+
+    final Extension motherRootExt = sr.getExtensionByUrl(FAMILY_MEMBER);
+    final Extension motherSub1Ext = motherRootExt.getExtension().get(0);
+    final Extension motherSub2Ext = motherRootExt.getExtension().get(1);
+    assertEquals("parent", motherSub1Ext.getUrl());
+    assertEquals("Patient/null", ((Reference) motherSub1Ext.getValue()).getReference());
+    assertEquals("parent-relationship", motherSub2Ext.getUrl());
+    assertEquals(SYSTEM_ROLE, ((CodeableConcept) motherSub2Ext.getValue()).getCodingFirstRep().getSystem());
+    assertEquals("MTH", ((CodeableConcept) motherSub2Ext.getValue()).getCodingFirstRep().getCode());
   }
 }

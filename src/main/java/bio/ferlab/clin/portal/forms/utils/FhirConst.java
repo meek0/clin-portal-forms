@@ -8,7 +8,7 @@ public class FhirConst {
   public static final String DEFAULT_EXAM_SUFFIX = "-default-exam";
   public static final String ABNORMALITIES_SUFFIX = "-abnormalities";
 
-  public static final String GESTATIONAL_AGE_EXT = "";
+  public static final String GESTATIONAL_AGE_EXT = "http://fhir.cqgc.ferlab.bio/StructureDefinition/gestational-age";
   public static final String SYSTEM_GESTATIONAL_AGE = "https://loinc.org";
   public static final String CODE_GESTATIONAL_AGE = "18185-9";
   public static final String SYSTEM_DDM = "https://loinc.org";
@@ -43,5 +43,12 @@ public class FhirConst {
   public static final String HP_CODE = "http://fhir.cqgc.ferlab.bio/CodeSystem/hp";
   
   public static final String ETHNICITY_CODE = "http://fhir.cqgc.ferlab.bio/CodeSystem/qc-ethnicity";
+
+  public static final String FAMILY_MEMBER = "http://fhir.cqgc.ferlab.bio/StructureDefinition/family-member";
+  public static final String FAMILY_MEMBER_MOTHER_CODE = "MTH";
+  public static final String FAMILY_MEMBER_FATHER_CODE = "FTH";
+  
+  public static final String SYSTEM_MISSING_PARENT = "http://fhir.cqgc.ferlab.bio/CodeSystem/missing-parent-status";
+  public static final String CODE_MISSING_PARENT = "TEMPORARY";
 
 }

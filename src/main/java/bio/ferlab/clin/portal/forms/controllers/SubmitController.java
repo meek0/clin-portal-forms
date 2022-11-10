@@ -38,6 +38,12 @@ public class SubmitController {
         .findByMrn()
         .build(true, true);
     
+    final ParentBuilder motherBuilder = new ParentBuilder(fhirClient, mapper, request.getMother());
+    ParentBuilder.Result motherResult = motherBuilder.build();
+
+    final ParentBuilder fatherBuilder = new ParentBuilder(fhirClient, mapper, request.getFather());
+    ParentBuilder.Result fatherResult = fatherBuilder.build();
+    
     final NewBornBuilder newBornBuilder = new NewBornBuilder(mapper, request.getPatient().getAdditionalInfo(), pbr.getPatient());
     NewBornBuilder.Result nbr = newBornBuilder
         .build();
@@ -59,6 +65,8 @@ public class SubmitController {
         request.getClinicalSigns(), request.getParaclinicalExams());
     ObservationsBuilder.Result obr = observationsBuilder
         .withFoetus(fbr.getObservation())
+        .withMother(request.getMother())
+        .withFather(request.getFather())
         .validate()
         .build();
 
@@ -67,10 +75,12 @@ public class SubmitController {
     ClinicalImpressionBuilder.Result cbr = clinicalImpressionBuilder
         .build();
     
-    final AnalysisBuilder analysisBuilder = new AnalysisBuilder(mapper, panelCode, pbr.getPatient(), 
+    final AnalysisBuilder analysisBuilder = new AnalysisBuilder(mapper, panelCode, pbr.getPatient(),
         cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getAnalysis().getComment());
     AnalysisBuilder.Result abr = analysisBuilder
         .withFoetus(fbr.getFoetus())
+        .withMother(motherResult.getPatient())
+        .withFather(fatherResult.getPatient())
         .withReflex(request.getAnalysis().getIsReflex())
         .build();
 
@@ -80,12 +90,14 @@ public class SubmitController {
         .withFoetus(fbr.getFoetus())
         .build();
     
-    final Response res = new Response(submit(pbr, nbr, fbr, abr, sbr, cbr, obr, fmhr));
+    final Response res = new Response(submit(pbr, motherResult, fatherResult, nbr, fbr, abr, sbr, cbr, obr, fmhr));
     
     return ResponseEntity.ok(res);
   }
   
   private String submit(PatientBuilder.Result pbr, 
+                      ParentBuilder.Result motherResult,
+                      ParentBuilder.Result fatherResult,
                       NewBornBuilder.Result nbr,
                       FoetusBuilder.Result fbr,
                       AnalysisBuilder.Result abr, 
@@ -95,23 +107,19 @@ public class SubmitController {
                       FamilyMemberHistoryBuilder.Result fmhr) {
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.TRANSACTION);
-    
+
     final String patientRef = FhirUtils.formatResource(pbr.getPatient());
     final String personRef = FhirUtils.formatResource(pbr.getPerson());
+    
+    this.addPatientToBundle(bundle, pbr);
+    
+    if (motherResult.getPatientResult() != null) {
+      this.addPatientToBundle(bundle, motherResult.getPatientResult());
+    }
 
-    bundle.addEntry()
-        .setFullUrl(patientRef)
-        .setResource(pbr.getPatient())
-        .getRequest()
-        .setUrl(patientRef) // full url with ID required if PUT
-        .setMethod(pbr.isPatientNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
-
-    bundle.addEntry()
-        .setFullUrl(personRef)
-        .setResource(pbr.getPerson())
-        .getRequest()
-        .setUrl(personRef) // full url with ID required if PUT
-        .setMethod(pbr.isPersonNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
+    if (fatherResult.getPatientResult() != null) {
+      this.addPatientToBundle(bundle, fatherResult.getPatientResult());
+    }
     
     bundle.addEntry()
         .setFullUrl(FhirUtils.formatResource(abr.getAnalysis()))
@@ -170,6 +178,25 @@ public class SubmitController {
     
    final Bundle response = fhirClient.submitForm(personRef, patientRef, bundle);
    return new BundleExtractor(fhirClient.getContext(), response).extractIdFromResponse(2);
+  }
+  
+  private void addPatientToBundle(Bundle bundle, PatientBuilder.Result pbr) {
+    final String patientRef = FhirUtils.formatResource(pbr.getPatient());
+    final String personRef = FhirUtils.formatResource(pbr.getPerson());
+
+    bundle.addEntry()
+        .setFullUrl(patientRef)
+        .setResource(pbr.getPatient())
+        .getRequest()
+        .setUrl(patientRef) // full url with ID required if PUT
+        .setMethod(pbr.isPatientNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
+
+    bundle.addEntry()
+        .setFullUrl(personRef)
+        .setResource(pbr.getPerson())
+        .getRequest()
+        .setUrl(personRef) // full url with ID required if PUT
+        .setMethod(pbr.isPersonNew() ? Bundle.HTTPVerb.POST: Bundle.HTTPVerb.PUT);
   }
   
 }

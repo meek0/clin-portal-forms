@@ -23,9 +23,21 @@ public class ObservationsBuilder {
   private final ClinicalSigns signs;
   private final ParaclinicalExams exams;
   private Observation foetusObservation;
+  private Parent mother;
+  private Parent father;
   
   public ObservationsBuilder withFoetus(Observation o) {
     this.foetusObservation = o;
+    return this;
+  }
+
+  public ObservationsBuilder withMother(Parent mother) {
+    this.mother = mother;
+    return this;
+  }
+
+  public ObservationsBuilder withFather(Parent father) {
+    this.father = father;
     return this;
   }
   
@@ -46,7 +58,7 @@ public class ObservationsBuilder {
   }
   
   public Result build() {
-    List<org.hl7.fhir.r4.model.Observation> obs = mapper.mapToObservations(panelCode, patient, historyAndDiag, signs, exams);
+    List<org.hl7.fhir.r4.model.Observation> obs = mapper.mapToObservations(panelCode, patient, mother, father, historyAndDiag, signs, exams);
     if (foetusObservation != null) {
       obs.add(foetusObservation);
     }
