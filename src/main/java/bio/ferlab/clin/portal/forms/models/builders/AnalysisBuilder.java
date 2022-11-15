@@ -4,6 +4,7 @@ import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.ClinicalImpression;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.PractitionerRole;
@@ -45,9 +46,9 @@ public class AnalysisBuilder {
     return this;
   }
   
-  public AnalysisBuilder withReflex(boolean isReflex) {
-    if (isReflex) {
-      this.orderDetails = String.format("Reflex Panel: %s (%s)", "Global Muscular diseases", "MMG");
+  public AnalysisBuilder withReflex(String reflex) {
+    if (StringUtils.isNotBlank(reflex)) {
+      this.orderDetails = reflex;
     }
     return this;
   }

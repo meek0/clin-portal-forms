@@ -31,7 +31,7 @@ class AnalysisBuilderTest {
     
     final AnalysisBuilder.Result result = new AnalysisBuilder(new SubmitToFhirMapper(), "code", patient, clinicalImpression, role, supervisor, "")
       .withFoetus(new Patient())
-      .withReflex(true)
+      .withReflex("reflex")
       .withMother(new Patient())
       .build();
     final ServiceRequest sr = result.getAnalysis();
@@ -46,7 +46,7 @@ class AnalysisBuilderTest {
     assertNotNull(sr.getAuthoredOn());
     assertEquals(FhirUtils.formatResource(role), sr.getRequester().getReference());
     assertEquals(FhirUtils.formatResource(supervisor), ((Reference)sr.getExtensionByUrl(SUPERVISOR_EXT).getValue()).getReference());
-    assertEquals("Reflex Panel: Global Muscular diseases (MMG)", sr.getOrderDetailFirstRep().getText());
+    assertEquals("reflex", sr.getOrderDetailFirstRep().getText());
     final Annotation note = sr.getNoteFirstRep();
     assertNotNull(note.getTime());
     assertEquals("--", note.getText());
@@ -62,4 +62,5 @@ class AnalysisBuilderTest {
     assertEquals(SYSTEM_ROLE, ((CodeableConcept) motherSub2Ext.getValue()).getCodingFirstRep().getSystem());
     assertEquals("MTH", ((CodeableConcept) motherSub2Ext.getValue()).getCodingFirstRep().getCode());
   }
+
 }

@@ -5,6 +5,7 @@ import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.builders.*;
 import bio.ferlab.clin.portal.forms.models.submit.Request;
 import bio.ferlab.clin.portal.forms.models.submit.Response;
+import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import bio.ferlab.clin.portal.forms.utils.JwtUtils;
@@ -22,6 +23,7 @@ public class SubmitController {
 
   private final FhirClient fhirClient;
   private final SubmitToFhirMapper mapper;
+  private final LocaleService localeService;
 
   @PostMapping
   public ResponseEntity<Response> submit(@RequestHeader String authorization,
@@ -30,6 +32,7 @@ public class SubmitController {
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
     final String panelCode = request.getAnalysis().getPanelCode();
     final String ep = request.getPatient().getEp();
+    final String lang = localeService.getCurrentLocale();
  
     final PatientBuilder patientBuilder = new PatientBuilder(fhirClient, mapper, request.getPatient());
     PatientBuilder.Result pbr = patientBuilder
@@ -74,6 +77,9 @@ public class SubmitController {
         pbr.getPerson(), pbr.getPatient(), obr.getObservations(), fmhr.getHistories());
     ClinicalImpressionBuilder.Result cbr = clinicalImpressionBuilder
         .build();
+
+    final ReflexBuilder reflexBuilder = new ReflexBuilder(lang, request.getAnalysis().getIsReflex());
+    ReflexBuilder.Result rbr = reflexBuilder.build();
     
     final AnalysisBuilder analysisBuilder = new AnalysisBuilder(mapper, panelCode, pbr.getPatient(),
         cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getAnalysis().getComment());
@@ -81,7 +87,7 @@ public class SubmitController {
         .withFoetus(fbr.getFoetus())
         .withMother(motherResult.getPatient())
         .withFather(fatherResult.getPatient())
-        .withReflex(request.getAnalysis().getIsReflex())
+        .withReflex(rbr.getReflex())
         .build();
 
     final SequencingBuilder sequencingBuilder = new SequencingBuilder(mapper, panelCode, 
