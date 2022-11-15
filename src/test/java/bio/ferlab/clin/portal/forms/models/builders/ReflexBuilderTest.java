@@ -9,7 +9,7 @@ class ReflexBuilderTest {
   @Test
   void build() {
     assertEquals("Reflex Panel: Global Muscular diseases (MMG)", new ReflexBuilder("fr", true).build().getReflex());
-    assertEquals("Panel Reflex: Maladies musculaires (MMG)", new ReflexBuilder(null, true).build().getReflex());
+    assertEquals("Panel réflexe: Maladies musculaires globales (MMG)", new ReflexBuilder(null, true).build().getReflex());
   }
 
 }
