@@ -16,9 +16,9 @@ public class ReflexBuilder {
     String reflex = null;
     if (isReflex) {
       if ("fr".equals(lang)) {
-        reflex = String.format("Reflex Panel: %s (%s)", "Global Muscular diseases", "MMG");
-      } else {
         reflex = String.format("Panel réflexe: %s (%s)", "Maladies musculaires globales", "MMG");
+      } else {
+        reflex = String.format("Reflex Panel: %s (%s)", "Global Muscular diseases", "MMG");
       }
       /*final CodeSystem analyse = codesValuesService.getCodes(CodesValuesService.ANALYSE_KEY);
       reflex = analyse.getConcept().stream()
