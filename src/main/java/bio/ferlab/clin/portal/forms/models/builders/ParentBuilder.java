@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.Person;
 
 @RequiredArgsConstructor
 public class ParentBuilder {
@@ -30,7 +31,10 @@ public class ParentBuilder {
   @Getter
   public static class Result {
     PatientBuilder.Result patientResult;
-    
+
+    public Person getPerson() {
+      return patientResult != null ? patientResult.getPerson() : null;
+    }
     public Patient getPatient() {
       return patientResult != null ? patientResult.getPatient() : null;
     }

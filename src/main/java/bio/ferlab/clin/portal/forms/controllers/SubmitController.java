@@ -3,6 +3,7 @@ package bio.ferlab.clin.portal.forms.controllers;
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.builders.*;
+import bio.ferlab.clin.portal.forms.models.submit.ClinicalSigns;
 import bio.ferlab.clin.portal.forms.models.submit.Request;
 import bio.ferlab.clin.portal.forms.models.submit.Response;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/form")
@@ -73,10 +75,30 @@ public class SubmitController {
         .validate()
         .build();
 
+    final ObservationsBuilder observationsMotherBuilder = new ObservationsBuilder(mapper, panelCode, motherResult.getPatient(),
+      null, new ClinicalSigns(request.getMother().getSigns(), null), null);
+    ObservationsBuilder.Result obmr = observationsMotherBuilder
+      .validate()
+      .build();
+
+    final ObservationsBuilder observationsFatherBuilder = new ObservationsBuilder(mapper, panelCode, fatherResult.getPatient(),
+      null, new ClinicalSigns(request.getFather().getSigns(), null), null);
+    ObservationsBuilder.Result obfr = observationsFatherBuilder
+      .validate()
+      .build();
+
     final ClinicalImpressionBuilder clinicalImpressionBuilder = new ClinicalImpressionBuilder(mapper, 
         pbr.getPerson(), pbr.getPatient(), obr.getObservations(), fmhr.getHistories());
     ClinicalImpressionBuilder.Result cbr = clinicalImpressionBuilder
         .build();
+
+    final ClinicalImpressionBuilder clinicalImpressionMotherBuilder = new ClinicalImpressionBuilder(mapper,
+      motherResult.getPerson(), motherResult.getPatient(), obmr.getObservations(), List.of());
+    ClinicalImpressionBuilder.Result cbmr = clinicalImpressionMotherBuilder.build();
+
+    final ClinicalImpressionBuilder clinicalImpressionFatherBuilder = new ClinicalImpressionBuilder(mapper,
+      fatherResult.getPerson(), fatherResult.getPatient(), obfr.getObservations(), List.of());
+    ClinicalImpressionBuilder.Result cbfr = clinicalImpressionFatherBuilder.build();
 
     final ReflexBuilder reflexBuilder = new ReflexBuilder(lang, request.getAnalysis().getIsReflex());
     ReflexBuilder.Result rbr = reflexBuilder.build();
@@ -85,8 +107,8 @@ public class SubmitController {
         cbr.getClinicalImpression(), roleBr.getPractitionerRole(), roleBr.getSupervisorRole(), request.getAnalysis().getComment());
     AnalysisBuilder.Result abr = analysisBuilder
         .withFoetus(fbr.getFoetus())
-        .withMother(motherResult.getPatient())
-        .withFather(fatherResult.getPatient())
+        .withMother(cbmr.getClinicalImpression())
+        .withFather(cbfr.getClinicalImpression())
         .withReflex(rbr.getReflex())
         .build();
 
@@ -95,8 +117,16 @@ public class SubmitController {
     SequencingBuilder.Result sbr = sequencingBuilder
         .withFoetus(fbr.getFoetus())
         .build();
+
+    final SequencingBuilder sequencingMotherBuilder = new SequencingBuilder(mapper, panelCode, motherResult.getPatient(), abr.getAnalysis(), roleBr.getPractitionerRole());
+    SequencingBuilder.Result sbmr = sequencingMotherBuilder
+      .build();
+
+    final SequencingBuilder sequencingFatherBuilder = new SequencingBuilder(mapper, panelCode, fatherResult.getPatient(), abr.getAnalysis(), roleBr.getPractitionerRole());
+    SequencingBuilder.Result sbfr = sequencingFatherBuilder
+      .build();
     
-    final Response res = new Response(submit(pbr, motherResult, fatherResult, nbr, fbr, abr, sbr, cbr, obr, fmhr));
+    final Response res = new Response(submit(pbr, motherResult, fatherResult, nbr, fbr, abr, sbr, sbmr, sbfr, cbr, cbmr, cbfr, obr, obmr, obfr, fmhr));
     
     return ResponseEntity.ok(res);
   }
@@ -107,9 +137,15 @@ public class SubmitController {
                       NewBornBuilder.Result nbr,
                       FoetusBuilder.Result fbr,
                       AnalysisBuilder.Result abr, 
-                      SequencingBuilder.Result sbr, 
+                      SequencingBuilder.Result sbr,
+                      SequencingBuilder.Result sbmr,
+                      SequencingBuilder.Result sbfr,
                       ClinicalImpressionBuilder.Result cbr,
+                      ClinicalImpressionBuilder.Result cbmr,
+                      ClinicalImpressionBuilder.Result cbfr,
                       ObservationsBuilder.Result obr,
+                      ObservationsBuilder.Result obmr,
+                      ObservationsBuilder.Result obfr,
                       FamilyMemberHistoryBuilder.Result fmhr) {
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.TRANSACTION);
@@ -159,12 +195,48 @@ public class SubmitController {
         .setUrl("ServiceRequest")
         .setMethod(Bundle.HTTPVerb.POST);
 
+    if (sbmr.getSequencing() != null) {
+      bundle.addEntry()
+        .setFullUrl(FhirUtils.formatResource(sbmr.getSequencing()))
+        .setResource(sbmr.getSequencing())
+        .getRequest()
+        .setUrl("ServiceRequest")
+        .setMethod(Bundle.HTTPVerb.POST);
+    }
+
+    if (sbfr.getSequencing() != null) {
+      bundle.addEntry()
+        .setFullUrl(FhirUtils.formatResource(sbfr.getSequencing()))
+        .setResource(sbfr.getSequencing())
+        .getRequest()
+        .setUrl("ServiceRequest")
+        .setMethod(Bundle.HTTPVerb.POST);
+    }
+
     bundle.addEntry()
         .setFullUrl(FhirUtils.formatResource(cbr.getClinicalImpression()))
         .setResource(cbr.getClinicalImpression())
         .getRequest()
         .setUrl("ClinicalImpression")
         .setMethod(Bundle.HTTPVerb.POST);
+
+    if (cbmr.getClinicalImpression() != null) {
+      bundle.addEntry()
+        .setFullUrl(FhirUtils.formatResource(cbmr.getClinicalImpression()))
+        .setResource(cbmr.getClinicalImpression())
+        .getRequest()
+        .setUrl("ClinicalImpression")
+        .setMethod(Bundle.HTTPVerb.POST);
+    }
+
+    if (cbfr.getClinicalImpression() != null) {
+      bundle.addEntry()
+        .setFullUrl(FhirUtils.formatResource(cbfr.getClinicalImpression()))
+        .setResource(cbfr.getClinicalImpression())
+        .getRequest()
+        .setUrl("ClinicalImpression")
+        .setMethod(Bundle.HTTPVerb.POST);
+    }
     
     obr.getObservations().forEach(o ->
       bundle.addEntry()
@@ -173,6 +245,22 @@ public class SubmitController {
           .getRequest()
           .setUrl("Observation")
           .setMethod(Bundle.HTTPVerb.POST));
+
+    obmr.getObservations().forEach(o ->
+      bundle.addEntry()
+        .setFullUrl(FhirUtils.formatResource(o))
+        .setResource(o)
+        .getRequest()
+        .setUrl("Observation")
+        .setMethod(Bundle.HTTPVerb.POST));
+
+    obfr.getObservations().forEach(o ->
+      bundle.addEntry()
+        .setFullUrl(FhirUtils.formatResource(o))
+        .setResource(o)
+        .getRequest()
+        .setUrl("Observation")
+        .setMethod(Bundle.HTTPVerb.POST));
     
     fmhr.getHistories().forEach(h ->  
       bundle.addEntry()

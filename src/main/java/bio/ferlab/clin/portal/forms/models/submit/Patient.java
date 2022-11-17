@@ -38,4 +38,20 @@ public class Patient {
   @Valid
   @NotNull
   private AdditionalInfo additionalInfo = new AdditionalInfo();
+
+  public Patient(Parent parent) {
+    this.setRamq(parent.getRamq());
+    this.setMrn(parent.getMrn());
+    this.setEp(parent.getEp());
+    this.setGender(parent.getGender());
+    this.setBirthDate(parent.getBirthDate());
+    this.setLastName(parent.getLastName());
+    this.setFirstName(parent.getFirstName());
+  }
+
+  public Patient(String ramq, String mrn, String ep) {
+    this.setRamq(ramq);
+    this.setMrn(mrn);
+    this.setEp(ep);
+  }
 }

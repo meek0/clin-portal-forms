@@ -18,7 +18,10 @@ public class ClinicalImpressionBuilder {
   private final List<FamilyMemberHistory> histories;
   
   public Result build() {
-    final ClinicalImpression clinicalImpression = mapper.mapToClinicalImpression(person, patient, observations, histories);
+    ClinicalImpression clinicalImpression = null;
+    if (person != null && patient != null) {
+      clinicalImpression = mapper.mapToClinicalImpression(person, patient, observations, histories);
+    }
     return new Result(clinicalImpression);
   }
   

@@ -18,6 +18,10 @@ class AnalysisBuilderTest {
     
     final ClinicalImpression clinicalImpression = new ClinicalImpression();
     clinicalImpression.setId("foo");
+
+    final ClinicalImpression clinicalImpressionMother = new ClinicalImpression();
+    clinicalImpressionMother.setId("foo");
+    clinicalImpressionMother.setSubject(new Reference("Patient/mother"));
     
     final Practitioner practitioner = new Practitioner();
     practitioner.setId("foo");
@@ -32,7 +36,7 @@ class AnalysisBuilderTest {
     final AnalysisBuilder.Result result = new AnalysisBuilder(new SubmitToFhirMapper(), "code", patient, clinicalImpression, role, supervisor, "")
       .withFoetus(new Patient())
       .withReflex("reflex")
-      .withMother(new Patient())
+      .withMother(clinicalImpressionMother)
       .build();
     final ServiceRequest sr = result.getAnalysis();
 
@@ -41,7 +45,8 @@ class AnalysisBuilderTest {
     assertEquals(ServiceRequest.ServiceRequestIntent.ORDER, sr.getIntent());
     assertEquals(FhirUtils.formatResource(patient), sr.getSubject().getReference());
     assertEquals(ServiceRequest.ServiceRequestStatus.ONHOLD, sr.getStatus());
-    assertEquals(FhirUtils.formatResource(clinicalImpression), sr.getSupportingInfoFirstRep().getReference());
+    assertEquals(FhirUtils.formatResource(clinicalImpression), sr.getSupportingInfo().get(0).getReference());
+    assertEquals(FhirUtils.formatResource(clinicalImpressionMother), sr.getSupportingInfo().get(1).getReference());
     assertEquals("code", sr.getCode().getCodingFirstRep().getCode());
     assertNotNull(sr.getAuthoredOn());
     assertEquals(FhirUtils.formatResource(role), sr.getRequester().getReference());
@@ -57,7 +62,7 @@ class AnalysisBuilderTest {
     final Extension motherSub1Ext = motherRootExt.getExtension().get(0);
     final Extension motherSub2Ext = motherRootExt.getExtension().get(1);
     assertEquals("parent", motherSub1Ext.getUrl());
-    assertEquals("Patient/null", ((Reference) motherSub1Ext.getValue()).getReference());
+    assertEquals("Patient/mother", ((Reference) motherSub1Ext.getValue()).getReference());
     assertEquals("parent-relationship", motherSub2Ext.getUrl());
     assertEquals(SYSTEM_ROLE, ((CodeableConcept) motherSub2Ext.getValue()).getCodingFirstRep().getSystem());
     assertEquals("MTH", ((CodeableConcept) motherSub2Ext.getValue()).getCodingFirstRep().getCode());
