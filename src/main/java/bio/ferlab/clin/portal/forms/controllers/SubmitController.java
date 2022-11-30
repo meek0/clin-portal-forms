@@ -162,7 +162,9 @@ public class SubmitController {
     if (fatherResult.getPatientResult() != null) {
       this.addPatientToBundle(bundle, fatherResult.getPatientResult());
     }
-    
+
+    // First ServiceRequest is always the Patient
+    // we extract ID from submit response
     bundle.addEntry()
         .setFullUrl(FhirUtils.formatResource(abr.getAnalysis()))
         .setResource(abr.getAnalysis())
@@ -271,7 +273,7 @@ public class SubmitController {
         .setMethod(Bundle.HTTPVerb.POST));
     
    final Bundle response = fhirClient.submitForm(personRef, patientRef, bundle);
-   return new BundleExtractor(fhirClient.getContext(), response).extractIdFromResponse(2);
+   return new BundleExtractor(fhirClient.getContext(), response).extractFirstIdFromResponse("ServiceRequest");
   }
   
   private void addPatientToBundle(Bundle bundle, PatientBuilder.Result pbr) {

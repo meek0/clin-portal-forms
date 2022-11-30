@@ -14,4 +14,12 @@ class UtilsTest {
     assertTrue(Utils.isIndexOfAnyIgnoreCase("f", "FOO", "BAR"));
     assertTrue(Utils.isIndexOfAnyIgnoreCase("foo", null, "FOO"));
   }
+
+  @Test
+  void removeSpaces() {
+    assertNull(Utils.removeSpaces(null));
+    assertEquals("", Utils.removeSpaces(" "));
+    assertEquals("", Utils.removeSpaces("   "));
+    assertEquals("foobar", Utils.removeSpaces(" foo   bar   "));
+  }
 }

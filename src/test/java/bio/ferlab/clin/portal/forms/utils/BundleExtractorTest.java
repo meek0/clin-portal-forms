@@ -56,16 +56,17 @@ class BundleExtractorTest {
   }
   
   @Test
-  void extractId() {
+  void extractFirstIdFromResponse() {
     final Bundle bundle = new Bundle();
     bundle.addEntry().setResponse(null);
     bundle.addEntry().setResponse(new Bundle.BundleEntryResponseComponent());
-    bundle.addEntry().setResponse(new Bundle.BundleEntryResponseComponent().setLocation("Resource/foo"));
+    bundle.addEntry().setResponse(new Bundle.BundleEntryResponseComponent().setLocation("Type1/foo"));
+    bundle.addEntry().setResponse(new Bundle.BundleEntryResponseComponent().setLocation("Type2/bar"));
     final BundleExtractor extractor = new BundleExtractor(fhirContext, bundle);
-    assertNull(extractor.extractIdFromResponse(0));
-    assertNull(extractor.extractIdFromResponse(10));
-    assertNull(null, extractor.extractIdFromResponse(1));
-    assertEquals("foo", extractor.extractIdFromResponse(2));
+    assertNull(extractor.extractFirstIdFromResponse(null));
+    assertNull(extractor.extractFirstIdFromResponse(""));
+    assertNull(extractor.extractFirstIdFromResponse("Type"));
+    assertEquals("bar", extractor.extractFirstIdFromResponse("Type2"));
   }
 
 }

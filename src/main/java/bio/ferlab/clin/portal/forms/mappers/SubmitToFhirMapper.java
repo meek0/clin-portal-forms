@@ -3,6 +3,7 @@ package bio.ferlab.clin.portal.forms.mappers;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import bio.ferlab.clin.portal.forms.models.submit.*;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
+import bio.ferlab.clin.portal.forms.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.http.HttpStatus;
@@ -60,7 +61,7 @@ public class SubmitToFhirMapper {
   }
   
   public void updatePerson(Patient patient, Person person, org.hl7.fhir.r4.model.Patient linkedPatient) {
-    updateIdentifier(person.getIdentifier(), SYSTEM_RAMQ, CODE_RAMQ, patient.getRamq(), null);
+    updateIdentifier(person.getIdentifier(), SYSTEM_RAMQ, CODE_RAMQ, Utils.removeSpaces(patient.getRamq()), null);
     person.setBirthDate(mapToDate(patient.getBirthDate()));
     person.setGender(mapToGender(patient.getGender()));
     person.getName().clear();

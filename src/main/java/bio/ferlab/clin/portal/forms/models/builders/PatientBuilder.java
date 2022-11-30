@@ -5,6 +5,7 @@ import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.submit.Parent;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
+import bio.ferlab.clin.portal.forms.utils.Utils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,7 @@ public class PatientBuilder {
   
   public PatientBuilder findByRamq() {
     if(StringUtils.isNotBlank(patient.getRamq())) {
-      Bundle bundle = this.fhirClient.findPersonAndPatientByRamq(patient.getRamq());
+      Bundle bundle = this.fhirClient.findPersonAndPatientByRamq(Utils.removeSpaces(patient.getRamq()));
       BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
       final Person person = bundleExtractor.getFirstResourcesOfType(Person.class);
       final List<Patient> patients = bundleExtractor.getAllResourcesOfType(Patient.class);
