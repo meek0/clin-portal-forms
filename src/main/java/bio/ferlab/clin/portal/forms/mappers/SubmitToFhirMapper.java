@@ -3,6 +3,7 @@ package bio.ferlab.clin.portal.forms.mappers;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import bio.ferlab.clin.portal.forms.models.submit.*;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
+import bio.ferlab.clin.portal.forms.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.http.HttpStatus;
@@ -60,7 +61,7 @@ public class SubmitToFhirMapper {
   }
   
   public void updatePerson(Patient patient, Person person, org.hl7.fhir.r4.model.Patient linkedPatient) {
-    updateIdentifier(person.getIdentifier(), SYSTEM_RAMQ, CODE_RAMQ, patient.getRamq(), null);
+    updateIdentifier(person.getIdentifier(), SYSTEM_RAMQ, CODE_RAMQ, Utils.removeSpaces(patient.getRamq()), null);
     person.setBirthDate(mapToDate(patient.getBirthDate()));
     person.setGender(mapToGender(patient.getGender()));
     person.getName().clear();
@@ -73,9 +74,11 @@ public class SubmitToFhirMapper {
   }
   
   public ServiceRequest mapToAnalysis(String panelCode, org.hl7.fhir.r4.model.Patient patient,
-                                      org.hl7.fhir.r4.model.Patient mother, org.hl7.fhir.r4.model.Patient father,
-                                      ClinicalImpression clinicalImpression, String orderDetails,
-                                      PractitionerRole practitionerRole, PractitionerRole supervisorRole,
+                                      ClinicalImpression clinicalImpression,
+                                      ClinicalImpression clinicalImpressionMother,
+                                      ClinicalImpression clinicalImpressionFather,
+                                      String orderDetails, PractitionerRole practitionerRole,
+                                      PractitionerRole supervisorRole,
                                       String comment, org.hl7.fhir.r4.model.Patient foetus) {
     final ServiceRequest serviceRequest = new ServiceRequest();
     serviceRequest.setId(UUID.randomUUID().toString());
@@ -98,8 +101,8 @@ public class SubmitToFhirMapper {
     if (supervisorRole != null) {
       serviceRequest.addExtension(SUPERVISOR_EXT, FhirUtils.toReference(supervisorRole));
     }
-    this.addFamilyMember(serviceRequest, mother, FAMILY_MEMBER_MOTHER_CODE);
-    this.addFamilyMember(serviceRequest, father, FAMILY_MEMBER_FATHER_CODE);
+    this.addParent(serviceRequest, clinicalImpressionMother, FAMILY_MEMBER_MOTHER_CODE);
+    this.addParent(serviceRequest, clinicalImpressionFather, FAMILY_MEMBER_FATHER_CODE);
     return serviceRequest;
   }
 
@@ -147,46 +150,53 @@ public class SubmitToFhirMapper {
 
     Observation dsta = createObservation(patient, "DSTA", "exam",true, ANALYSIS_REQUEST_CODE, panelCode);
     all.add(dsta);
-    
-    if(StringUtils.isNotBlank(signs.getComment())) {
-      Observation obsg = createObservation(patient, "OBSG", "exam",null, null, signs.getComment());
-      all.add(obsg);
-    }
 
-    if(StringUtils.isNotBlank(exams.getComment())) {
-      Observation obsg = createObservation(patient, "INVES", "exam", null, null, exams.getComment());
-      all.add(obsg);
-    }
-    
-    if(StringUtils.isNotBlank(historyAndDiag.getEthnicity())) {
-      Observation obsg = createObservation(patient, "ETHN", "exam",null, ETHNICITY_CODE, historyAndDiag.getEthnicity());
-      all.add(obsg);
-    }
-    
-    if (historyAndDiag.getInbreeding() != null) {
-      Observation cons = createObservation(patient, "CONS", "exam",null, null, historyAndDiag.getInbreeding());
-      all.add(cons);
-    }
-
-    Observation indic = createObservation(patient, "INDIC", "exam",null, null, historyAndDiag.getDiagnosticHypothesis());
-    all.add(indic);
-
-    all.addAll(signs.getSigns().stream().map(o -> {
-      Observation obs = createObservation(patient, "PHEN", "exam",o.getIsObserved(), HP_CODE, o.getValue());
-      if(o.getAgeCode() != null) {
-        obs.addExtension(AGE_AT_ONSET_EXT, new Coding().setCode(o.getAgeCode()));
-      }
-      return obs;
-    }).collect(Collectors.toList()));
-
-    all.addAll(exams.getExams().stream()
-      .filter(o -> EnumSet.of(Exams.Interpretation.normal, Exams.Interpretation.abnormal).contains(o.getInterpretation()))
-      .map(o -> {
-        Observation obs = createObservation(patient, o.getCode(), "procedure", null, null, o.getValue());
-        obs.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(getInterpretationCode(o.getInterpretation()))));
-        o.getValues().forEach(v -> obs.getValueCodeableConcept().addCoding(new Coding().setSystem(HP_CODE).setCode(v)));
+    if (signs != null) {
+      all.addAll(signs.getSigns().stream().map(o -> {
+        Observation obs = createObservation(patient, "PHEN", "exam", o.getIsObserved(), HP_CODE, o.getValue());
+        if (o.getAgeCode() != null) {
+          obs.addExtension(AGE_AT_ONSET_EXT, new Coding().setCode(o.getAgeCode()));
+        }
         return obs;
-    }).collect(Collectors.toList()));
+      }).collect(Collectors.toList()));
+
+      if(StringUtils.isNotBlank(signs.getComment())) {
+        Observation obsg = createObservation(patient, "OBSG", "exam",null, null, signs.getComment());
+        all.add(obsg);
+      }
+    }
+
+    if (exams != null) {
+      all.addAll(exams.getExams().stream()
+        .filter(o -> EnumSet.of(Exams.Interpretation.normal, Exams.Interpretation.abnormal).contains(o.getInterpretation()))
+        .map(o -> {
+          Observation obs = createObservation(patient, o.getCode(), "procedure", null, null, o.getValue());
+          obs.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(getInterpretationCode(o.getInterpretation()))));
+          o.getValues().forEach(v -> obs.getValueCodeableConcept().addCoding(new Coding().setSystem(HP_CODE).setCode(v)));
+          return obs;
+        }).collect(Collectors.toList()));
+
+      if(StringUtils.isNotBlank(exams.getComment())) {
+        Observation obsg = createObservation(patient, "INVES", "exam", null, null, exams.getComment());
+        all.add(obsg);
+      }
+    }
+
+
+    if (historyAndDiag !=null) {
+      Observation indic = createObservation(patient, "INDIC", "exam", null, null, historyAndDiag.getDiagnosticHypothesis());
+      all.add(indic);
+
+      if (StringUtils.isNotBlank(historyAndDiag.getEthnicity())) {
+        Observation obsg = createObservation(patient, "ETHN", "exam",null, ETHNICITY_CODE, historyAndDiag.getEthnicity());
+        all.add(obsg);
+      }
+
+      if (historyAndDiag.getInbreeding() != null) {
+        Observation cons = createObservation(patient, "CONS", "exam", null, null, historyAndDiag.getInbreeding());
+        all.add(cons);
+      }
+    }
     
     addParentObservation(all, patient, mother, "MMTH");
     addParentObservation(all, patient, father, "MFTH");
@@ -253,11 +263,14 @@ public class SubmitToFhirMapper {
     return observation;
   }
 
-  private void addFamilyMember(ServiceRequest serviceRequest, org.hl7.fhir.r4.model.Patient patient, String code) {
-    if (patient != null) {
+  private void addParent(ServiceRequest serviceRequest, ClinicalImpression clinicalImpressionParent, String code) {
+    if (clinicalImpressionParent != null) {
+      // add clinical impression
+      serviceRequest.addSupportingInfo(FhirUtils.toReference(clinicalImpressionParent));
+      // add family member extension
       final Extension familyMemberExt = new Extension(FAMILY_MEMBER);
       final Extension parentExt = new Extension("parent");
-      parentExt.setValue(FhirUtils.toReference(patient));
+      parentExt.setValue(clinicalImpressionParent.getSubject());
       final Extension parentRelationExt = new Extension("parent-relationship");
       final CodeableConcept cc = new CodeableConcept();
       cc.getCodingFirstRep().setSystem(SYSTEM_ROLE).setCode(code);

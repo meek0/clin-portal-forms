@@ -2,6 +2,7 @@ package bio.ferlab.clin.portal.forms.utils;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.util.BundleUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBaseBundle;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
@@ -59,13 +60,15 @@ public class BundleExtractor {
     return null;
   }
   
-  public String extractIdFromResponse(int index) {
-    var entries = bundle.getEntry();
-    if (entries.size() > index) {
-      var entry = entries.get(index);
-      if (entry != null) {
-        return FhirUtils.extractId(entry.getResponse().getLocation());
-      }
+  public String extractFirstIdFromResponse(String type) {
+    if (StringUtils.isNotBlank(type)) {
+      return bundle.getEntry().stream()
+        .map(Bundle.BundleEntryComponent::getResponse)
+        .map(Bundle.BundleEntryResponseComponent::getLocation)
+        .filter(StringUtils::isNotBlank)
+        .filter(l -> l.startsWith(type + "/"))
+        .findFirst()
+        .map(FhirUtils::extractId).orElse(null);
     }
     return null;
   }

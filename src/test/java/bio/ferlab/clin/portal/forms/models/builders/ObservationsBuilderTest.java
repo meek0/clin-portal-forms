@@ -117,34 +117,39 @@ class ObservationsBuilderTest {
     assertEquals(13, obs.size());
 
     assertObservation(obs.get(0), patient, "DSTA", "exam", true, ANALYSIS_REQUEST_CODE, "code", true);
-    assertObservation(obs.get(1), patient, "OBSG", "exam", null, null, clinicalSigns.getComment(), true);
-    assertObservation(obs.get(2), patient, "INVES", "exam", null, null, paraclinicalExams.getComment(), true);
-    assertObservation(obs.get(3), patient, "ETHN", "exam", null, ETHNICITY_CODE, historyAndDiag.getEthnicity(), true);
-    assertObservation(obs.get(4), patient, "CONS", "exam", null, null, historyAndDiag.getInbreeding(), true);
 
-    assertObservation(obs.get(5), patient, "INDIC", "exam", null, null, historyAndDiag.getDiagnosticHypothesis(), true);
 
-    assertObservation(obs.get(6), patient, "PHEN", "exam", true, HP_CODE, "sign", true);
-    assertEquals("age", ((Coding)obs.get(6).getExtensionByUrl(AGE_AT_ONSET_EXT).getValue()).getCode());
+    assertObservation(obs.get(1), patient, "PHEN", "exam", true, HP_CODE, "sign", true);
+    assertEquals("age", ((Coding)obs.get(1).getExtensionByUrl(AGE_AT_ONSET_EXT).getValue()).getCode());
 
-    assertObservation(obs.get(7), patient, "PHEN", "exam", false, HP_CODE, "sign", true);
-    assertNull(obs.get(7).getExtensionByUrl(AGE_AT_ONSET_EXT));
+    assertObservation(obs.get(2), patient, "PHEN", "exam", false, HP_CODE, "sign", true);
+    assertNull(obs.get(2).getExtensionByUrl(AGE_AT_ONSET_EXT));
 
-    assertObservation(obs.get(8), patient, "code1", "procedure", null, null, null, false);
-    assertEquals(OBSERVATION_INTERPRETATION,obs.get(8).getInterpretationFirstRep().getCodingFirstRep().getSystem());
-    assertEquals("N",obs.get(8).getInterpretationFirstRep().getCodingFirstRep().getCode());
+    assertObservation(obs.get(3), patient, "OBSG", "exam", null, null, clinicalSigns.getComment(), true);
 
-    assertObservation(obs.get(9), patient, "code2", "procedure", null, null, "value", false);
-    assertEquals(OBSERVATION_INTERPRETATION,obs.get(9).getInterpretationFirstRep().getCodingFirstRep().getSystem());
-    assertEquals("A",obs.get(9).getInterpretationFirstRep().getCodingFirstRep().getCode());
+    assertObservation(obs.get(4), patient, "code1", "procedure", null, null, null, false);
+    assertEquals(OBSERVATION_INTERPRETATION,obs.get(4).getInterpretationFirstRep().getCodingFirstRep().getSystem());
+    assertEquals("N",obs.get(4).getInterpretationFirstRep().getCodingFirstRep().getCode());
 
-    assertObservation(obs.get(10), patient, "code3", "procedure", null, null, null, false);
-    assertEquals(OBSERVATION_INTERPRETATION,obs.get(10).getInterpretationFirstRep().getCodingFirstRep().getSystem());
-    assertEquals("A",obs.get(10).getInterpretationFirstRep().getCodingFirstRep().getCode());
-    assertEquals(HP_CODE,obs.get(10).getValueCodeableConcept().getCoding().get(0).getSystem());
-    assertEquals("value1",obs.get(10).getValueCodeableConcept().getCoding().get(0).getCode());
-    assertEquals(HP_CODE,obs.get(10).getValueCodeableConcept().getCoding().get(1).getSystem());
-    assertEquals("value2",obs.get(10).getValueCodeableConcept().getCoding().get(1).getCode());
+    assertObservation(obs.get(5), patient, "code2", "procedure", null, null, "value", false);
+    assertEquals(OBSERVATION_INTERPRETATION,obs.get(5).getInterpretationFirstRep().getCodingFirstRep().getSystem());
+    assertEquals("A",obs.get(5).getInterpretationFirstRep().getCodingFirstRep().getCode());
+
+    assertObservation(obs.get(6), patient, "code3", "procedure", null, null, null, false);
+    assertEquals(OBSERVATION_INTERPRETATION,obs.get(6).getInterpretationFirstRep().getCodingFirstRep().getSystem());
+    assertEquals("A",obs.get(6).getInterpretationFirstRep().getCodingFirstRep().getCode());
+    assertEquals(HP_CODE,obs.get(6).getValueCodeableConcept().getCoding().get(0).getSystem());
+    assertEquals("value1",obs.get(6).getValueCodeableConcept().getCoding().get(0).getCode());
+    assertEquals(HP_CODE,obs.get(6).getValueCodeableConcept().getCoding().get(1).getSystem());
+    assertEquals("value2",obs.get(6).getValueCodeableConcept().getCoding().get(1).getCode());
+
+    assertObservation(obs.get(7), patient, "INVES", "exam", null, null, paraclinicalExams.getComment(), true);
+
+    assertObservation(obs.get(8), patient, "INDIC", "exam", null, null, historyAndDiag.getDiagnosticHypothesis(), true);
+
+    assertObservation(obs.get(9), patient, "ETHN", "exam", null, ETHNICITY_CODE, historyAndDiag.getEthnicity(), true);
+
+    assertObservation(obs.get(10), patient, "CONS", "exam", null, null, historyAndDiag.getInbreeding(), true);
 
     assertObservation(obs.get(11), patient, "MFTH", "social-history", null, SYSTEM_MISSING_PARENT, CODE_MISSING_PARENT, false);
 

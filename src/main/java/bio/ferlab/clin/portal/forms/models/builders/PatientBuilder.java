@@ -5,6 +5,7 @@ import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.submit.Parent;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
+import bio.ferlab.clin.portal.forms.utils.Utils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,7 @@ public class PatientBuilder {
   
   public PatientBuilder findByRamq() {
     if(StringUtils.isNotBlank(patient.getRamq())) {
-      Bundle bundle = this.fhirClient.findPersonAndPatientByRamq(patient.getRamq());
+      Bundle bundle = this.fhirClient.findPersonAndPatientByRamq(Utils.removeSpaces(patient.getRamq()));
       BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
       final Person person = bundleExtractor.getFirstResourcesOfType(Person.class);
       final List<Patient> patients = bundleExtractor.getAllResourcesOfType(Patient.class);
@@ -93,10 +94,7 @@ public class PatientBuilder {
   }
   
   public static Result find(FhirClient fhirClient, String ramq, String mrn, String ep) {
-    final bio.ferlab.clin.portal.forms.models.submit.Patient patient = new bio.ferlab.clin.portal.forms.models.submit.Patient();
-    patient.setRamq(ramq);
-    patient.setMrn(mrn);
-    patient.setEp(ep);
+    final bio.ferlab.clin.portal.forms.models.submit.Patient patient = new bio.ferlab.clin.portal.forms.models.submit.Patient(ramq, mrn, ep);
 
     return new PatientBuilder(fhirClient, null, patient)
         .validateRamqAndMrn()
@@ -106,14 +104,7 @@ public class PatientBuilder {
   }
 
   public static Result findUpdateOrCreate(FhirClient fhirClient, Parent parent) {
-    final bio.ferlab.clin.portal.forms.models.submit.Patient patient = new bio.ferlab.clin.portal.forms.models.submit.Patient();
-    patient.setRamq(parent.getRamq());
-    patient.setMrn(parent.getMrn());
-    patient.setEp(parent.getEp());
-    patient.setGender(parent.getGender());
-    patient.setBirthDate(parent.getBirthDate());
-    patient.setLastName(parent.getLastName());
-    patient.setFirstName(parent.getFirstName());
+    final bio.ferlab.clin.portal.forms.models.submit.Patient patient = new bio.ferlab.clin.portal.forms.models.submit.Patient(parent);
 
     return new PatientBuilder(fhirClient, new SubmitToFhirMapper(), patient)
         .validateRamqAndMrn()

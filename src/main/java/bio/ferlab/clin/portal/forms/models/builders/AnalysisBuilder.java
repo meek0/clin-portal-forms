@@ -21,13 +21,13 @@ public class AnalysisBuilder {
   private final PractitionerRole supervisorRole;
   private final String comment;
   private Patient foetus;
-  private Patient mother;
-  private Patient father;
+  private ClinicalImpression clinicalImpressionMother;
+  private ClinicalImpression clinicalImpressionFather;
   
   private String orderDetails;
 
   public Result build() {
-    final ServiceRequest serviceRequest = mapper.mapToAnalysis(panelCode, patient, mother, father, clinicalImpression, orderDetails, practitionerRole, supervisorRole, comment, foetus);
+    final ServiceRequest serviceRequest = mapper.mapToAnalysis(panelCode, patient, clinicalImpression, clinicalImpressionMother, clinicalImpressionFather, orderDetails, practitionerRole, supervisorRole, comment, foetus);
     return new Result(serviceRequest);
   }
   
@@ -36,13 +36,13 @@ public class AnalysisBuilder {
     return this;
   }
 
-  public AnalysisBuilder withMother(Patient mother) {
-    this.mother = mother;
+  public AnalysisBuilder withMother(ClinicalImpression clinicalImpressionMother) {
+    this.clinicalImpressionMother = clinicalImpressionMother;
     return this;
   }
 
-  public AnalysisBuilder withFather(Patient father) {
-    this.father = father;
+  public AnalysisBuilder withFather(ClinicalImpression clinicalImpressionFather) {
+    this.clinicalImpressionFather = clinicalImpressionFather;
     return this;
   }
   

@@ -18,4 +18,5 @@ public class ClinicalSigns {
   @NotNull
   private List<Signs> signs = new ArrayList<>();
   private String comment;
+
 }

@@ -4,10 +4,15 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Optional;
 
 public class Utils {
   
   private Utils() {}
+
+  public static String removeSpaces(String str) {
+    return Optional.ofNullable(str).map(s -> s.replace(" ", "")).orElse(null);
+  }
   
   public static DateFormat getDateFormat() {
     return new SimpleDateFormat("yyyy-MM-dd");
