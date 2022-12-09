@@ -16,6 +16,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.LDM_PREFIX;
 
 @RequiredArgsConstructor
 public class PractitionerBuilder {
@@ -46,7 +49,8 @@ public class PractitionerBuilder {
     Bundle response = this.fhirClient.findPractitionerRoleByPractitionerId(practitionerId);
 
     BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), response);
-    List<PractitionerRole> practitionerRoles = bundleExtractor.getAllResourcesOfType(PractitionerRole.class);
+    List<PractitionerRole> practitionerRoles = bundleExtractor.getAllResourcesOfType(PractitionerRole.class)
+      .stream().filter(r -> !FhirUtils.extractId(r.getOrganization().getReference()).startsWith(LDM_PREFIX)).collect(Collectors.toList());
 
     if (practitionerRoles.isEmpty()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("practitioner %s has no roles", practitionerId));

@@ -42,6 +42,7 @@ class PractitionerBuilderTest {
     final Bundle bundle = new Bundle();
     bundle.addEntry().setResource(new PractitionerRole().setOrganization(FhirUtils.toReference(new Organization().setId("ep1"))).setId("bar1"));
     bundle.addEntry().setResource(new PractitionerRole().setOrganization(FhirUtils.toReference(new Organization().setId("ep2"))).setId("bar2"));
+    bundle.addEntry().setResource(new PractitionerRole().setOrganization(FhirUtils.toReference(new Organization().setId("LDM-ep3"))).setId("bar3"));
 
     when(fhirClient.findPractitionerRoleById(any())).thenReturn(practitionerRole);
     when(fhirClient.findPractitionerRoleByPractitionerId(any())).thenReturn(bundle);
