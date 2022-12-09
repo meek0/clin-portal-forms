@@ -11,6 +11,8 @@ fhir:
     - fr
   types-with-default: # will load <type>-default-hpo <type>-default-exam 
     - mmg
+    - mitn
+    - rgdi
   multi-values-observation-codes: # will load <code>-abnormalities
     - bmus
     - emg
