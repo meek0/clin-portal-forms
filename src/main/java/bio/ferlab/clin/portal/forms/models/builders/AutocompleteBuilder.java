@@ -16,6 +16,9 @@ import org.hl7.fhir.r4.model.PractitionerRole;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.DOCTOR_PREFIX;
 
 @RequiredArgsConstructor
 public class AutocompleteBuilder {
@@ -33,7 +36,8 @@ public class AutocompleteBuilder {
       // from a performance point of view, it's easier to fetch all the practitioner + roles by ep
       // and filter here instead of asking FHIR to query filter in database. 
       // considering findPractitionerAndRoleByEp can be cached it will be better 
-      final List<PractitionerRole> roles = bundleExtractor.getAllResourcesOfType(PractitionerRole.class);
+      final List<PractitionerRole> roles = bundleExtractor.getAllResourcesOfType(PractitionerRole.class)
+        .stream().filter(r -> r.hasCode() && DOCTOR_PREFIX.equals(r.getCodeFirstRep().getCodingFirstRep().getCode())).collect(Collectors.toList());
       final List<Practitioner> practitioners = bundleExtractor.getAllResourcesOfType(Practitioner.class);
       // not a stream.filter(...) because un-readable
       for (Practitioner p : practitioners) {

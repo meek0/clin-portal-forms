@@ -92,14 +92,17 @@ class AutocompleteBuilderTest {
     final PractitionerRole r1 = new PractitionerRole();
     r1.setId("r1");
     r1.setPractitioner(FhirUtils.toReference(p1));
+    r1.getCodeFirstRep().getCodingFirstRep().setCode("doctor");
 
     final PractitionerRole r2 = new PractitionerRole();
     r2.setId("r2");
     r2.setPractitioner(FhirUtils.toReference(p2));
+    r2.getCodeFirstRep().getCodingFirstRep().setCode("doctor");
 
     final PractitionerRole r3 = new PractitionerRole();
     r3.setId("r3");
     r3.setPractitioner(FhirUtils.toReference(p3));
+    r3.getCodeFirstRep().getCodingFirstRep().setCode("doctor");
 
     final Bundle bundle = new Bundle();
     bundle.addEntry().setResource(p1);
