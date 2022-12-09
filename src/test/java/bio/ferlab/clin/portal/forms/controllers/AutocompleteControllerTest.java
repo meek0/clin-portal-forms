@@ -59,6 +59,7 @@ class AutocompleteControllerTest {
     final PractitionerRole r1 = new PractitionerRole();
     r1.setId("r1");
     r1.setPractitioner(FhirUtils.toReference(p1));
+    r1.getCodeFirstRep().getCodingFirstRep().setCode("doctor");
     rolesBundle.addEntry().setResource(p1);
     rolesBundle.addEntry().setResource(r1);
     
