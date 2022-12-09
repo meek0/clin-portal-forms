@@ -191,6 +191,40 @@ For foetus, `mrn` and `ramq` are the one from the mother.
 }
 ```
 
+### Trio body example
+
+Two new sections `mother` and `father` at the same level than `patient`
+
+```json
+"patient": {
+   ...
+}
+"mother": {
+    "parent_enter_moment": "now",
+    "ep": "CHUSJ",
+    "no_mrn": true,
+    "ramq": "XXXXXXXXX",
+    "last_name": "Foo",
+    "first_name": "BAR",
+    "birth_date": "1990-01-01",
+    "gender": "male",
+    "parent_clinical_status": "affected",
+    "signs": [
+        {
+        "value": "HP:0000002",
+        "is_observed": true,
+        "name": "Abnormality of body height",
+        "age_code": "HP:0410280"
+        }
+    ]
+},
+"father": { 
+    "parent_enter_moment": [later|never], 
+    "parent_no_info_reason": "optional later/never reason" 
+}
+```
+*Note: if `parent_clinical_status: not_affected|unknown` then `signs` isn't required*
+
 ### Response
 
 `200 OK`
