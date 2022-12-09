@@ -5,6 +5,7 @@ public class FhirConst {
   private FhirConst(){}
 
   public static final String LDM_PREFIX = "LDM";
+  public static final String DOCTOR_PREFIX = "doctor";
   
   public static final String DEFAULT_HPO_SUFFIX = "-default-hpo";
   public static final String DEFAULT_EXAM_SUFFIX = "-default-exam";
