@@ -5,7 +5,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Configuration
 @ConfigurationProperties("fhir")
@@ -18,6 +20,7 @@ public class FhirConfiguration {
   private boolean validate;
   private List<String> supportedLangs = new ArrayList<>();
   private List<String> typesWithDefault = new ArrayList<>();
+  private Map<String, String> sameTypes = new HashMap<>();
   private List<String> multiValuesObservationCodes = new ArrayList<>();
   
 }

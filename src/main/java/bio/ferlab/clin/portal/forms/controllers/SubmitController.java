@@ -76,13 +76,13 @@ public class SubmitController {
         .build();
 
     final ObservationsBuilder observationsMotherBuilder = new ObservationsBuilder(mapper, panelCode, motherResult.getPatient(),
-      null, new ClinicalSigns(request.getMother().getSigns(), null), null);
+      null, new ClinicalSigns(request.getMother()), null);
     ObservationsBuilder.Result obmr = observationsMotherBuilder
       .validate()
       .build();
 
     final ObservationsBuilder observationsFatherBuilder = new ObservationsBuilder(mapper, panelCode, fatherResult.getPatient(),
-      null, new ClinicalSigns(request.getFather().getSigns(), null), null);
+      null, new ClinicalSigns(request.getFather()), null);
     ObservationsBuilder.Result obfr = observationsFatherBuilder
       .validate()
       .build();

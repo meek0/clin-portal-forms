@@ -5,6 +5,8 @@ import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
 import bio.ferlab.clin.portal.forms.mappers.FhirToConfigMapper;
 import bio.ferlab.clin.portal.forms.models.builders.PractitionerBuilder;
 import bio.ferlab.clin.portal.forms.models.config.Form;
+import bio.ferlab.clin.portal.forms.models.config.ValueName;
+import bio.ferlab.clin.portal.forms.models.config.ValueNameExtra;
 import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.utils.JwtUtils;
@@ -15,6 +17,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -63,33 +67,38 @@ public class ConfigController {
     form.getConfig().getHistoryAndDiagnosis().getEthnicities().addAll(fhirToConfigMapper.mapToEthnicities(ethnicity, lang));
     
     // use form default or generic values
+    final String useSameType = this.fhirConfiguration.getSameTypes().getOrDefault(panelCode, panelCode);
     final List<ValueSet> hpByTypes = fhirConfiguration.getTypesWithDefault().stream()
         .map(t -> codesValuesService.getValues(t + CodesValuesService.HP_BY_TYPE_SUFFIX)).collect(Collectors.toList());
     final List<ValueSet> obsByTypes = fhirConfiguration.getTypesWithDefault().stream()
         .map(t -> codesValuesService.getValues(t + CodesValuesService.OBS_BY_TYPE_SUFFIX)).collect(Collectors.toList());
     final List<ValueSet> multiValues = fhirConfiguration.getMultiValuesObservationCodes().stream()
         .map(t -> codesValuesService.getValues(t + CodesValuesService.MULTI_VALUES_SUFFIX)).collect(Collectors.toList());
-    this.applyFormHpByTypeOrDefault(panelCode, form, hp, hpByTypes);
-    this.applyFormObservationByTypeOrDefault(panelCode, form, lang, observation, obsByTypes, multiValues);
+    this.applyFormHpByTypeOrDefault(useSameType, form, lang, hp, hpByTypes);
+    this.applyFormObservationByTypeOrDefault(useSameType, form, lang, observation, obsByTypes, multiValues);
     
     return form;
   }
   
-  private void applyFormHpByTypeOrDefault(String formType, Form form, CodeSystem all, List<ValueSet> byTypes) {
+  private void applyFormHpByTypeOrDefault(String formType, Form form, String lang, CodeSystem all, List<ValueSet> byTypes) {
     Optional<ValueSet> byType = byTypes.stream().filter(vs -> (formType + DEFAULT_HPO_SUFFIX).equalsIgnoreCase(vs.getName())).findFirst();
-    if (byType.isPresent()) {
-      form.getConfig().getClinicalSigns().getDefaultList().addAll(fhirToConfigMapper.mapToClinicalSigns(byType.get()));
+    if (byType.isPresent()) { // if this panel code has specific values or else use the default
+      form.getConfig().getClinicalSigns().getDefaultList().addAll(fhirToConfigMapper.mapToClinicalSigns(byType.get(), lang));
     } else {
-      form.getConfig().getClinicalSigns().getDefaultList().addAll(fhirToConfigMapper.mapToClinicalSigns(all));
+      form.getConfig().getClinicalSigns().getDefaultList().addAll(fhirToConfigMapper.mapToClinicalSigns(all, lang));
     }
+    // sort by name
+    form.getConfig().getClinicalSigns().getDefaultList().sort(Comparator.comparing(ValueName::getName));
   }
 
   private void applyFormObservationByTypeOrDefault(String formType, Form form, String lang, CodeSystem all, List<ValueSet> byTypes, List<ValueSet> multiValues) {
     Optional<ValueSet> byType = byTypes.stream().filter(vs -> (formType + DEFAULT_EXAM_SUFFIX).equalsIgnoreCase(vs.getName())).findFirst();
-    if (byType.isPresent()) {
+    if (byType.isPresent()) { // if this panel code has specific values or else use the default
       form.getConfig().getParaclinicalExams().getDefaultList().addAll(fhirToConfigMapper.mapToParaclinicalExams(byType.get(), lang, multiValues));
     } else {
       form.getConfig().getParaclinicalExams().getDefaultList().addAll(fhirToConfigMapper.mapToParaclinicalExams(all, lang, multiValues));
     }
+    // sort by name
+    form.getConfig().getParaclinicalExams().getDefaultList().sort(Comparator.comparing(ValueNameExtra::getName));
   }
 }

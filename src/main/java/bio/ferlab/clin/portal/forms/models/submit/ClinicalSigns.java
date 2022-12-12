@@ -19,4 +19,10 @@ public class ClinicalSigns {
   private List<Signs> signs = new ArrayList<>();
   private String comment;
 
+  public ClinicalSigns(Parent parent) {
+    if (parent != null) {
+      this.signs = parent.getSigns();
+    }
+  }
+
 }

@@ -58,7 +58,7 @@ class FhirToConfigMapperTest {
     Stream.iterate(0, n -> n +1).limit(20).forEach(n -> {
       codeSystem.getConcept().add(new CodeSystem.ConceptDefinitionComponent().setDisplay("display"+n).setCode(n.toString()));
     });
-    var result = mapper.mapToClinicalSigns(codeSystem);
+    var result = mapper.mapToClinicalSigns(codeSystem, "fr");
     assertEquals(10, result.size());  // we keep 10 items
     for(int i=1;i <result.size();i++) { // we skip the 1 item
       final ValueName v = result.get(i-1);
@@ -73,7 +73,7 @@ class FhirToConfigMapperTest {
     Stream.iterate(0, n -> n +1).limit(2).forEach(n -> {
       valueSet.getCompose().getIncludeFirstRep().getConcept().add(new ValueSet.ConceptReferenceComponent().setDisplay("display"+n).setCode(n.toString()));
     });
-    var result = mapper.mapToClinicalSigns(valueSet);
+    var result = mapper.mapToClinicalSigns(valueSet,"fr");
     assertEquals("ValueName(name=display0, value=0) ValueName(name=display1, value=1)", StringUtils.join(result, " "));
   }
   

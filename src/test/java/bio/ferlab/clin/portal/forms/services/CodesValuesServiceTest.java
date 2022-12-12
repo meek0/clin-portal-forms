@@ -20,7 +20,8 @@ class CodesValuesServiceTest {
   private final FhirContext fhirContext = FhirContext.forR4();
   private final FhirClient fhirClient = Mockito.mock(FhirClient.class);
   private final FhirConfiguration fhirConfiguration = Mockito.mock(FhirConfiguration.class);
-  private final CodesValuesService service =new CodesValuesService(fhirClient, fhirConfiguration);
+  private final LogOnceService logOnceService = Mockito.mock(LogOnceService.class);
+  private final CodesValuesService service =new CodesValuesService(fhirClient, fhirConfiguration, logOnceService);
   
   @BeforeEach
   void beforeEach() {

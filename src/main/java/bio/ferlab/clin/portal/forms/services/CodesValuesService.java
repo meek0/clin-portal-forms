@@ -4,19 +4,21 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class CodesValuesService {
-  
+
+  private final List<String> missingCodes = new ArrayList<>();
+
   public static final String ANALYSE_KEY = "analyse";
   public static final String HP_KEY = "hp";
   public static final String PARENTAL_KEY = "parental";
@@ -29,7 +31,8 @@ public class CodesValuesService {
   
   private final FhirClient fhirClient;
   private final FhirConfiguration fhirConfiguration;
-  
+  private final LogOnceService logOnceService;
+
   public CodeSystem getCodes(String key) {
     return (CodeSystem) this.buildCodesAndValues().get(key);
   }
@@ -64,13 +67,26 @@ public class CodesValuesService {
       ValueSet obsByType = bundleExtractor.getNextResourcesOfType(ValueSet.class);
       codesAndValues.put(byType + HP_BY_TYPE_SUFFIX,hpByType);
       codesAndValues.put(byType + OBS_BY_TYPE_SUFFIX, obsByType);
+      validate(hp, hpByType);
+      validate(observation, obsByType);
     }
 
     for(String byType: fhirConfiguration.getMultiValuesObservationCodes()) {
       ValueSet abnormality = bundleExtractor.getNextResourcesOfType(ValueSet.class);
       codesAndValues.put(byType + MULTI_VALUES_SUFFIX, abnormality);
     }
-    
+
     return codesAndValues;
   }
+
+  private void validate(CodeSystem codes, ValueSet values) {
+    for (ValueSet.ConceptReferenceComponent concept : values.getCompose().getIncludeFirstRep().getConcept()) {
+      final String code = concept.getCode();
+      Optional<CodeSystem.ConceptDefinitionComponent> res = codes.getConcept().stream().filter(c -> c.getCode().equals(code)).findFirst();
+      if (res.isEmpty()) {
+        logOnceService.warn(String.format("Missing CodeSystem for code: %s", code));
+      }
+    }
+  }
+
 }
