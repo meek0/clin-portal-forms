@@ -35,16 +35,16 @@ public class FhirToConfigMapper {
     }).collect(Collectors.toList());
   }
   
-  public List<ValueName> mapToClinicalSigns(CodeSystem hp) {
+  public List<ValueName> mapToClinicalSigns(CodeSystem hp, String lang) {
     return hp.getConcept().stream()
         .skip(1)
         .limit(10)
-        .map(c -> ValueName.builder().name(c.getDisplay()).value(c.getCode()).build()).collect(Collectors.toList());
+        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
   }
 
-  public List<ValueName> mapToClinicalSigns(ValueSet hpByType) {
+  public List<ValueName> mapToClinicalSigns(ValueSet hpByType, String lang) {
     return hpByType.getCompose().getIncludeFirstRep().getConcept().stream()
-        .map(c -> ValueName.builder().name(c.getDisplay()).value(c.getCode()).build()).collect(Collectors.toList());
+        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
   }
 
   public List<ValueName> mapToOnsetAge(ValueSet age, String lang) {

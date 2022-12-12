@@ -13,6 +13,12 @@ fhir:
     - mmg
     - mitn
     - rgdi
+  same-types: # use the same 'types-with-default'
+    DYSM: MMG
+    HYPM: MMG
+    MYAC: MMG
+    MYOC: MMG
+    RHAB: MMG
   multi-values-observation-codes: # will load <code>-abnormalities
     - bmus
     - emg

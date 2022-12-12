@@ -1,20 +1,19 @@
 package bio.ferlab.clin.portal.forms.services;
 
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
 @Service
-@Slf4j
 public class LabelsService {
   
   private static final String LABELS_BUNDLE_NAME = "labels";
   private final Map<String, ResourceBundle> labels = new HashMap<>();
-  private final List<String> missingLabels = new ArrayList<>();
-  
-  public LabelsService() {
+  private final LogOnceService logOnceService;
+
+  public LabelsService(LogOnceService logOnceService) {
+    this.logOnceService = logOnceService;
     this.labels.put("fr", ResourceBundle.getBundle(LABELS_BUNDLE_NAME, Locale.forLanguageTag("fr")));
   }
 
@@ -26,20 +25,11 @@ public class LabelsService {
         label = bundle.getString(code);
       }
       if (StringUtils.isBlank(label)) {
-        this.logMissingLabel(code, lang);
+        logOnceService.warn(String.format("Missing label for code: %s and lang: %s", code, lang));
         label = null;
       }
     }
     return label;
   }
-  
-  private synchronized  void logMissingLabel(String code, String lang) {
-    final String label = code + "-" + lang;
-    if (!missingLabels.contains(label)) {
-      missingLabels.add(String.format(label));
-      log.warn("Missing label for code: {} and lang: {}", code, lang);
-    }
-  }
-  
-  
+
 }
