@@ -10,6 +10,7 @@ import bio.ferlab.clin.portal.forms.models.config.ValueNameExtra;
 import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.utils.JwtUtils;
+import bio.ferlab.clin.portal.forms.utils.NormalizedComparator;
 import lombok.RequiredArgsConstructor;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.ValueSet;
@@ -88,7 +89,8 @@ public class ConfigController {
       form.getConfig().getClinicalSigns().getDefaultList().addAll(fhirToConfigMapper.mapToClinicalSigns(all, lang));
     }
     // sort by name
-    form.getConfig().getClinicalSigns().getDefaultList().sort(Comparator.comparing(ValueName::getName));
+    final NormalizedComparator comparator = new NormalizedComparator();
+    form.getConfig().getClinicalSigns().getDefaultList().sort((left, right) -> comparator.compare(left.getName(), right.getName()));
   }
 
   private void applyFormObservationByTypeOrDefault(String formType, Form form, String lang, CodeSystem all, List<ValueSet> byTypes, List<ValueSet> multiValues) {
@@ -99,6 +101,7 @@ public class ConfigController {
       form.getConfig().getParaclinicalExams().getDefaultList().addAll(fhirToConfigMapper.mapToParaclinicalExams(all, lang, multiValues));
     }
     // sort by name
-    form.getConfig().getParaclinicalExams().getDefaultList().sort(Comparator.comparing(ValueNameExtra::getName));
+    final NormalizedComparator comparator = new NormalizedComparator();
+    form.getConfig().getParaclinicalExams().getDefaultList().sort((left, right) -> comparator.compare(left.getName(), right.getName()));
   }
 }
