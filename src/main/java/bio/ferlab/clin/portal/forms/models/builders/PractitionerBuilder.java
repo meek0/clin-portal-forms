@@ -29,10 +29,13 @@ public class PractitionerBuilder {
   private String ep;
   private PractitionerRole supervisorRole;
   
-  public PractitionerBuilder withSupervisor(String supervisor) {
+  public PractitionerBuilder withSupervisor(String supervisor, String ep) {
     if (StringUtils.isNotBlank(supervisor)) {
       try {
         supervisorRole = this.fhirClient.findPractitionerRoleById(supervisor);
+        if (!FhirUtils.isDoctor(supervisorRole, ep)) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("practitioner %s isn't a doctor at ep %s", supervisor, ep));
+        }
       }catch(ResourceNotFoundException e){
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "supervisor " + supervisor + " is unknown");
       }

@@ -1,12 +1,12 @@
 package bio.ferlab.clin.portal.forms.utils;
 
 import org.hl7.fhir.r4.model.Patient;
+import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class FhirUtilsTest {
   
@@ -14,6 +14,17 @@ class FhirUtilsTest {
   void formatResource() {
     final Resource patient = new Patient().setId("foo");
     assertEquals("Patient/foo", FhirUtils.formatResource(patient));
+  }
+
+  @Test
+  void isDoctor() {
+    var role = new PractitionerRole();
+    role.getCodeFirstRep().getCodingFirstRep().setCode("doctor");
+    role.getOrganization().setReference("Organization/ep1");
+    assertTrue(FhirUtils.isDoctor(role, "ep1"));
+    role.getCodeFirstRep().getCodingFirstRep().setCode("foo");
+    assertFalse(FhirUtils.isDoctor(role, "ep2"));
+    assertFalse(FhirUtils.isDoctor(null, null));
   }
 
   @Test
