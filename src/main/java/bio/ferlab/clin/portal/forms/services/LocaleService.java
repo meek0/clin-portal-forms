@@ -1,11 +1,11 @@
 package bio.ferlab.clin.portal.forms.services;
 
 import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
 import java.util.Optional;
 

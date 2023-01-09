@@ -24,7 +24,7 @@ class NewBornBuilderTest {
       new NewBornBuilder(new SubmitToFhirMapper(), additionalInfo, patient).build();
     });
     assertEquals("patient.additional_info is_new_born is true but mother_ramq is empty", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   @Test
@@ -37,7 +37,7 @@ class NewBornBuilderTest {
       new NewBornBuilder(new SubmitToFhirMapper(), additionalInfo, patient).build();
     });
     assertEquals("patient.additional_info is_new_born and is_prenatal_diagnosis can't be both true", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   @Test

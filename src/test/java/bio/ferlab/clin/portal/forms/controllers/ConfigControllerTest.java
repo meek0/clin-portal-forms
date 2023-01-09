@@ -1,7 +1,6 @@
 package bio.ferlab.clin.portal.forms.controllers;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
-import bio.ferlab.clin.portal.forms.models.builders.FoetusBuilder;
 import bio.ferlab.clin.portal.forms.models.config.Form;
 import bio.ferlab.clin.portal.forms.services.LogOnceService;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
@@ -18,7 +17,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -62,7 +62,7 @@ class ConfigControllerTest {
       controller.config("Bearer " + token, "foo");
     });
     assertEquals("unsupported form panel code: foo available codes: [MMG]", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   private Bundle buildOrganizationsAndRoles() {

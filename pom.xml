@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.7.5</version>
+		<version>3.0.1</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>bio.ferlab.clin.portal.forms</groupId>
@@ -14,7 +14,7 @@
 	<name>clin-portal-forms</name>
 	<description>Interface between front-end and FHIR for forms submission</description>
 	<properties>
-		<java.version>11</java.version>
+		<java.version>17</java.version>
 		<hapifhir_version>5.7.9</hapifhir_version>
 	</properties>
 	<dependencies>

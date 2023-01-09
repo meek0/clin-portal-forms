@@ -33,7 +33,7 @@ class ObservationsBuilderTest {
       new ObservationsBuilder(null, null, null, null, clinicalSigns, new ParaclinicalExams()).validate();
     });
     assertEquals("age_code can't be empty for clinical_signs[2].is_observed = true", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   @Test
@@ -48,7 +48,7 @@ class ObservationsBuilderTest {
       new ObservationsBuilder(null, null, null, null, new ClinicalSigns(), paraclinicalExams).validate();
     });
     assertEquals("value and values can't be both empty for paraclinical_exams[3].interpretation = abnormal", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
   
   @Test

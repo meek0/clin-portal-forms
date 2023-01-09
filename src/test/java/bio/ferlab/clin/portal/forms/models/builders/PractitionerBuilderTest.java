@@ -70,7 +70,7 @@ class PractitionerBuilderTest {
       new PractitionerBuilder(fhirClient, "p").withEp("ep3").build();
     });
     assertEquals("practitioner p has no role in ep ep3", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   @Test
@@ -83,7 +83,7 @@ class PractitionerBuilderTest {
       new PractitionerBuilder(fhirClient, "p").build();
     });
     assertEquals("practitioner p has no roles", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   @Test
@@ -94,7 +94,7 @@ class PractitionerBuilderTest {
       new PractitionerBuilder(fhirClient, null).withSupervisor("sup");
     });
     assertEquals("supervisor sup is unknown", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
   
   @Test
@@ -130,7 +130,7 @@ class PractitionerBuilderTest {
       PractitionerBuilder.validateAccessToEp(fhirClient, token, "another_ep");
     });
     assertEquals("practitioner id has no role in ep another_ep", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
     
     verify(fhirClient).findPractitionerRoleByPractitionerId(eq("id"));
   }

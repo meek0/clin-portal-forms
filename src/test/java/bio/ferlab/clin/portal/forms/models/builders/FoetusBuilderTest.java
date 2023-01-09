@@ -26,7 +26,7 @@ class FoetusBuilderTest {
       new FoetusBuilder(null, additionalInfo, null).build();
     });
     assertEquals("patient.additional_info foetus_gender is required if is_prenatal_diagnosis is true", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   @Test
@@ -38,7 +38,7 @@ class FoetusBuilderTest {
       new FoetusBuilder(null, additionalInfo, null).build();
     });
     assertEquals("patient.additional_info gestational_age is required if is_prenatal_diagnosis is true", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   @Test
@@ -66,7 +66,7 @@ class FoetusBuilderTest {
         new FoetusBuilder(null, additionalInfo, null).build();
       });
       assertEquals("patient.additional_info gestational_date is required if gestational_age is ddm or dpa", exception.getReason());
-      assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+      assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
     } else {
       new FoetusBuilder(mapper, additionalInfo, new org.hl7.fhir.r4.model.Patient()).build();
     }

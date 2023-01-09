@@ -1,11 +1,11 @@
 package bio.ferlab.clin.portal.forms.services;
 
 import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
+import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

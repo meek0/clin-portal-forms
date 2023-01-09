@@ -59,7 +59,7 @@ class JwkServiceTest {
       service.checkToken(decoded);
     });
     assertEquals("The Token's Signature resulted invalid when verified using the Algorithm: HmacSHA256", exception.getReason());
-    assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+    assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
   }
 
   @Test
@@ -72,7 +72,7 @@ class JwkServiceTest {
       service.checkToken(decoded);
     });
     assertEquals("The Claim 'iss' value doesn't match the required issuer.", exception.getReason());
-    assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+    assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
   }
 
   @Test
@@ -86,7 +86,7 @@ class JwkServiceTest {
       service.checkToken(decoded);
     });
     assertEquals("The Claim 'aud' value doesn't contain the required audience.", exception.getReason());
-    assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+    assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
   }
 
   @Test
@@ -101,7 +101,7 @@ class JwkServiceTest {
       service.checkToken(decoded);
     });
     assertTrue(exception.getReason().startsWith("The Token has expired on"));
-    assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+    assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
 
   }
 

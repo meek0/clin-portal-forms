@@ -37,7 +37,7 @@ class ParentBuilderTest {
       new ParentBuilder(fhirClient, mapper, parent).build();
     });
     assertEquals("[mother|father].[ep|lastName|firstName] can't be blank", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   @Test
@@ -51,7 +51,7 @@ class ParentBuilderTest {
       new ParentBuilder(fhirClient, mapper, parent).build();
     });
     assertEquals("[mother|father].[birthDate|gender] can't be null", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   @Test
@@ -62,7 +62,7 @@ class ParentBuilderTest {
       new ParentBuilder(fhirClient, mapper, parent).build();
     });
     assertEquals("[mother|father].signs can't be empty if [mother|father].parent_clinical_status = affected", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   @Test

@@ -50,7 +50,7 @@ class SearchPrescriptionBuilderTest {
       new SearchPrescriptionBuilder(null, null, null, null, null).validate();
     });
     assertEquals("ramq and id can't be both empty", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
   
   @Test
