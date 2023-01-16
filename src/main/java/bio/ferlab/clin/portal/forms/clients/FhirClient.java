@@ -106,6 +106,7 @@ public class FhirClient {
     return this.getGenericClient().search().forResource(PractitionerRole.class)
         .where(PractitionerRole.ORGANIZATION.hasId(ep))
         .include(PractitionerRole.INCLUDE_PRACTITIONER)
+        .count(Integer.MAX_VALUE)
         .returnBundle(Bundle.class).encodedJson().execute();
   }
   

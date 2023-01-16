@@ -59,7 +59,7 @@ public class SubmitController {
     
     final PractitionerBuilder practitionerBuilder = new PractitionerBuilder(fhirClient, practitionerId);
     PractitionerBuilder.Result roleBr = practitionerBuilder
-        .withSupervisor(request.getAnalysis().getResidentSupervisor())
+        .withSupervisor(request.getAnalysis().getResidentSupervisor(), ep)
         .withEp(ep)
         .build();
     

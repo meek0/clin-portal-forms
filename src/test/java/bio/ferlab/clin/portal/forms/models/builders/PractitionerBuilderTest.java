@@ -36,9 +36,25 @@ class PractitionerBuilderTest {
   }
 
   @Test
+  void withSupervisor_bad_request() {
+    final PractitionerRole practitionerRole = new PractitionerRole();
+    practitionerRole.setId("foo");
+
+    when(fhirClient.findPractitionerRoleById(any())).thenReturn(practitionerRole);
+
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+      new PractitionerBuilder(fhirClient, null).withSupervisor("supervisor","ep1").build();
+    });
+    assertEquals("practitioner supervisor isn't a doctor at ep ep1", exception.getReason());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+  }
+
+  @Test
   void withSupervisor() {
     final PractitionerRole practitionerRole = new PractitionerRole();
     practitionerRole.setId("foo");
+    practitionerRole.getCodeFirstRep().getCodingFirstRep().setCode("doctor");
+    practitionerRole.getOrganization().setReference("Organization/ep2");
     final Bundle bundle = new Bundle();
     bundle.addEntry().setResource(new PractitionerRole().setOrganization(FhirUtils.toReference(new Organization().setId("ep1"))).setId("bar1"));
     bundle.addEntry().setResource(new PractitionerRole().setOrganization(FhirUtils.toReference(new Organization().setId("ep2"))).setId("bar2"));
@@ -46,12 +62,12 @@ class PractitionerBuilderTest {
 
     when(fhirClient.findPractitionerRoleById(any())).thenReturn(practitionerRole);
     when(fhirClient.findPractitionerRoleByPractitionerId(any())).thenReturn(bundle);
-    
+
     final PractitionerBuilder builder = new PractitionerBuilder(fhirClient, "practitioner");
     final PractitionerBuilder.Result result = builder
-        .withEp("ep2")
-        .withSupervisor("supervisor")
-        .build();
+      .withEp("ep2")
+      .withSupervisor("supervisor", "ep2")
+      .build();
 
     assertEquals(2, result.getPractitionerRoles().size());
     assertEquals("bar2", result.getPractitionerRole().getId());
@@ -91,7 +107,7 @@ class PractitionerBuilderTest {
     when(fhirClient.findPractitionerRoleById(any())).thenThrow(new ResourceNotFoundException("role not found"));
     
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-      new PractitionerBuilder(fhirClient, null).withSupervisor("sup");
+      new PractitionerBuilder(fhirClient, null).withSupervisor("sup", null);
     });
     assertEquals("supervisor sup is unknown", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
