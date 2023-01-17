@@ -2,6 +2,13 @@ spring:
   jackson:
     property-naming-strategy: SNAKE_CASE
     default-property-inclusion: non_null
+springdoc:
+  swagger-ui:
+    enabled: false
+    path: /swagger-ui
+  api-docs:
+    enabled: false
+    path: /openapi
 fhir:
   url: ${FHIR_URL:https://fhir.qa.cqgc.hsj.rtss.qc.ca/fhir}
   timeout: 15000
@@ -44,6 +51,10 @@ security:
     - "https://portail.qa.cqgc.hsj.rtss.qc.ca"
     - "https://portail.staging.cqgc.hsj.rtss.qc.ca"
     - "https://portail.cqgc.hsj.rtss.qc.ca"
+  publics:
+    - "/actuator"
+    - "/openapi"
+    - "/swagger-ui"
 logging:
   level:
     root: ERROR

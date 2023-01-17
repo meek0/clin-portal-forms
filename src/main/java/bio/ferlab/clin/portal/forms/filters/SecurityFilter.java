@@ -1,10 +1,12 @@
 package bio.ferlab.clin.portal.forms.filters;
 
+import bio.ferlab.clin.portal.forms.configurations.SecurityConfiguration;
 import bio.ferlab.clin.portal.forms.services.SecurityService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -15,13 +17,11 @@ import java.io.IOException;
 
 @Component
 @Order(1)
+@RequiredArgsConstructor
 public class SecurityFilter extends OncePerRequestFilter {
   
   private final SecurityService securityService;
-  
-  public SecurityFilter(SecurityService securityService) {
-    this.securityService = securityService;
-  }
+  private final SecurityConfiguration securityConfiguration;
 
   @Override
   public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -34,10 +34,6 @@ public class SecurityFilter extends OncePerRequestFilter {
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-    if (request.getRequestURI().startsWith("/actuator")) {
-      return true;
-    } else {
-      return super.shouldNotFilter(request);
-    }
+    return this.securityConfiguration.getPublics().stream().anyMatch(p -> request.getRequestURI().startsWith(p)) || super.shouldNotFilter(request);
   }
 }
