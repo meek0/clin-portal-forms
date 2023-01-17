@@ -4,7 +4,7 @@ This API provides a bridge between the front-end and FHIR Server for **Prescript
 
 # Documentation
 
-All endpoints and model descriptions are available here (work only with `local` profile):
+All endpoints and model descriptions are available here (only with `-Dspring.profiles.active=local`):
 
 OpenAPI
 - JSON: http://localhost:7979/openapi

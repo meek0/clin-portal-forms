@@ -25,15 +25,15 @@ public class SecurityFilter extends OncePerRequestFilter {
 
   @Override
   public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-    if (!HttpMethod.OPTIONS.name().equals(request.getMethod())) { // we don't check OPTIONS
-      String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
-      securityService.checkAuthorization(authorization);
-    }
+    String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+    securityService.checkAuthorization(authorization);
     filterChain.doFilter(request, response);
   }
 
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-    return this.securityConfiguration.getPublics().stream().anyMatch(p -> request.getRequestURI().startsWith(p)) || super.shouldNotFilter(request);
+    return HttpMethod.OPTIONS.name().equals(request.getMethod()) ||
+      this.securityConfiguration.getPublics().stream().anyMatch(p -> request.getRequestURI().startsWith(p)) ||
+      super.shouldNotFilter(request);
   }
 }
