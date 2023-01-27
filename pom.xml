@@ -102,6 +102,13 @@
             <version>3.9.0</version>
             <scope>test</scope>
         </dependency>
+
+		<!-- snyk -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-text</artifactId>
+			<version>1.10.0</version>
+		</dependency>
     </dependencies>
 
 	<build>

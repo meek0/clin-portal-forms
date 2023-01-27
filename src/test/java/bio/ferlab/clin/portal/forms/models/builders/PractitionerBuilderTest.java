@@ -46,7 +46,7 @@ class PractitionerBuilderTest {
       new PractitionerBuilder(fhirClient, null).withSupervisor("supervisor","ep1").build();
     });
     assertEquals("practitioner supervisor isn't a doctor at ep ep1", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   @Test
