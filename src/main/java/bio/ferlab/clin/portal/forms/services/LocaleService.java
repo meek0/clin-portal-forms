@@ -1,11 +1,11 @@
 package bio.ferlab.clin.portal.forms.services;
 
 import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -18,12 +18,16 @@ public class LocaleService {
   
   private final HttpServletRequest request;
   private final FhirConfiguration fhirConfiguration;
+
+  public String getLocale(String lang) {
+    return Optional.ofNullable(lang)
+      .map(StringUtils::parseLocale)
+      .map(Locale::getLanguage)
+      .filter(fhirConfiguration.getSupportedLangs()::contains)
+      .orElse(DEFAULT_LOCALE);
+  }
   
   public String getCurrentLocale() {
-    return Optional.ofNullable(request.getParameter(LANG_QUERY_PARAM))
-        .map(StringUtils::parseLocale)
-        .map(Locale::getLanguage)
-        .filter(fhirConfiguration.getSupportedLangs()::contains)
-        .orElse(DEFAULT_LOCALE);
+    return getLocale(request.getParameter(LANG_QUERY_PARAM));
   }
 }

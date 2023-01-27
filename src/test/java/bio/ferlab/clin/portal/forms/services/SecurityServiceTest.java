@@ -32,7 +32,7 @@ class SecurityServiceTest {
       service.checkAuthorization(null);
     });
     assertEquals("missing token", exception.getReason());
-    assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatus());
+    assertEquals(HttpStatus.UNAUTHORIZED, exception.getStatusCode());
   }
 
   @Test
@@ -41,7 +41,7 @@ class SecurityServiceTest {
       service.checkAuthorization("yolotoken");
     });
     assertEquals("invalid token", exception.getReason());
-    assertEquals(HttpStatus.FORBIDDEN, exception.getStatus());
+    assertEquals(HttpStatus.FORBIDDEN, exception.getStatusCode());
   }
 
   @Test

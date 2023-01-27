@@ -3,7 +3,10 @@ package bio.ferlab.clin.portal.forms.services;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+import java.util.ResourceBundle;
 
 @Service
 public class LabelsService {

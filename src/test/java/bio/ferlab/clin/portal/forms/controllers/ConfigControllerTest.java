@@ -1,7 +1,6 @@
 package bio.ferlab.clin.portal.forms.controllers;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
-import bio.ferlab.clin.portal.forms.models.builders.FoetusBuilder;
 import bio.ferlab.clin.portal.forms.models.config.Form;
 import bio.ferlab.clin.portal.forms.services.LogOnceService;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
@@ -18,7 +17,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -47,7 +47,7 @@ class ConfigControllerTest {
 
   @Test
   void mmg() {
-    Form form = controller.config("Bearer " + token, "MMG");
+    Form form = controller.config("Bearer " + token, "MMG", null);
     assertEquals("org1", form.getConfig().getPrescribingInstitutions().get(0).getValue());
     // validate sort by name
     assertEquals("HP:A", form.getConfig().getClinicalSigns().getDefaultList().get(0).getValue());
@@ -59,10 +59,10 @@ class ConfigControllerTest {
   @Test
   void unsupported() {
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-      controller.config("Bearer " + token, "foo");
+      controller.config("Bearer " + token, "foo", null);
     });
     assertEquals("unsupported form panel code: foo available codes: [MMG]", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   private Bundle buildOrganizationsAndRoles() {

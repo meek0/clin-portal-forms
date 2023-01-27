@@ -22,8 +22,8 @@ public class SearchController {
   private final FhirToSearchMapper mapper;
   
   @GetMapping("/patient/{ep}")
-  public SearchPatient patient(@PathVariable String ep,
-                               @RequestHeader String authorization,
+  public SearchPatient patient(@RequestHeader String authorization,
+                               @PathVariable String ep,
                                @RequestParam(required = false) String ramq,
                                @RequestParam(required = false) String mrn){
 

@@ -17,5 +17,6 @@ public class SecurityConfiguration {
   private String issuer;
   private long leeway;
   private List<String> cors = new ArrayList<>();
+  private List<String> publics = new ArrayList<>();
   
 }

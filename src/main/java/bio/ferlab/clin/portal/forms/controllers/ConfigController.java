@@ -5,8 +5,6 @@ import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
 import bio.ferlab.clin.portal.forms.mappers.FhirToConfigMapper;
 import bio.ferlab.clin.portal.forms.models.builders.PractitionerBuilder;
 import bio.ferlab.clin.portal.forms.models.config.Form;
-import bio.ferlab.clin.portal.forms.models.config.ValueName;
-import bio.ferlab.clin.portal.forms.models.config.ValueNameExtra;
 import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.utils.JwtUtils;
@@ -18,8 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -40,9 +36,10 @@ public class ConfigController {
 
   @GetMapping("/{panelCode}")
   public Form config(@RequestHeader String authorization,
-                     @PathVariable String panelCode) {
+                     @PathVariable String panelCode,
+                     @RequestParam(required = false, name = "lang") String queryLang) {
     
-    final String lang = localeService.getCurrentLocale();
+    final String lang = localeService.getLocale(queryLang);
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
 
     PractitionerBuilder.Result roles = new PractitionerBuilder(fhirClient, practitionerId).build();

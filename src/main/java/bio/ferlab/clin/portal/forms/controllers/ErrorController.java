@@ -41,7 +41,7 @@ public class ErrorController {
   
   @ExceptionHandler(ResponseStatusException.class)
   public ResponseEntity<String> handleException(ResponseStatusException e) {
-    return new ResponseEntity<>(e.getReason(), e.getStatus());
+    return new ResponseEntity<>(e.getReason(), e.getStatusCode());
   }
   
   @ExceptionHandler(ForbiddenOperationException.class)

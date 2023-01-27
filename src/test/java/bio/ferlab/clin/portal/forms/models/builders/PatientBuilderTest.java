@@ -41,7 +41,7 @@ class PatientBuilderTest {
       builder.validateRamqAndMrn();
     });
     assertEquals("patient.ramq and patient.mrn can't be both empty", exception.getReason());
-    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   @Test

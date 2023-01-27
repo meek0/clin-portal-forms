@@ -1,5 +1,10 @@
 server:
   port: 7979
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
 fhir:
   timeout: 600000
   url: http://localhost:8080/fhir
