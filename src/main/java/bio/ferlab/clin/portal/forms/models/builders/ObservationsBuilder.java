@@ -2,6 +2,7 @@ package bio.ferlab.clin.portal.forms.models.builders;
 
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.submit.*;
+import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,10 @@ import java.util.List;
 
 @RequiredArgsConstructor
 public class ObservationsBuilder {
+
+  public enum Affected {
+    POS, NEG, IND
+  }
   
   private final SubmitToFhirMapper mapper;
   private final String panelCode;
@@ -26,7 +31,7 @@ public class ObservationsBuilder {
   private Observation foetusObservation;
   private Parent mother;
   private Parent father;
-  private boolean isAffected = true;
+  private Affected affected = Affected.POS;
   
   public ObservationsBuilder withFoetus(Observation o) {
     this.foetusObservation = o;
@@ -43,8 +48,8 @@ public class ObservationsBuilder {
     return this;
   }
 
-  public ObservationsBuilder withAffected(boolean isAffected) {
-    this.isAffected = isAffected;
+  public ObservationsBuilder withAffected(Parent.Status status) {
+    this.affected = FhirUtils.toAffected(status);
     return this;
   }
   
@@ -71,7 +76,7 @@ public class ObservationsBuilder {
   public Result build() {
     List<org.hl7.fhir.r4.model.Observation> obs = new ArrayList<>();
     if (patient != null) {
-      obs = mapper.mapToObservations(panelCode, patient, mother, father, historyAndDiag, signs, exams, isAffected);
+      obs = mapper.mapToObservations(panelCode, patient, mother, father, historyAndDiag, signs, exams, affected);
       if (foetusObservation != null) {
         obs.add(foetusObservation);
       }

@@ -1,10 +1,14 @@
 package bio.ferlab.clin.portal.forms.utils;
 
+import bio.ferlab.clin.portal.forms.models.builders.ObservationsBuilder;
+import bio.ferlab.clin.portal.forms.models.submit.Parent;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Reference;
+
+import java.util.Optional;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.DOCTOR_PREFIX;
 
@@ -42,5 +46,23 @@ public class FhirUtils {
   
   public static String sanitizeNoteComment(String comment) {
     return StringUtils.isNotBlank(comment) ? comment : "--";
+  }
+
+  public static ObservationsBuilder.Affected toAffected(Parent.Status status) {
+    return Optional.ofNullable(status).map((s) -> switch (s) {
+      case affected -> ObservationsBuilder.Affected.POS;
+      case not_affected -> ObservationsBuilder.Affected.NEG;
+      case unknown -> ObservationsBuilder.Affected.IND;
+    }).orElse(null);
+  }
+
+  public static ObservationsBuilder.Affected toAffected(Boolean isObserved) {
+    if (Boolean.TRUE.equals(isObserved)) {
+      return ObservationsBuilder.Affected.POS;
+    } else if (Boolean.FALSE.equals(isObserved)) {
+      return ObservationsBuilder.Affected.NEG;
+    } else {
+      return null;
+    }
   }
 }

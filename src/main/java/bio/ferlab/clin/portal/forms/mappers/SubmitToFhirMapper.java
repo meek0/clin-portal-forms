@@ -1,5 +1,6 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
+import bio.ferlab.clin.portal.forms.models.builders.ObservationsBuilder;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import bio.ferlab.clin.portal.forms.models.submit.*;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
@@ -144,16 +145,16 @@ public class SubmitToFhirMapper {
                                              Parent mother, Parent father,
                                              HistoryAndDiag historyAndDiag,
                                              ClinicalSigns signs,
-                                             ParaclinicalExams exams, boolean isAffected) {
+                                             ParaclinicalExams exams, ObservationsBuilder.Affected affected) {
     
     List<Observation> all = new ArrayList<>();
 
-    Observation dsta = createObservation(patient, "DSTA", "exam", isAffected, ANALYSIS_REQUEST_CODE, panelCode);
+    Observation dsta = createObservation(patient, "DSTA", "exam", affected, ANALYSIS_REQUEST_CODE, panelCode);
     all.add(dsta);
 
     if (signs != null) {
       all.addAll(signs.getSigns().stream().map(o -> {
-        Observation obs = createObservation(patient, "PHEN", "exam", o.getIsObserved(), HP_CODE, o.getValue());
+        Observation obs = createObservation(patient, "PHEN", "exam", FhirUtils.toAffected(o.getIsObserved()), HP_CODE, o.getValue());
         if (o.getAgeCode() != null) {
           obs.addExtension(AGE_AT_ONSET_EXT, new Coding().setCode(o.getAgeCode()));
         }
@@ -302,7 +303,7 @@ public class SubmitToFhirMapper {
     }
   }
   
-  private Observation createObservation(org.hl7.fhir.r4.model.Patient patient, String code, String category, Boolean isObserved, String system, Object value) {
+  private Observation createObservation(org.hl7.fhir.r4.model.Patient patient, String code, String category, ObservationsBuilder.Affected affected, String system, Object value) {
     Observation observation = new Observation();
     observation.setSubject(FhirUtils.toReference(patient));
     observation.setId(UUID.randomUUID().toString());
@@ -310,8 +311,8 @@ public class SubmitToFhirMapper {
     observation.setStatus(Observation.ObservationStatus.FINAL);
     observation.setCode(new CodeableConcept(new Coding().setSystem(OBSERVATION_CODE).setCode(code)));
     observation.addCategory(new CodeableConcept(new Coding().setSystem(OBSERVATION_CATEGORY).setCode(category)));
-    if(isObserved != null) {
-      observation.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(isObserved ? "POS" : "NEG")));
+    if(affected != null) {
+      observation.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(affected.name())));
     }
     if (value instanceof String) {
       final String valueStr = value.toString();

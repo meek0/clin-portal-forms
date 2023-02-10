@@ -108,7 +108,7 @@ class ObservationsBuilderTest {
     final ObservationsBuilder.Result result = 
         new ObservationsBuilder(new SubmitToFhirMapper(), "code", patient, historyAndDiag, clinicalSigns, paraclinicalExams)
         .withFoetus(foetusObservation)
-        .withAffected(false)
+        .withAffected(Parent.Status.unknown)
         .withMother(mother)
         .withFather(father)
         .build();
@@ -117,13 +117,13 @@ class ObservationsBuilderTest {
     
     assertEquals(13, obs.size());
 
-    assertObservation(obs.get(0), patient, "DSTA", "exam", false, ANALYSIS_REQUEST_CODE, "code", true);
+    assertObservation(obs.get(0), patient, "DSTA", "exam", ObservationsBuilder.Affected.IND, ANALYSIS_REQUEST_CODE, "code", true);
 
 
-    assertObservation(obs.get(1), patient, "PHEN", "exam", true, HP_CODE, "sign", true);
+    assertObservation(obs.get(1), patient, "PHEN", "exam", ObservationsBuilder.Affected.POS, HP_CODE, "sign", true);
     assertEquals("age", ((Coding)obs.get(1).getExtensionByUrl(AGE_AT_ONSET_EXT).getValue()).getCode());
 
-    assertObservation(obs.get(2), patient, "PHEN", "exam", false, HP_CODE, "sign", true);
+    assertObservation(obs.get(2), patient, "PHEN", "exam", ObservationsBuilder.Affected.NEG, HP_CODE, "sign", true);
     assertNull(obs.get(2).getExtensionByUrl(AGE_AT_ONSET_EXT));
 
     assertObservation(obs.get(3), patient, "OBSG", "exam", null, null, clinicalSigns.getComment(), true);
@@ -157,7 +157,7 @@ class ObservationsBuilderTest {
     assertEquals("foetusObs",obs.get(12).getId());
  }
   
-  private void assertObservation(Observation obs, Patient patient, String code, String category, Boolean isObserved, String system, Object value, boolean checkInterpretation) {
+  private void assertObservation(Observation obs, Patient patient, String code, String category, ObservationsBuilder.Affected affected, String system, Object value, boolean checkInterpretation) {
     assertNotNull(obs.getId());
     assertEquals(FhirUtils.formatResource(patient), obs.getSubject().getReference());
     assertEquals(OBSERVATION_CODE, obs.getCode().getCodingFirstRep().getSystem());
@@ -166,9 +166,9 @@ class ObservationsBuilderTest {
     assertEquals(Observation.ObservationStatus.FINAL, obs.getStatus());
     assertEquals(OBSERVATION_CATEGORY, obs.getCategoryFirstRep().getCodingFirstRep().getSystem());
     assertEquals(category, obs.getCategoryFirstRep().getCodingFirstRep().getCode());
-    if (isObserved != null) {
+    if (affected != null) {
       assertEquals(OBSERVATION_INTERPRETATION, obs.getInterpretationFirstRep().getCodingFirstRep().getSystem());
-      assertEquals(isObserved ? "POS" : "NEG", obs.getInterpretationFirstRep().getCodingFirstRep().getCode());
+      assertEquals(affected.name(), obs.getInterpretationFirstRep().getCodingFirstRep().getCode());
     } else if (checkInterpretation) {
       assertEquals(0, obs.getInterpretation().size());
     }
