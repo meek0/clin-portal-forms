@@ -4,6 +4,7 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.builders.*;
 import bio.ferlab.clin.portal.forms.models.submit.ClinicalSigns;
+import bio.ferlab.clin.portal.forms.models.submit.Parent;
 import bio.ferlab.clin.portal.forms.models.submit.Request;
 import bio.ferlab.clin.portal.forms.models.submit.Response;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
@@ -79,12 +80,14 @@ public class SubmitController {
     final ObservationsBuilder observationsMotherBuilder = new ObservationsBuilder(mapper, panelCode, motherResult.getPatient(),
       null, new ClinicalSigns(request.getMother()), null);
     ObservationsBuilder.Result obmr = observationsMotherBuilder
+      .withAffected(Parent.Status.affected.equals(request.getMother().getParentClinicalStatus()))
       .validate()
       .build();
 
     final ObservationsBuilder observationsFatherBuilder = new ObservationsBuilder(mapper, panelCode, fatherResult.getPatient(),
       null, new ClinicalSigns(request.getFather()), null);
     ObservationsBuilder.Result obfr = observationsFatherBuilder
+      .withAffected(Parent.Status.affected.equals(request.getFather().getParentClinicalStatus()))
       .validate()
       .build();
 

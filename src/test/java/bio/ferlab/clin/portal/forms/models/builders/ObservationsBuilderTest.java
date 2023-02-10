@@ -108,6 +108,7 @@ class ObservationsBuilderTest {
     final ObservationsBuilder.Result result = 
         new ObservationsBuilder(new SubmitToFhirMapper(), "code", patient, historyAndDiag, clinicalSigns, paraclinicalExams)
         .withFoetus(foetusObservation)
+        .withAffected(false)
         .withMother(mother)
         .withFather(father)
         .build();
@@ -116,7 +117,7 @@ class ObservationsBuilderTest {
     
     assertEquals(13, obs.size());
 
-    assertObservation(obs.get(0), patient, "DSTA", "exam", true, ANALYSIS_REQUEST_CODE, "code", true);
+    assertObservation(obs.get(0), patient, "DSTA", "exam", false, ANALYSIS_REQUEST_CODE, "code", true);
 
 
     assertObservation(obs.get(1), patient, "PHEN", "exam", true, HP_CODE, "sign", true);

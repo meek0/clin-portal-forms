@@ -144,11 +144,11 @@ public class SubmitToFhirMapper {
                                              Parent mother, Parent father,
                                              HistoryAndDiag historyAndDiag,
                                              ClinicalSigns signs,
-                                             ParaclinicalExams exams) {
+                                             ParaclinicalExams exams, boolean isAffected) {
     
     List<Observation> all = new ArrayList<>();
 
-    Observation dsta = createObservation(patient, "DSTA", "exam",true, ANALYSIS_REQUEST_CODE, panelCode);
+    Observation dsta = createObservation(patient, "DSTA", "exam", isAffected, ANALYSIS_REQUEST_CODE, panelCode);
     all.add(dsta);
 
     if (signs != null) {
