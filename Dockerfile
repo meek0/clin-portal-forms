@@ -24,6 +24,7 @@ RUN apk add --no-cache binutils
 RUN $JAVA_HOME/bin/jlink \
     --verbose \
     --add-modules $(cat modules.info) \
+    --add-modules jdk.crypto.ec \
     --strip-debug \
     --no-man-pages \
     --no-header-files \
@@ -32,10 +33,10 @@ RUN $JAVA_HOME/bin/jlink \
 
 FROM alpine:latest
 WORKDIR /app
-RUN apk update && apk add ca-certificates openssl
 ENV JAVA_HOME=/jre
 ENV JAVA_OPTS="-XX:+UseZGC -XshowSettings:vm -XX:+PrintCommandLineFlags"
 ENV PATH="$PATH:$JAVA_HOME/bin"
+RUN apk update && apk add ca-certificates openssl
 COPY --from=build-jre /tmp/jre/minimal $JAVA_HOME
 COPY --from=build-api /tmp/api/target/clin-portal-forms-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
