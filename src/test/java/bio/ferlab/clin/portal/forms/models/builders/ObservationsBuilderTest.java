@@ -101,6 +101,7 @@ class ObservationsBuilderTest {
 
     final Parent mother = new Parent();
     mother.setParentEnterMoment(Parent.Moment.now); // ignored
+    mother.setParentClinicalStatus(Parent.Status.unknown);
 
     final Parent father = new Parent();
     father.setParentEnterMoment(Parent.Moment.later);
