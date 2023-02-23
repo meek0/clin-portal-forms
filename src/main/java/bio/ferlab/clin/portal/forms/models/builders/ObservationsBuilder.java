@@ -48,8 +48,10 @@ public class ObservationsBuilder {
     return this;
   }
 
-  public ObservationsBuilder withAffected(Parent.Status status) {
-    this.affected = FhirUtils.toAffected(status);
+  public ObservationsBuilder withParentAffected(Parent parent) {
+    if (parent != null) {
+      this.affected = FhirUtils.toAffected(parent.getParentClinicalStatus());
+    }
     return this;
   }
   
