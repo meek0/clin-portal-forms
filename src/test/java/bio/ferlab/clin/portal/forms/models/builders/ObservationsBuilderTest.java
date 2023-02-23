@@ -101,6 +101,7 @@ class ObservationsBuilderTest {
 
     final Parent mother = new Parent();
     mother.setParentEnterMoment(Parent.Moment.now); // ignored
+    mother.setParentClinicalStatus(Parent.Status.unknown);
 
     final Parent father = new Parent();
     father.setParentEnterMoment(Parent.Moment.later);
@@ -108,7 +109,7 @@ class ObservationsBuilderTest {
     final ObservationsBuilder.Result result = 
         new ObservationsBuilder(new SubmitToFhirMapper(), "code", patient, historyAndDiag, clinicalSigns, paraclinicalExams)
         .withFoetus(foetusObservation)
-        .withAffected(Parent.Status.unknown)
+        .withParentAffected(mother)
         .withMother(mother)
         .withFather(father)
         .build();
@@ -184,6 +185,22 @@ class ObservationsBuilderTest {
         assertEquals(value, obs.getValueBooleanType().getValue());
       }
     }
+  }
+
+  @Test
+  void shouldBeRobustWithParentStatus() {
+    assertNotNull(new ObservationsBuilder(new SubmitToFhirMapper(), null, null, null, null, null)
+        .withParentAffected(null)
+        .build());
+    assertNotNull(new ObservationsBuilder(new SubmitToFhirMapper(), null, null, null, null, null)
+      .withParentAffected(new Parent())
+      .build());
+    final Parent parent = new Parent();
+    parent.setParentClinicalStatus(Parent.Status.affected);
+    var result = new ObservationsBuilder(new SubmitToFhirMapper(), null, new Patient(), null, null, null)
+      .withParentAffected(parent)
+      .build();
+    assertEquals(1, result.getObservations().size());
   }
   
 }
