@@ -35,3 +35,4 @@ build/
 bench*
 
 .attach_pid*
+logs/
