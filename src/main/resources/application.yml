@@ -32,7 +32,13 @@ fhir:
 cache:
   eviction: 3600 # 1h
 management:
+  endpoints:
+    web:
+      exposure:
+        include: health,status
   endpoint:
+    #logfile:
+      #external-file: "./logs/app.log"
     health:
       probes:
         enabled: true
@@ -53,12 +59,19 @@ security:
     - "https://portail.staging.cqgc.hsj.rtss.qc.ca"
     - "https://portail.cqgc.hsj.rtss.qc.ca"
   publics:
-    - "/actuator"
+    - "/actuator/health"
     - "/openapi"
     - "/swagger-ui"
 logging:
+  file:
+    name: "./logs/app.log"
+    max-history: 3
+    max-size: 1MB
   level:
     root: ERROR
     org.springframework.web: ERROR
     bio.ferlab.clin.portal.forms: INFO
     org.hibernate: ERROR
+status:
+  enabled: true
+  logs-size: 50
