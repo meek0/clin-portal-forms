@@ -14,11 +14,16 @@ public class JwtUtils {
   
   public static final String BEARER_PREFIX = "Bearer ";
   public static final String FHIR_PRACTITIONER_ID = "fhir_practitioner_id";
+  public static final String AUTHORIZED_PARTY = "azp";
   
   public static String getProperty(String token, String attr) {
     DecodedJWT jwt = JWT.decode(removeBearerPrefix(token));
+    return getProperty(jwt, attr);
+  }
+
+  public static String getProperty(DecodedJWT jwt, String attr) {
     return Optional.ofNullable(jwt.getClaim(attr)).map(Claim::asString)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "missing " + attr + " in token"));
+      .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "missing " + attr + " in token"));
   }
   
   public static String removeBearerPrefix(String token) {

@@ -1,5 +1,6 @@
 package bio.ferlab.clin.portal.forms.services;
 
+import bio.ferlab.clin.portal.forms.UserDetails;
 import bio.ferlab.clin.portal.forms.configurations.SecurityConfiguration;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -9,8 +10,7 @@ import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 class SecurityServiceTest {
@@ -19,11 +19,14 @@ class SecurityServiceTest {
   
   final SecurityConfiguration configuration = Mockito.mock(SecurityConfiguration.class);
   final JwkService jwkService = Mockito.mock(JwkService.class);
-  final SecurityService service = new SecurityService(configuration, jwkService);
+  final UserDetails userDetails = new UserDetails();
+  final SecurityService service = new SecurityService(configuration, jwkService, userDetails);
   
   @BeforeEach
   void setup() {
     when(configuration.isEnabled()).thenReturn(true);
+    when(configuration.getSystem()).thenReturn("system");
+    userDetails.setSystem(false);
   }
   
   @Test
@@ -46,8 +49,16 @@ class SecurityServiceTest {
 
   @Test
   void checkAuthorization_ok_token() {
-    final String token = JWT.create().sign(algorithm);
+    final String token = JWT.create().withClaim("azp", "client").sign(algorithm);
     service.checkAuthorization("Bearer " + token);
+    assertFalse(userDetails.isSystem());
+  }
+
+  @Test
+  void checkAuthorization_system() {
+    final String token = JWT.create().withClaim("azp", "system").sign(algorithm);
+    service.checkAuthorization("Bearer " + token);
+    assertTrue(userDetails.isSystem());
   }
 
 }

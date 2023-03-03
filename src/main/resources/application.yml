@@ -52,6 +52,7 @@ security:
   enabled: ${SECURITY_ENABLED:true}
   audience: ${SECURITY_AUDIENCE:clin-acl}
   issuer: ${SECURITY_ISSUER:https://auth.qa.cqgc.hsj.rtss.qc.ca/auth/realms/clin}
+  system: "clin-system"
   cors:
     - "http://localhost:2000"
     - "http://localhost:2005"

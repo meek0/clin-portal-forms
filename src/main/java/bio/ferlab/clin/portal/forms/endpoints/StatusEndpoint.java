@@ -1,7 +1,9 @@
 package bio.ferlab.clin.portal.forms.endpoints;
 
+import bio.ferlab.clin.portal.forms.UserDetails;
 import com.jamonapi.Monitor;
 import com.jamonapi.MonitorFactory;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FileUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -9,9 +11,11 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEndpoint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,7 +25,10 @@ import java.util.Arrays;
 @Component
 @RestControllerEndpoint(id = "status")
 @ConditionalOnProperty(value="status.enabled", havingValue = "true")
+@RequiredArgsConstructor
 public class StatusEndpoint {
+
+  private final UserDetails userDetails;
 
   @Value("${logging.file.name}")
   private String logFileName;
@@ -31,6 +38,9 @@ public class StatusEndpoint {
 
   @GetMapping
   public ResponseEntity<String> customEndPoint(){
+    if (!userDetails.isSystem()) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "system token is required");
+    }
     StringBuilder builder = new StringBuilder();
     builder.append(formatJava());
     builder.append(formatMonitors());
