@@ -32,9 +32,12 @@ class AnalysisBuilderTest {
     
     final PractitionerRole supervisor = new PractitionerRole();
     supervisor.setId("foo");
+
+    final Patient foetus = new Patient();
+    foetus.setDeceased(new BooleanType(true));
     
     final AnalysisBuilder.Result result = new AnalysisBuilder(new SubmitToFhirMapper(), "code", patient, clinicalImpression, role, supervisor, "")
-      .withFoetus(new Patient())
+      .withFoetus(foetus)
       .withReflex("reflex")
       .withMother(clinicalImpressionMother)
       .build();
@@ -57,6 +60,7 @@ class AnalysisBuilderTest {
     assertEquals("--", note.getText());
     assertEquals(FhirUtils.formatResource(practitioner), ((Reference)note.getAuthor()).getReference());
     assertEquals("Prenatal", sr.getCategoryFirstRep().getText());
+    assertEquals(ServiceRequest.ServiceRequestPriority.ROUTINE, sr.getPriority());
 
     final Extension motherRootExt = sr.getExtensionByUrl(FAMILY_MEMBER);
     final Extension motherSub1Ext = motherRootExt.getExtension().get(0);
