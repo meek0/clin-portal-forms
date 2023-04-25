@@ -2,6 +2,7 @@ package bio.ferlab.clin.portal.forms.models.builders;
 
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
+import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Patient;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.ServiceRequest;
@@ -45,6 +46,7 @@ class SequencingBuilderTest {
     role.setId("role");
     final Patient foetus = new Patient();
     foetus.setId("foetus");
+    foetus.setDeceased(new BooleanType(false));
     final SequencingBuilder.Result result = new SequencingBuilder(new SubmitToFhirMapper(), "code", patient, analysis, role)
         .withFoetus(foetus)
         .build();
@@ -60,6 +62,7 @@ class SequencingBuilderTest {
     assertNotNull(sr.getAuthoredOn());
     assertEquals("Prenatal", sr.getCategoryFirstRep().getText());
     assertEquals("Patient/foetus", sr.getSubject().getReference());
+    assertEquals(ServiceRequest.ServiceRequestPriority.ASAP, sr.getPriority());
   }
 
 }

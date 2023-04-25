@@ -85,6 +85,7 @@ public class SubmitToFhirMapper {
     serviceRequest.setId(UUID.randomUUID().toString());
     if (foetus != null) {
       serviceRequest.addCategory().setText("Prenatal");
+      mapDeceased(serviceRequest, foetus);
     }
     serviceRequest.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
     serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
@@ -115,6 +116,7 @@ public class SubmitToFhirMapper {
     if (foetus != null) {
       serviceRequest.addCategory().setText("Prenatal");
       serviceRequest.setSubject(FhirUtils.toReference(foetus));
+      mapDeceased(serviceRequest, foetus);
     } else {
       serviceRequest.setSubject(FhirUtils.toReference(patient));
     }
@@ -124,6 +126,16 @@ public class SubmitToFhirMapper {
     serviceRequest.setCode(new CodeableConcept().addCoding(new Coding().setSystem(ANALYSIS_REQUEST_CODE).setCode(panelCode)));
     serviceRequest.setAuthoredOn(new Date());
     return serviceRequest;
+  }
+
+  private void mapDeceased(ServiceRequest serviceRequest, org.hl7.fhir.r4.model.Patient foetus) {
+    if (foetus.hasDeceased()) {
+      if (((BooleanType) foetus.getDeceased()).booleanValue()) {
+        serviceRequest.setPriority(ServiceRequest.ServiceRequestPriority.ROUTINE);
+      } else {
+        serviceRequest.setPriority(ServiceRequest.ServiceRequestPriority.ASAP);
+      }
+    }
   }
   
   public ClinicalImpression mapToClinicalImpression(Person person, org.hl7.fhir.r4.model.Patient patient, 
@@ -233,7 +245,7 @@ public class SubmitToFhirMapper {
   public org.hl7.fhir.r4.model.Patient mapToFoetus(AdditionalInfo additionalInfo, org.hl7.fhir.r4.model.Patient mother) {
     final org.hl7.fhir.r4.model.Patient foetus = new org.hl7.fhir.r4.model.Patient();
     foetus.setId(UUID.randomUUID().toString());
-    foetus.addExtension(GESTATIONAL_AGE_EXT, new CodeableConcept(new Coding().setSystem(SYSTEM_GESTATIONAL_AGE).setCode(CODE_GESTATIONAL_AGE)).setText(additionalInfo.getGestationalAge().name()));
+    //foetus.addExtension(GESTATIONAL_AGE_EXT, new CodeableConcept(new Coding().setSystem(SYSTEM_GESTATIONAL_AGE).setCode(CODE_GESTATIONAL_AGE)).setText(additionalInfo.getGestationalAge().name()));
     foetus.setDeceased(new BooleanType(AdditionalInfo.GestationalAge.deceased.equals(additionalInfo.getGestationalAge())));
     foetus.setGender(mapToGender(additionalInfo.getFoetusGender()));
     final var link = new org.hl7.fhir.r4.model.Patient.PatientLinkComponent();
