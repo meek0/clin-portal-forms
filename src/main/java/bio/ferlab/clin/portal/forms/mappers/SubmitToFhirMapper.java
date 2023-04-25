@@ -245,7 +245,7 @@ public class SubmitToFhirMapper {
   public org.hl7.fhir.r4.model.Patient mapToFoetus(AdditionalInfo additionalInfo, org.hl7.fhir.r4.model.Patient mother) {
     final org.hl7.fhir.r4.model.Patient foetus = new org.hl7.fhir.r4.model.Patient();
     foetus.setId(UUID.randomUUID().toString());
-    foetus.addExtension(GESTATIONAL_AGE_EXT, new CodeableConcept(new Coding().setSystem(SYSTEM_GESTATIONAL_AGE).setCode(CODE_GESTATIONAL_AGE)).setText(additionalInfo.getGestationalAge().name()));
+    //foetus.addExtension(GESTATIONAL_AGE_EXT, new CodeableConcept(new Coding().setSystem(SYSTEM_GESTATIONAL_AGE).setCode(CODE_GESTATIONAL_AGE)).setText(additionalInfo.getGestationalAge().name()));
     foetus.setDeceased(new BooleanType(AdditionalInfo.GestationalAge.deceased.equals(additionalInfo.getGestationalAge())));
     foetus.setGender(mapToGender(additionalInfo.getFoetusGender()));
     final var link = new org.hl7.fhir.r4.model.Patient.PatientLinkComponent();
