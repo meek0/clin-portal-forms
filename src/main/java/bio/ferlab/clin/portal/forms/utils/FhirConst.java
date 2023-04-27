@@ -36,7 +36,9 @@ public class FhirConst {
   public static final String ANALYSIS_SERVICE_REQUEST = "http://fhir.cqgc.ferlab.bio/StructureDefinition/cqgc-analysis-request";
   public static final String SEQUENCING_SERVICE_REQUEST = "http://fhir.cqgc.ferlab.bio/StructureDefinition/cqgc-sequencing-request";
   public static final String OBSERVATION_PROFILE = "http://fhir.cqgc.ferlab.bio/StructureDefinition/cqgc-observation";
-  
+  public static final String PRACTITIONER_ROLE_GENETICIAN_SYSTEM = "http://snomed.info/sct";
+  public static final String GENETICIAN_CODE = "15941008";
+
   public static final String AGE_AT_EVENT_EXT = "http://fhir.cqgc.ferlab.bio/StructureDefinition/age-at-event";
   public static final String AGE_AT_ONSET_EXT = "http://fhir.cqgc.ferlab.bio/StructureDefinition/age-at-onset";
   

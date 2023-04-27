@@ -1,6 +1,6 @@
 spring:
   main:
-    lazy-initialization: true
+    lazy-initialization: false
   jackson:
     property-naming-strategy: SNAKE_CASE
     default-property-inclusion: non_null

@@ -101,6 +101,7 @@ public class FhirClient {
 
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findAllPractitionerRoles() {
+    log.debug("Fetch all practitioner roles");
     return this.getGenericClient().search().forResource(PractitionerRole.class)
       .count(Integer.MAX_VALUE)
       .returnBundle(Bundle.class).encodedJson().execute();

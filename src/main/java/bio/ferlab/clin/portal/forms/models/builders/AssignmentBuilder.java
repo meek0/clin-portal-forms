@@ -16,7 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConst.ANALYSIS_SERVICE_REQUEST;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
 @RequiredArgsConstructor
 public class AssignmentBuilder {
@@ -24,6 +24,13 @@ public class AssignmentBuilder {
   private final FhirClient fhirClient;
   private final String analysisId;
   private final List<String> assignments;
+
+  public AssignmentBuilder withRoles(List<String> roles) {
+    if (!roles.contains(USER_ROLE_GENETICIAN)){
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "user role '"+USER_ROLE_GENETICIAN+"' is required");
+    }
+    return this;
+  }
 
   public AssignmentBuilder.Result build() {
     try {
@@ -41,6 +48,11 @@ public class AssignmentBuilder {
         final var role = roles.stream().filter(r -> r.getIdElement().getIdPart().equals(ass)).findFirst();
         if (role.isEmpty()) {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "practitioner role " + ass + " is unknown");
+        }
+        final var code = role.get().getCode().stream().filter(c -> PRACTITIONER_ROLE_GENETICIAN_SYSTEM.equals(c.getCodingFirstRep().getSystem()))
+          .findFirst().map(c -> c.getCodingFirstRep().getCode()).orElse(null);
+        if (!GENETICIAN_CODE.equals(code)) {
+          throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "practitioner role " + ass + " isn't a genetician");
         }
       });
       // build performer list

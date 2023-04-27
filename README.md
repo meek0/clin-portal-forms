@@ -354,9 +354,10 @@ Assign practitioner roles to a ServiceRequest of analysis type profile.
 ### Body
 
 Backend validations:
+- User roles include `clin_genetician`
 - `analysis_id` is an existing ServiceRequest of analysis type profile.
-- `assignments` are all practitioner roles known by FHIR
-- `assignments` will fully replaced previous assignments and therefore can be *empty*
+- `assignments` are all practitioner roles known by FHIR and are `Geneticist` with code `15941008`
+- `assignments` will fully replace previous assignments and therefore can be *empty*
 
 ```json
 {
