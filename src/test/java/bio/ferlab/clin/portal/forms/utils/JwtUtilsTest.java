@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -35,5 +38,16 @@ class JwtUtilsTest {
   @Test
   void removeBearerPrefix() {
     assertEquals("foo", JwtUtils.removeBearerPrefix("Bearer foo"));
+  }
+
+  @Test
+  void getUserRoles() {
+    String bearer = JWT.create()
+      .withClaim("realm_access", Map.of("roles", List.of("foo", "bar", "clin-1", "clin_2")))
+      .sign(Algorithm.HMAC256("secret"));
+    List<String> roles = JwtUtils.getUserRoles("Bearer " + bearer);
+    assertEquals(2, roles.size());
+    assertEquals("clin-1", roles.get(0));
+    assertEquals("clin_2", roles.get(1));
   }
 }

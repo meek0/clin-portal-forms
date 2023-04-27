@@ -349,14 +349,14 @@ Two new sections `mother` and `father` at the same level than `patient`
 ```
 ## POST /assignment
 
-Assign practitioner roles to a ServiceRequest with analysis profile.
+Assign practitioner roles to a ServiceRequest of analysis type profile.
 
 ### Body
 
-Backend will check if:
-- `analysis_id` is a valid ServiceRequest with analysis profile
-- the practitioner roles are valid ad known by FHIR
-- assignments can be empty
+Backend validations:
+- `analysis_id` is an existing ServiceRequest of analysis type profile.
+- `assignments` are all practitioner roles known by FHIR
+- `assignments` will fully replaced previous assignments and therefore can be *empty*
 
 ```json
 {
@@ -367,7 +367,7 @@ Backend will check if:
     ]
 }
 ```
-If successfully updated the response should be the same as the request body:
+If successfully updated the response should be the same as the request body (built from FHIR response):
 ### Response
 `200 OK`
 ```json

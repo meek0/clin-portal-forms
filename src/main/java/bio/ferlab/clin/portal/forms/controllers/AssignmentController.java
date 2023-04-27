@@ -4,7 +4,6 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.models.assignment.Request;
 import bio.ferlab.clin.portal.forms.models.assignment.Response;
 import bio.ferlab.clin.portal.forms.models.builders.AssignmentBuilder;
-import bio.ferlab.clin.portal.forms.utils.JwtUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.hl7.fhir.r4.model.PractitionerRole;
@@ -26,7 +25,7 @@ public class AssignmentController {
   public ResponseEntity<Response> submit(@RequestHeader String authorization,
                                          @Valid @RequestBody Request request) {
 
-    final List<String> roles = JwtUtils.getUserRoles(authorization);
+    // final List<String> roles = JwtUtils.getUserRoles(authorization);
     final var builder = new AssignmentBuilder(fhirClient, request.getAnalysisId(), request.getAssignments());
     final var result = builder.build();
 
