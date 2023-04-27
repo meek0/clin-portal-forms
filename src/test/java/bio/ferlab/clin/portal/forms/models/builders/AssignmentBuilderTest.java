@@ -15,7 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConst.ANALYSIS_SERVICE_REQUEST;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,6 +29,16 @@ class AssignmentBuilderTest {
   @BeforeEach
   void beforeEach() {
     when(fhirClient.getContext()).thenReturn(fhirContext);
+  }
+
+  @Test
+  void withRoles() {
+    final var builder = new AssignmentBuilder(fhirClient, null, null);
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+      builder.withRoles(List.of()).build();
+    });
+    assertEquals("user role 'clin_genetician' is required", exception.getReason());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
   @Test
@@ -55,12 +65,32 @@ class AssignmentBuilderTest {
     analysis.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
     when(fhirClient.findServiceRequestById(any())).thenReturn(analysis);
     final var bundle = new Bundle();
-    bundle.addEntry().setResource(new PractitionerRole().setId("1"));
+    final var pr1 = new PractitionerRole();
+    pr1.setId("1");
+    pr1.getCodeFirstRep().getCodingFirstRep().setSystem(PRACTITIONER_ROLE_GENETICIAN_SYSTEM).setCode(GENETICIAN_CODE);
+    bundle.addEntry().setResource(pr1);
     bundle.addEntry().setResource(new PractitionerRole().setId("2"));
     when(fhirClient.findAllPractitionerRoles()).thenReturn(bundle);
     final var builder = new AssignmentBuilder(fhirClient, "foo", List.of("1", "3"));
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, builder::build);
     assertEquals("practitioner role 3 is unknown", exception.getReason());
+    assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
+  }
+
+  @Test
+  void build_role_not_genetician() {
+    final var analysis = new ServiceRequest();
+    analysis.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
+    when(fhirClient.findServiceRequestById(any())).thenReturn(analysis);
+    final var bundle = new Bundle();
+    final var pr1 = new PractitionerRole();
+    pr1.setId("1");
+    pr1.getCodeFirstRep().getCodingFirstRep().setSystem(PRACTITIONER_ROLE_GENETICIAN_SYSTEM).setCode("bar");
+    bundle.addEntry().setResource(pr1);
+    when(fhirClient.findAllPractitionerRoles()).thenReturn(bundle);
+    final var builder = new AssignmentBuilder(fhirClient, "foo", List.of("1"));
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, builder::build);
+    assertEquals("practitioner role 1 isn't a genetician", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
@@ -72,8 +102,15 @@ class AssignmentBuilderTest {
     analysis.getPerformer().add(new Reference("Organization/1"));
     when(fhirClient.findServiceRequestById(any())).thenReturn(analysis);
     final var bundle = new Bundle();
-    bundle.addEntry().setResource(new PractitionerRole().setId("1"));
-    bundle.addEntry().setResource(new PractitionerRole().setId("2"));
+    final var pr1 = new PractitionerRole();
+    pr1.setId("1");
+    pr1.getCodeFirstRep().getCodingFirstRep().setSystem(PRACTITIONER_ROLE_GENETICIAN_SYSTEM).setCode(GENETICIAN_CODE);
+    bundle.addEntry().setResource(pr1);
+    final var pr2 = new PractitionerRole();
+    pr2.setId("2");
+    pr2.getCodeFirstRep().getCodingFirstRep().setSystem(PRACTITIONER_ROLE_GENETICIAN_SYSTEM).setCode(GENETICIAN_CODE);
+    bundle.addEntry().setResource(pr1);
+    bundle.addEntry().setResource(pr2);
     when(fhirClient.findAllPractitionerRoles()).thenReturn(bundle);
     final var builder = new AssignmentBuilder(fhirClient, "foo", List.of("1", "2"));
     when(fhirClient.assignPerformers(any())).thenReturn(analysis);
