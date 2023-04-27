@@ -347,3 +347,35 @@ Two new sections `mother` and `father` at the same level than `patient`
     }
 ]
 ```
+## POST /assignment
+
+Assign practitioner roles to a ServiceRequest with analysis profile.
+
+### Body
+
+Backend will check if:
+- `analysis_id` is a valid ServiceRequest with analysis profile
+- the practitioner roles are valid ad known by FHIR
+- assignments can be empty
+
+```json
+{
+    "analysis_id": "445076", // the service request ID
+    "assignments": [ // the practitioner roles IDs
+        "PRR00001", 
+        "PRR00002"
+    ]
+}
+```
+If successfully updated the response should be the same as the request body:
+### Response
+`200 OK`
+```json
+{
+    "analysis_id": "445076",
+    "assignments": [
+        "PRR00001",
+        "PRR00002"
+    ]
+}
+```

@@ -57,7 +57,7 @@ class SearchPrescriptionBuilderTest {
   void build_no_matching_ep() {
     final Bundle bundle = new Bundle();
     bundle.addEntry().setResource(new PractitionerRole());
-    when(fhirClient.findServiceRequestById(any())).thenReturn(bundle);
+    when(fhirClient.findServiceRequestWithDepsById(any())).thenReturn(bundle);
     final var result = new SearchPrescriptionBuilder(fhirClient, new FhirToSearchMapper(), "practitionerId", "foo", "bar").build();
     assertEquals(0, result.getPrescriptions().size());
   }
@@ -125,11 +125,11 @@ class SearchPrescriptionBuilderTest {
     
     verify(fhirClient).findPersonAndPatientByRamq(eq("ramq"));
     verify(fhirClient).fetchServiceRequestsByPatientIds(eq(List.of("p1", "p2", "p3")));
-    verify(fhirClient).findServiceRequestById(eq("s1"));
-    verify(fhirClient).findServiceRequestById(eq("s2"));
-    verify(fhirClient).findServiceRequestById(eq("s3"));
-    verify(fhirClient).findServiceRequestById(eq("s4"));
-    verify(fhirClient).findServiceRequestById(eq("s5"));
+    verify(fhirClient).findServiceRequestWithDepsById(eq("s1"));
+    verify(fhirClient).findServiceRequestWithDepsById(eq("s2"));
+    verify(fhirClient).findServiceRequestWithDepsById(eq("s3"));
+    verify(fhirClient).findServiceRequestWithDepsById(eq("s4"));
+    verify(fhirClient).findServiceRequestWithDepsById(eq("s5"));
   }
   
   private void validateResult(Patient p, ServiceRequest sr, SearchPrescription sp) {
@@ -158,7 +158,7 @@ class SearchPrescriptionBuilderTest {
     serviceRequestBundle.addEntry().setResource(p);
     
     // conditional based on service request id
-    when(fhirClient.findServiceRequestById(eq(sr.getIdElement().getIdPart()))).thenReturn(serviceRequestBundle);
+    when(fhirClient.findServiceRequestWithDepsById(eq(sr.getIdElement().getIdPart()))).thenReturn(serviceRequestBundle);
     
     final Practitioner practitioner = new Practitioner();
     practitioner.addName().setFamily("family").addGiven("given").addPrefix("dr");

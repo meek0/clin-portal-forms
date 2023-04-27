@@ -8,6 +8,8 @@ import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.Resource;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class FhirUtilsTest {
@@ -65,6 +67,20 @@ class FhirUtilsTest {
     assertNull(FhirUtils.toAffected((Boolean) null));
     assertEquals(ObservationsBuilder.Affected.POS, FhirUtils.toAffected(Boolean.TRUE));
     assertEquals(ObservationsBuilder.Affected.NEG, FhirUtils.toAffected(Boolean.FALSE));
+  }
+
+  @Test
+  void filterByTypes() {
+    assertEquals(new ArrayList<>(), FhirUtils.filterByTypes(null, null));
+    var refs = new ArrayList<Reference>();
+    refs.add(new Reference("Organization/1"));
+    refs.add(new Reference("PractitionerRole/1"));
+    refs.add(new Reference("PractitionerRole/2"));
+    refs.add(new Reference("Patient/1"));
+    assertEquals(4, FhirUtils.filterByTypes(refs, null).size());
+    assertEquals(2, FhirUtils.filterByTypes(refs, PractitionerRole.class).size());
+    assertEquals("Organization/1", FhirUtils.filterByTypes(refs, PractitionerRole.class).get(0).getReference());
+    assertEquals("Patient/1", FhirUtils.filterByTypes(refs, PractitionerRole.class).get(1).getReference());
   }
 
 }

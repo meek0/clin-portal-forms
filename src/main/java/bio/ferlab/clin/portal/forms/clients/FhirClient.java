@@ -63,6 +63,12 @@ public class FhirClient {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors);
     }
   }
+
+  public ServiceRequest assignPerformers(ServiceRequest serviceRequest) {
+    log.info("Update service request {} with performers {}", serviceRequest.getIdElement().getIdPart(), serviceRequest.getPerformer().stream().map((Reference::getReference)).toList());
+    final var outcome = this.genericClient.update().resource(serviceRequest).encodedJson().execute();
+    return (ServiceRequest) outcome.getResource();
+  }
   
   public Bundle submitForm(String personRef, String patientRef, Bundle bundle) {
     try {
@@ -87,10 +93,17 @@ public class FhirClient {
     return this.getGenericClient().read().resource(CodeSystem.class).withId(id).encodedJson().execute();
   }
 
-  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
+   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public PractitionerRole findPractitionerRoleById(String id) {
     log.debug("Fetch practitioner role by id {}", id);
     return this.getGenericClient().read().resource(PractitionerRole.class).withId(id).encodedJson().execute();
+  }
+
+  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
+  public Bundle findAllPractitionerRoles() {
+    return this.getGenericClient().search().forResource(PractitionerRole.class)
+      .count(Integer.MAX_VALUE)
+      .returnBundle(Bundle.class).encodedJson().execute();
   }
   
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
@@ -143,7 +156,7 @@ public class FhirClient {
   }
   
   // data refreshed very often, don't cache
-  public Bundle findServiceRequestById(String id) {
+  public Bundle findServiceRequestWithDepsById(String id) {
     return this.getGenericClient().search().forResource(ServiceRequest.class)
         .where(ServiceRequest.RES_ID.exactly().code(id))
         .include(ServiceRequest.INCLUDE_REQUESTER)
@@ -151,6 +164,12 @@ public class FhirClient {
         .returnBundle(Bundle.class)
         .encodedJson()
         .execute();
+  }
+
+  // data refreshed very often, don't cache
+  public ServiceRequest findServiceRequestById(String id) {
+    log.debug("Fetch service request by id {}", id);
+    return this.getGenericClient().read().resource(ServiceRequest.class).withId(id).encodedJson().execute();
   }
   
   // data refreshed very often, don't cache

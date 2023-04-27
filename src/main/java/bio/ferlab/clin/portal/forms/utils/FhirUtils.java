@@ -4,11 +4,15 @@ import bio.ferlab.clin.portal.forms.models.builders.ObservationsBuilder;
 import bio.ferlab.clin.portal.forms.models.submit.Parent;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBaseResource;
+import org.hl7.fhir.r4.model.BaseResource;
 import org.hl7.fhir.r4.model.Organization;
 import org.hl7.fhir.r4.model.PractitionerRole;
 import org.hl7.fhir.r4.model.Reference;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.DOCTOR_PREFIX;
 
@@ -64,5 +68,11 @@ public class FhirUtils {
     } else {
       return null;
     }
+  }
+
+  public static List<Reference> filterByTypes(List<Reference> refs, Class<? extends BaseResource> exclude) {
+    return Optional.ofNullable(refs).orElse(new ArrayList<>()).stream()
+      .filter(r -> exclude == null || !r.getReference().startsWith(exclude.getSimpleName()))
+      .collect(Collectors.toList());
   }
 }

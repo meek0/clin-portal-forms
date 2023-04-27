@@ -42,7 +42,7 @@ public class SearchPrescriptionBuilder {
       final PractitionerBuilder.Result roles = new PractitionerBuilder(fhirClient, practitionerId).build();
       final List<String> eps = roles.getPractitionerRoles().stream().map(r -> FhirUtils.extractId(r.getOrganization())).distinct().collect(Collectors.toList());
 
-      final Bundle bundle = this.fhirClient.findServiceRequestById(id);
+      final Bundle bundle = this.fhirClient.findServiceRequestWithDepsById(id);
       // extract analysis bundle
       final BundleExtractor extractor = new BundleExtractor(fhirClient.getContext(), bundle);
       final ServiceRequest analysis = extractor.getFirstResourcesOfType(ServiceRequest.class);
