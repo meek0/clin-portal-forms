@@ -5,9 +5,6 @@ import com.jamonapi.Monitor;
 import com.jamonapi.MonitorFactory;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FileUtils;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEndpoint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -21,7 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
-@Aspect
+//@Aspect
 @Component
 @RestControllerEndpoint(id = "status")
 @ConditionalOnProperty(value="status.enabled", havingValue = "true")
@@ -48,7 +45,7 @@ public class StatusEndpoint {
     return ResponseEntity.ok(builder.toString());
   }
 
-  @Around("within(bio.ferlab.clin.portal.forms..*)" +
+  /*@Around("within(bio.ferlab.clin.portal.forms..*)" +
     "&& !within(bio.ferlab.clin.portal.forms.filters..*) " +
     "&& !within(bio.ferlab.clin.portal.forms.configurations..*) " +
     "&& !within(bio.ferlab.clin.portal.forms.controllers..*)")
@@ -61,7 +58,7 @@ public class StatusEndpoint {
     }finally {
      monitor.stop();
     }
-  }
+  }*/
 
   private String formatJava() {
     StringBuilder builder = new StringBuilder();
