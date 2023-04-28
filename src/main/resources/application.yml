@@ -80,5 +80,5 @@ logging:
     bio.ferlab.clin.portal.forms: INFO
     org.hibernate: ERROR
 status:
-  enabled: true
+  enabled: false
   logs-size: 50
