@@ -36,6 +36,7 @@ public class FhirClient {
   public FhirClient(FhirConfiguration configuration, FhirAuthInterceptor fhirAuthInterceptor) {
     context = FhirContext.forR4();
     context.getRestfulClientFactory().setConnectTimeout(configuration.getTimeout());
+    context.getRestfulClientFactory().setConnectionRequestTimeout(configuration.getTimeout());
     context.getRestfulClientFactory().setSocketTimeout(configuration.getTimeout());
     context.getRestfulClientFactory().setPoolMaxTotal(configuration.getPoolSize());
     context.getRestfulClientFactory().setPoolMaxPerRoute(configuration.getPoolSize());
@@ -51,7 +52,7 @@ public class FhirClient {
   public void validate(IBaseResource resource) {
     OperationOutcome oo;
     try {
-      oo = (OperationOutcome) getGenericClient().validate().resource(resource).encodedJson().execute().getOperationOutcome();
+      oo = (OperationOutcome) getGenericClient().validate().resource(resource).execute().getOperationOutcome();
     } catch(PreconditionFailedException | UnprocessableEntityException e) {
       oo = (OperationOutcome) e.getOperationOutcome();
     }
@@ -66,7 +67,7 @@ public class FhirClient {
 
   public ServiceRequest assignPerformers(ServiceRequest serviceRequest) {
     log.info("Update service request {} with performers {}", serviceRequest.getIdElement().getIdPart(), serviceRequest.getPerformer().stream().map((Reference::getReference)).toList());
-    final var outcome = this.genericClient.update().resource(serviceRequest).encodedJson().execute();
+    final var outcome = this.genericClient.update().resource(serviceRequest).execute();
     return (ServiceRequest) outcome.getResource();
   }
   
@@ -77,7 +78,7 @@ public class FhirClient {
         validate(bundle);
       }
       log.info("Submit bundle for {} {} with {} entries",personRef, patientRef, bundle.getEntry().size());
-      Bundle response = this.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
+      Bundle response = this.getGenericClient().transaction().withBundle(bundle).execute();
       logDebug(response);
       return response;
     } catch(PreconditionFailedException | UnprocessableEntityException | InvalidRequestException e) {  // FHIR Server custom validation chain failed
@@ -90,13 +91,13 @@ public class FhirClient {
   @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true, keyGenerator = "customKeyGenerator")
   public CodeSystem findCodeSystemById(String id) {
     log.debug("Fetch code system by id {}", id);
-    return this.getGenericClient().read().resource(CodeSystem.class).withId(id).encodedJson().execute();
+    return this.getGenericClient().read().resource(CodeSystem.class).withId(id).execute();
   }
 
    @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public PractitionerRole findPractitionerRoleById(String id) {
     log.debug("Fetch practitioner role by id {}", id);
-    return this.getGenericClient().read().resource(PractitionerRole.class).withId(id).encodedJson().execute();
+    return this.getGenericClient().read().resource(PractitionerRole.class).withId(id).execute();
   }
 
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
@@ -104,14 +105,14 @@ public class FhirClient {
     log.debug("Fetch all practitioner roles");
     return this.getGenericClient().search().forResource(PractitionerRole.class)
       .count(Integer.MAX_VALUE)
-      .returnBundle(Bundle.class).encodedJson().execute();
+      .returnBundle(Bundle.class).execute();
   }
   
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findPractitionerRoleByPractitionerId(String practitionerId) {
     log.debug("Fetch practitioner roles by practitioner id {}", practitionerId);
     return this.getGenericClient().search().forResource(PractitionerRole.class)
-        .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).encodedJson().execute();
+        .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).execute();
   }
 
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
@@ -121,7 +122,7 @@ public class FhirClient {
         .where(PractitionerRole.ORGANIZATION.hasId(ep))
         .include(PractitionerRole.INCLUDE_PRACTITIONER)
         .count(Integer.MAX_VALUE)
-        .returnBundle(Bundle.class).encodedJson().execute();
+        .returnBundle(Bundle.class).execute();
   }
   
   public Bundle fetchAdditionalPrescriptionData(String practitionerId, String patientId) {
@@ -140,7 +141,7 @@ public class FhirClient {
         .setUrl("RelatedPerson?patient=" + patientId)
         .setMethod(Bundle.HTTPVerb.GET);
 
-    return this.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
+    return this.getGenericClient().transaction().withBundle(bundle).execute();
   }
   
   public Bundle fetchServiceRequestsByPatientIds(List<String> patientIds) {
@@ -153,7 +154,7 @@ public class FhirClient {
           .setMethod(Bundle.HTTPVerb.GET);
     });
     
-    return this.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
+    return this.getGenericClient().transaction().withBundle(bundle).execute();
   }
   
   // data refreshed very often, don't cache
@@ -163,14 +164,13 @@ public class FhirClient {
         .include(ServiceRequest.INCLUDE_REQUESTER)
         .include(ServiceRequest.INCLUDE_PATIENT)
         .returnBundle(Bundle.class)
-        .encodedJson()
         .execute();
   }
 
   // data refreshed very often, don't cache
   public ServiceRequest findServiceRequestById(String id) {
     log.debug("Fetch service request by id {}", id);
-    return this.getGenericClient().read().resource(ServiceRequest.class).withId(id).encodedJson().execute();
+    return this.getGenericClient().read().resource(ServiceRequest.class).withId(id).execute();
   }
   
   // data refreshed very often, don't cache
@@ -180,7 +180,6 @@ public class FhirClient {
         .where(Person.IDENTIFIER.exactly().code(ramq))
         .include(Person.INCLUDE_PATIENT)
         .returnBundle(Bundle.class)
-        .encodedJson()
         .execute();
   }
 
@@ -192,7 +191,6 @@ public class FhirClient {
         .and(Patient.ORGANIZATION.hasId(ep))
         .revInclude(Person.INCLUDE_PATIENT)
         .returnBundle(Bundle.class)
-        .encodedJson()
         .execute();
   }
 
@@ -242,7 +240,7 @@ public class FhirClient {
           .setMethod(Bundle.HTTPVerb.GET);
     }
     
-    return this.getGenericClient().transaction().withBundle(bundle).encodedJson().execute();
+    return this.getGenericClient().transaction().withBundle(bundle).execute();
   }
 
   public String toJson(IBaseResource resource) {
