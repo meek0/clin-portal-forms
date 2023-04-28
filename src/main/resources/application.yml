@@ -1,4 +1,11 @@
+server:
+  undertow:
+    threads: # https://github.com/undertow-io/undertow/blob/master/core/src/main/java/io/undertow/Undertow.java#L438
+      io: 2
+      worker: 5
 spring:
+  application:
+    name: Forms (API)
   main:
     lazy-initialization: false
   jackson:
@@ -37,7 +44,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,status
+        include: health,status,metrics
   endpoint:
     #logfile:
       #external-file: "./logs/app.log"
@@ -80,5 +87,5 @@ logging:
     bio.ferlab.clin.portal.forms: INFO
     org.hibernate: ERROR
 status:
-  enabled: false
+  enabled: true
   logs-size: 50
