@@ -5,27 +5,45 @@ import com.jamonapi.Monitor;
 import com.jamonapi.MonitorFactory;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEndpoint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Optional;
 
-//@Aspect
+@Aspect
 @Component
 @RestControllerEndpoint(id = "status")
-@ConditionalOnProperty(value="status.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "status.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class StatusEndpoint {
 
+  private static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+  private static final DateTimeFormatter SIMPLE_FORMATTER = DateTimeFormatter.ofPattern(DATE_TIME_FORMAT);
+  private static final String ROOT_PACKAGE = "bio.ferlab.clin.portal.forms";
+
   private final UserDetails userDetails;
+  private final ApplicationContext ctx;
+  private final ServerProperties serverProperties;
+
+  @Value("${spring.application.name:}")
+  private String appName;
 
   @Value("${logging.file.name}")
   private String logFileName;
@@ -33,48 +51,59 @@ public class StatusEndpoint {
   @Value("${status.logs-size:100}")
   private long logsSize;
 
-  @GetMapping
-  public ResponseEntity<String> customEndPoint(){
+  private void checkSecurity() {
     if (!userDetails.isSystem()) {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "system token is required");
     }
-    StringBuilder builder = new StringBuilder();
-    builder.append(formatJava());
-    builder.append(formatMonitors());
-    builder.append(formatLogs());
-    return ResponseEntity.ok(builder.toString());
   }
 
-  /*@Around("within(bio.ferlab.clin.portal.forms..*)" +
-    "&& !within(bio.ferlab.clin.portal.forms.filters..*) " +
-    "&& !within(bio.ferlab.clin.portal.forms.configurations..*) " +
-    "&& !within(bio.ferlab.clin.portal.forms.controllers..*)")
-  public Object monitors(ProceedingJoinPoint joinPoint) throws Throwable{
-    String targetClass = joinPoint.getTarget().getClass().getSimpleName();
-    String targetMethod = joinPoint.getSignature().getName();
-    var monitor = MonitorFactory.start(String.format("%s.%s()", targetClass, targetMethod));
-    try {
-      return joinPoint.proceed();
-    }finally {
-     monitor.stop();
-    }
-  }*/
+  @GetMapping(produces = "text/plain")
+  public String status() {
+    this.checkSecurity();
+    var monitor = MonitorFactory.start("StatusEndpoint.status()");  // monitor yourself
+    StringBuilder builder = new StringBuilder();
+    builder.append(java());
+    builder.append(app());
+    builder.append(monitors());
+    builder.append(logs(null));
+    monitor.stop();
+    return builder.toString();
+  }
 
-  private String formatJava() {
+  @GetMapping(value = "/java", produces = "text/plain")
+  public String java() {
+    this.checkSecurity();
     StringBuilder builder = new StringBuilder();
     builder.append("Java:\n");
     builder.append("~~~~~\n");
     builder.append("Version: " + System.getProperty("java.version")+"\n");
     builder.append("Home: " + System.getProperty("java.home")+"\n");
-    builder.append("Max memory: " + FileUtils.byteCountToDisplaySize(Runtime.getRuntime().maxMemory())+"\n");
-    builder.append("Free memory: " + FileUtils.byteCountToDisplaySize(Runtime.getRuntime().freeMemory())+"\n");
-    builder.append("Total memory: " + FileUtils.byteCountToDisplaySize(Runtime.getRuntime().totalMemory())+"\n");
+    builder.append("Max memory: " + Runtime.getRuntime().maxMemory() + " ("+ FileUtils.byteCountToDisplaySize(Runtime.getRuntime().maxMemory())+")\n");
+    builder.append("Free memory: " + Runtime.getRuntime().freeMemory() + " ("+ FileUtils.byteCountToDisplaySize(Runtime.getRuntime().freeMemory())+")\n");
+    builder.append("Total memory: " + Runtime.getRuntime().totalMemory() + " ("+ FileUtils.byteCountToDisplaySize(Runtime.getRuntime().totalMemory())+")\n");
     builder.append("Available processors: " + Runtime.getRuntime().availableProcessors()+"\n");
     builder.append("\n");
     return builder.toString();
   }
 
-  private String formatMonitors() {
+  @GetMapping(value = "/app", produces = "text/plain")
+  public String app() {
+    this.checkSecurity();
+    StringBuilder builder = new StringBuilder();
+    builder.append("App:\n");
+    builder.append("~~~~~\n");
+    builder.append("Name: " + appName +"\n");
+    builder.append("Profiles: " + Arrays.toString(ctx.getEnvironment().getActiveProfiles()) +"\n");
+    builder.append("Server time: " + LocalDateTime.now().format(SIMPLE_FORMATTER) +"\n");
+    builder.append("Uptime: " + DurationFormatUtils.formatDuration(System.currentTimeMillis() - ctx.getStartupDate(), DATE_TIME_FORMAT, true) +"\n");
+    builder.append(String.format("Max simultaneous requests: %s\n", serverProperties.getUndertow().getThreads().getIo() * serverProperties.getUndertow().getThreads().getWorker()));
+    builder.append("\n");
+    return builder.toString();
+  }
+
+  @GetMapping(value = "/monitors", produces = "text/plain")
+  public String monitors() {
+    this.checkSecurity();
     StringBuilder builder = new StringBuilder();
     builder.append("Monitors:\n");
     builder.append("~~~~~\n");
@@ -91,17 +120,36 @@ public class StatusEndpoint {
     return builder.toString();
   }
 
-  private String formatLogs() {
+  @GetMapping(value = "/logs", produces = "text/plain")
+  public String logs(@RequestParam(value = "size", required = false) Long size) {
+    this.checkSecurity();
+    var maxSize = Optional.ofNullable(size).orElse(logsSize);
     StringBuilder builder = new StringBuilder();
     builder.append("Logs:\n");
     builder.append("~~~~~\n");
     try {
       var lines = Files.readAllLines(Path.of(logFileName));
-      lines.stream().skip(Math.max(lines.size() - logsSize, 0)).forEach((l) -> builder.append(l+"\n"));
+      lines.stream().skip(Math.max(lines.size() - maxSize, 0)).forEach((l) -> builder.append(l + "\n"));
     } catch (Exception e) {
       builder.append("Failed to read logs: " + e.getMessage());
     }
     builder.append("\n");
     return builder.toString();
   }
+
+  @Around("within(" + ROOT_PACKAGE + "..*)" +
+    "&& !within(" + ROOT_PACKAGE + ".filters..*)" +
+    "&& !within(" + ROOT_PACKAGE + ".endpoints..*)" +
+    "&& !within(" + ROOT_PACKAGE + ".configurations..*)")
+  public Object monitors(ProceedingJoinPoint joinPoint) throws Throwable {
+    String targetClass = joinPoint.getTarget().getClass().getSimpleName();
+    String targetMethod = joinPoint.getSignature().getName();
+    var monitor = MonitorFactory.start(String.format("%s.%s()", targetClass, targetMethod));
+    try {
+      return joinPoint.proceed();
+    } finally {
+      monitor.stop();
+    }
+  }
+
 }

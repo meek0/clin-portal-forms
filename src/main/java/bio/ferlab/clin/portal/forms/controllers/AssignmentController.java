@@ -23,7 +23,7 @@ public class AssignmentController {
   private final FhirClient fhirClient;
 
   @PostMapping
-  public ResponseEntity<Response> submit(@RequestHeader String authorization,
+  public ResponseEntity<Response> assign(@RequestHeader String authorization,
                                          @Valid @RequestBody Request request) {
 
     final List<String> roles = JwtUtils.getUserRoles(authorization);
