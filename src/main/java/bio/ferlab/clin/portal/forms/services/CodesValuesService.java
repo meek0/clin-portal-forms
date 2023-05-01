@@ -4,7 +4,6 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeSystem;
@@ -43,7 +42,8 @@ public class CodesValuesService {
   
   private Map<String, IBaseResource> buildCodesAndValues() {
     final Bundle bundle = this.fhirClient.fetchCodesAndValues();
-    
+    Map<String, IBaseResource> codesAndValues = new HashMap<>();
+
     BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
 
     CodeSystem analyseCode = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
@@ -53,8 +53,6 @@ public class CodesValuesService {
     CodeSystem observation = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
     ValueSet age = bundleExtractor.getNextResourcesOfType(ValueSet.class);
 
-    Map<String, IBaseResource> codesAndValues = new HashMap<>();
-
     codesAndValues.put(ANALYSE_KEY, analyseCode);
     codesAndValues.put(HP_KEY, hp);
     codesAndValues.put(PARENTAL_KEY, parentalLinks);
@@ -62,16 +60,16 @@ public class CodesValuesService {
     codesAndValues.put(OBSERVATION_KEY, observation);
     codesAndValues.put(AGE_KEY, age);
 
-    for(String byType: fhirConfiguration.getTypesWithDefault()) {
+    for (String byType : fhirConfiguration.getTypesWithDefault()) {
       ValueSet hpByType = bundleExtractor.getNextResourcesOfType(ValueSet.class);
       ValueSet obsByType = bundleExtractor.getNextResourcesOfType(ValueSet.class);
-      codesAndValues.put(byType + HP_BY_TYPE_SUFFIX,hpByType);
+      codesAndValues.put(byType + HP_BY_TYPE_SUFFIX, hpByType);
       codesAndValues.put(byType + OBS_BY_TYPE_SUFFIX, obsByType);
       validate(hp, hpByType);
       validate(observation, obsByType);
     }
 
-    for(String byType: fhirConfiguration.getMultiValuesObservationCodes()) {
+    for (String byType : fhirConfiguration.getMultiValuesObservationCodes()) {
       ValueSet abnormality = bundleExtractor.getNextResourcesOfType(ValueSet.class);
       codesAndValues.put(byType + MULTI_VALUES_SUFFIX, abnormality);
     }
