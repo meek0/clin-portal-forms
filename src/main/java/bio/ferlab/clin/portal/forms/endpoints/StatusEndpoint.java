@@ -1,14 +1,9 @@
 package bio.ferlab.clin.portal.forms.endpoints;
 
 import bio.ferlab.clin.portal.forms.UserDetails;
-import com.jamonapi.Monitor;
-import com.jamonapi.MonitorFactory;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEndpoint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,7 +22,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Optional;
 
-@Aspect
+//@Aspect
 @Component
 @RestControllerEndpoint(id = "status")
 @ConditionalOnProperty(value = "status.enabled", havingValue = "true")
@@ -60,13 +55,13 @@ public class StatusEndpoint {
   @GetMapping(produces = "text/plain")
   public String status() {
     this.checkSecurity();
-    var monitor = MonitorFactory.start("StatusEndpoint.status()");  // monitor yourself
+    //var monitor = MonitorFactory.start("StatusEndpoint.status()");  // monitor yourself
     StringBuilder builder = new StringBuilder();
     builder.append(java());
     builder.append(app());
-    builder.append(monitors());
+    //builder.append(monitors());
     builder.append(logs(null));
-    monitor.stop();
+    //monitor.stop();
     return builder.toString();
   }
 
@@ -101,7 +96,7 @@ public class StatusEndpoint {
     return builder.toString();
   }
 
-  @GetMapping(value = "/monitors", produces = "text/plain")
+  /*@GetMapping(value = "/monitors", produces = "text/plain")
   public String monitors() {
     this.checkSecurity();
     StringBuilder builder = new StringBuilder();
@@ -118,7 +113,7 @@ public class StatusEndpoint {
     }
     builder.append("\n");
     return builder.toString();
-  }
+  }*/
 
   @GetMapping(value = "/logs", produces = "text/plain")
   public String logs(@RequestParam(value = "size", required = false) Long size) {
@@ -137,7 +132,7 @@ public class StatusEndpoint {
     return builder.toString();
   }
 
-  @Around("within(" + ROOT_PACKAGE + "..*)" +
+  /*@Around("within(" + ROOT_PACKAGE + "..*)" +
     "&& !within(" + ROOT_PACKAGE + ".filters..*)" +
     "&& !within(" + ROOT_PACKAGE + ".endpoints..*)" +
     "&& !within(" + ROOT_PACKAGE + ".configurations..*)")
@@ -150,6 +145,6 @@ public class StatusEndpoint {
     } finally {
       monitor.stop();
     }
-  }
+  }*/
 
 }

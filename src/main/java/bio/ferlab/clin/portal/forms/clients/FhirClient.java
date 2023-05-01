@@ -35,17 +35,27 @@ public class FhirClient {
   
   public FhirClient(FhirConfiguration configuration, FhirAuthInterceptor fhirAuthInterceptor) {
     context = FhirContext.forR4();
+
+    //context.setRestfulClientFactory(new OkHttpRestfulClientFactory(context));
+
+    //final var poolingConnManager = new PoolingHttpClientConnectionManager();
+    /*final var client = HttpClients.custom()
+      .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy())
+      .build();
+    context.getRestfulClientFactory().setHttpClient(client);*/
+
+    context.setPerformanceOptions(PerformanceOptionsEnum.DEFERRED_MODEL_SCANNING);
+    context.getRestfulClientFactory().setServerValidationMode(ServerValidationModeEnum.NEVER);
+
     context.getRestfulClientFactory().setConnectTimeout(configuration.getTimeout());
     context.getRestfulClientFactory().setConnectionRequestTimeout(configuration.getTimeout());
     context.getRestfulClientFactory().setSocketTimeout(configuration.getTimeout());
     context.getRestfulClientFactory().setPoolMaxTotal(configuration.getPoolSize());
     context.getRestfulClientFactory().setPoolMaxPerRoute(configuration.getPoolSize());
-    context.setPerformanceOptions(PerformanceOptionsEnum.DEFERRED_MODEL_SCANNING);
-    context.getRestfulClientFactory().setServerValidationMode(ServerValidationModeEnum.NEVER);
 
     this.genericClient = context.newRestfulGenericClient(configuration.getUrl());
     this.fhirConfiguration = configuration;
-    
+
     genericClient.registerInterceptor(fhirAuthInterceptor);
   }
 
