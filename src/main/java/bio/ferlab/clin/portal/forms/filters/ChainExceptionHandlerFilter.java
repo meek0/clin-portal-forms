@@ -1,5 +1,6 @@
 package bio.ferlab.clin.portal.forms.filters;
 
+import bio.ferlab.clin.portal.forms.configurations.SecurityConfiguration;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +23,8 @@ public class ChainExceptionHandlerFilter extends OncePerRequestFilter {
   @Autowired
   @Qualifier("handlerExceptionResolver")
   private HandlerExceptionResolver resolver;
+  @Autowired
+  private SecurityConfiguration securityConfiguration;
 
   @Override
   protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -32,7 +35,9 @@ public class ChainExceptionHandlerFilter extends OncePerRequestFilter {
       // this little 'astuce' allows to throw exceptions in filters and resolve them like any Controller exceptions.
       resolver.resolveException(request, response, null, e);
     } finally {
-      log.info("{} {} in {} ms", request.getMethod(), request.getRequestURI(), System.currentTimeMillis() - start);
+      if (this.securityConfiguration.getPublics().stream().noneMatch(p -> request.getRequestURI().startsWith(p))) {
+        log.info("{} {} in {} ms", request.getMethod(), request.getRequestURI(), System.currentTimeMillis() - start);
+      }
     }
   }
 }
