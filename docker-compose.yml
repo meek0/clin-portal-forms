@@ -10,6 +10,7 @@ services:
     mem_reservation: "512m"
     cpus: 1
     cpuset: "2"
+    network_mode: host
     healthcheck:
       test: curl -Is localhost:8080/actuator/health | head -n 1 | grep 200 || exit 1
       interval: 10s

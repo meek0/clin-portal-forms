@@ -1,8 +1,8 @@
 server:
   undertow:
     threads: # https://github.com/undertow-io/undertow/blob/master/core/src/main/java/io/undertow/Undertow.java#L438
-      io: 2
-      worker: 5
+      io: 4
+      worker: 20
 spring:
   application:
     name: Forms (API)

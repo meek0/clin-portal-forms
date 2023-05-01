@@ -23,37 +23,43 @@ public class BundleExtractor {
 
   public <T extends IBaseResource> List<T> getAllResourcesOfType(Class<T> clazz) {
     List<T> results = new ArrayList<>();
-    List<IBaseResource> allRes = BundleUtil.toListOfResources(fhirContext, bundle);
-    for(IBaseResource res : allRes) {
-      if(res.getClass().equals(clazz)){
-        results.add((T)res);
-      } else if (res instanceof Bundle) { // search can return bundle inside bundle
-        results.addAll(getAllResourcesOfTypeInBundle(clazz, (IBaseBundle) res));
+    synchronized (bundle) {
+      List<IBaseResource> allRes = BundleUtil.toListOfResources(fhirContext, bundle);
+      for (IBaseResource res : allRes) {
+        if (res.getClass().equals(clazz)) {
+          results.add((T) res);
+        } else if (res instanceof Bundle) { // search can return bundle inside bundle
+          results.addAll(getAllResourcesOfTypeInBundle(clazz, (IBaseBundle) res));
+        }
       }
     }
     return results;
   }
   
-  public synchronized <T extends IBaseResource> T getNextResourcesOfType(Class<T> clazz) {
-    List<IBaseResource> allRes = BundleUtil.toListOfResources(fhirContext, bundle);
-    if (allRes.size() > currentIndex) {
-      IBaseResource res = allRes.get(currentIndex++);
-      if(res.getClass().equals(clazz)){
-        return (T)res;
+  public <T extends IBaseResource> T getNextResourcesOfType(Class<T> clazz) {
+    synchronized (bundle) {
+      List<IBaseResource> allRes = BundleUtil.toListOfResources(fhirContext, bundle);
+      if (allRes.size() > currentIndex) {
+        IBaseResource res = allRes.get(currentIndex++);
+        if (res.getClass().equals(clazz)) {
+          return (T) res;
+        }
       }
     }
     return null;
   }
 
   public <T extends IBaseResource> T getFirstResourcesOfType(Class<T> clazz) {
-    List<IBaseResource> allRes = BundleUtil.toListOfResources(fhirContext, bundle);
-    for(IBaseResource res : allRes) {
-      if(res.getClass().equals(clazz)){
-        return (T)res;
-      } else if (res instanceof Bundle) { // search can return bundle inside bundle
-        T fromBundle = getResourcesOfTypeInBundle(clazz, (IBaseBundle) res);
-        if (fromBundle !=null) {
-          return fromBundle;
+    synchronized (bundle) {
+      List<IBaseResource> allRes = BundleUtil.toListOfResources(fhirContext, bundle);
+      for (IBaseResource res : allRes) {
+        if (res.getClass().equals(clazz)) {
+          return (T) res;
+        } else if (res instanceof Bundle) { // search can return bundle inside bundle
+          T fromBundle = getResourcesOfTypeInBundle(clazz, (IBaseBundle) res);
+          if (fromBundle != null) {
+            return fromBundle;
+          }
         }
       }
     }
@@ -61,14 +67,16 @@ public class BundleExtractor {
   }
   
   public String extractFirstIdFromResponse(String type) {
-    if (StringUtils.isNotBlank(type)) {
-      return bundle.getEntry().stream()
-        .map(Bundle.BundleEntryComponent::getResponse)
-        .map(Bundle.BundleEntryResponseComponent::getLocation)
-        .filter(StringUtils::isNotBlank)
-        .filter(l -> l.startsWith(type + "/"))
-        .findFirst()
-        .map(FhirUtils::extractId).orElse(null);
+    synchronized (bundle) {
+      if (StringUtils.isNotBlank(type)) {
+        return bundle.getEntry().stream()
+          .map(Bundle.BundleEntryComponent::getResponse)
+          .map(Bundle.BundleEntryResponseComponent::getLocation)
+          .filter(StringUtils::isNotBlank)
+          .filter(l -> l.startsWith(type + "/"))
+          .findFirst()
+          .map(FhirUtils::extractId).orElse(null);
+      }
     }
     return null;
   }
