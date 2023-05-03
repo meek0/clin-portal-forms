@@ -63,17 +63,7 @@ security:
   issuer: ${SECURITY_ISSUER:https://auth.qa.cqgc.hsj.rtss.qc.ca/auth/realms/clin}
   system: "clin-system"
   cors:
-    - "http://localhost:2000"
-    - "http://localhost:2005"
-    - "http://localhost:2006"
-    - "https://portail.qa.cqgc.hsj.rtss.qc.ca"
-    - "https://portail-*.qa.cqgc.hsj.rtss.qc.ca"
-    - "https://portail.staging.cqgc.hsj.rtss.qc.ca"
-    - "https://portail.cqgc.hsj.rtss.qc.ca"
-    - "https://prescription.qa.cqgc.hsj.rtss.qc.ca"
-    - "https://prescription-*.qa.cqgc.hsj.rtss.qc.ca"
-    - "https://prescription.staging.cqgc.hsj.rtss.qc.ca"
-    - "https://prescription.cqgc.hsj.rtss.qc.ca"
+    - "*"
   publics:
     - "/actuator/health"
     - "/openapi"
