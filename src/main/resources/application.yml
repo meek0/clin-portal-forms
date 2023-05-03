@@ -71,6 +71,7 @@ security:
     - "https://portail.staging.cqgc.hsj.rtss.qc.ca"
     - "https://portail.cqgc.hsj.rtss.qc.ca"
     - "https://prescription.qa.cqgc.hsj.rtss.qc.ca"
+    - "https://prescription-*.qa.cqgc.hsj.rtss.qc.ca"
     - "https://prescription.staging.cqgc.hsj.rtss.qc.ca"
     - "https://prescription.cqgc.hsj.rtss.qc.ca"
   publics:
