@@ -29,7 +29,7 @@ public class WebConfiguration implements WebMvcConfigurer {
   public void addCorsMappings(CorsRegistry registry) {
     registry
         .addMapping("/**")
-        .allowedOrigins(securityConfiguration.getCors().toArray(String[]::new))
+        .allowedOriginPatterns(securityConfiguration.getCors().toArray(String[]::new))
         .allowedMethods(HttpMethod.GET.name(), HttpMethod.POST.name())
         .allowedHeaders(HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE)
         .allowCredentials(true)

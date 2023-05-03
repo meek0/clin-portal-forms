@@ -67,6 +67,7 @@ security:
     - "http://localhost:2005"
     - "http://localhost:2006"
     - "https://portail.qa.cqgc.hsj.rtss.qc.ca"
+    - "https://portail-*.qa.cqgc.hsj.rtss.qc.ca"
     - "https://portail.staging.cqgc.hsj.rtss.qc.ca"
     - "https://portail.cqgc.hsj.rtss.qc.ca"
     - "https://prescription.qa.cqgc.hsj.rtss.qc.ca"
