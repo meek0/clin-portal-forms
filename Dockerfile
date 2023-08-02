@@ -34,7 +34,7 @@ RUN $JAVA_HOME/bin/jlink \
 FROM alpine:latest
 WORKDIR /app
 ENV JAVA_HOME=/jre
-ENV JAVA_OPTS="-XX:+UseZGC -XX:+UseContainerSupport -XX:InitialRAMPercentage=75.0 -XX:MinRAMPercentage=75.0 -XX:MaxRAMPercentage=75.0 -XshowSettings:vm -XX:+PrintCommandLineFlags"
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75.0 -XshowSettings:vm -XX:+PrintCommandLineFlags"
 ENV PATH="$PATH:$JAVA_HOME/bin"
 RUN apk update && apk add ca-certificates openssl
 COPY --from=build-jre /tmp/jre/minimal $JAVA_HOME

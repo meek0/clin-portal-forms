@@ -1,10 +1,5 @@
 server:
   port: 7979
-springdoc:
-  swagger-ui:
-    enabled: true
-  api-docs:
-    enabled: true
 fhir:
   timeout: 600000
   url: http://localhost:8080/fhir
@@ -12,7 +7,7 @@ fhir:
 cache:
   eviction: 30 # 30s
 security:
-  issuer: http://localhost:8081/auth/realms/master
+  issuer: http://localhost:8081/realms/master
 logging:
   level:
     bio.ferlab.clin.portal.forms: DEBUG
