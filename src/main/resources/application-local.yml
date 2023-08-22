@@ -7,7 +7,7 @@ fhir:
 cache:
   eviction: 30 # 30s
 security:
-  issuer: http://localhost:8081/realms/master
+  issuer: http://localhost:8081/auth/realms/clin
 logging:
   level:
     bio.ferlab.clin.portal.forms: DEBUG

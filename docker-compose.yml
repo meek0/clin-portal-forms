@@ -9,7 +9,6 @@ services:
     mem_limit: "512m"
     mem_reservation: "256m"
     cpus: 1
-    cpuset: "1"
     network_mode: host
     healthcheck:
       test: curl -Is localhost:8080/actuator/health | head -n 1 | grep 200 || exit 1

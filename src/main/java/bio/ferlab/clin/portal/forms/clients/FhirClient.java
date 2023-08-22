@@ -36,14 +36,6 @@ public class FhirClient {
   public FhirClient(FhirConfiguration configuration, FhirAuthInterceptor fhirAuthInterceptor) {
     context = FhirContext.forR4();
 
-    //context.setRestfulClientFactory(new OkHttpRestfulClientFactory(context));
-
-    //final var poolingConnManager = new PoolingHttpClientConnectionManager();
-    /*final var client = HttpClients.custom()
-      .setKeepAliveStrategy(new DefaultConnectionKeepAliveStrategy())
-      .build();
-    context.getRestfulClientFactory().setHttpClient(client);*/
-
     context.setPerformanceOptions(PerformanceOptionsEnum.DEFERRED_MODEL_SCANNING);
     context.getRestfulClientFactory().setServerValidationMode(ServerValidationModeEnum.NEVER);
 
@@ -96,12 +88,6 @@ public class FhirClient {
       log.debug("Failed to submit bundle:\n{}", errors);  // don't log in production <= sensitive data
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors);
     }
-  }
-
-  @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true, keyGenerator = "customKeyGenerator")
-  public CodeSystem findCodeSystemById(String id) {
-    log.debug("Fetch code system by id {}", id);
-    return this.getGenericClient().read().resource(CodeSystem.class).withId(id).execute();
   }
 
    @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
