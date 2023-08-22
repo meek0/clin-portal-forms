@@ -32,7 +32,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health,status
   endpoint:
     #logfile:
       #external-file: "./logs/app.log"
@@ -55,8 +55,15 @@ security:
   publics:
     - "/actuator/health"
 logging:
+  file:
+    name: "./logs/app.log"
+    max-history: 3
+    max-size: 1MB
   level:
     root: ERROR
     org.springframework.web: ERROR
     bio.ferlab.clin.portal.forms: INFO
     org.hibernate: ERROR
+status:
+  enabled: ${STATUS_ENABLED:false}
+  logs-size: 50

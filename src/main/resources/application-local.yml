@@ -11,3 +11,5 @@ security:
 logging:
   level:
     bio.ferlab.clin.portal.forms: DEBUG
+status:
+  enabled: true

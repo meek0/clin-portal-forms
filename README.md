@@ -2,16 +2,6 @@
 
 This API provides a bridge between the front-end and FHIR Server for **Prescriptions** creation and validation using FHIR Client library.
 
-# Documentation
-
-All endpoints and model descriptions are available here (only with `-Dspring.profiles.active=local`):
-
-OpenAPI
-- JSON: http://localhost:7979/openapi
-- YAML: http://localhost:7979/openapi.yaml
-
-Swagger-UI: http://localhost:7979/swagger-ui
-
 # Security
 
 The API checks **RPT token** in request header `Authorization` public certificate and fields inside like: expiration, audience, issuer ... 
