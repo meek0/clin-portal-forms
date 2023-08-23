@@ -1,15 +1,14 @@
 version: '3.9'
 services:
-  clin-portal-forms:
+  api:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - '8080:8080'
-    mem_limit: "1g"
-    mem_reservation: "512m"
+    mem_limit: "512m"
+    mem_reservation: "256m"
     cpus: 1
-    cpuset: "2"
     network_mode: host
     healthcheck:
       test: curl -Is localhost:8080/actuator/health | head -n 1 | grep 200 || exit 1

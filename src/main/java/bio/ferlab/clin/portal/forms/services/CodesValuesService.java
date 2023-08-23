@@ -1,6 +1,7 @@
 package bio.ferlab.clin.portal.forms.services;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
+import bio.ferlab.clin.portal.forms.configurations.CacheConfiguration;
 import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.ValueSet;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -32,10 +34,12 @@ public class CodesValuesService {
   private final FhirConfiguration fhirConfiguration;
   private final LogOnceService logOnceService;
 
+  @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true, keyGenerator = "customKeyGenerator")
   public CodeSystem getCodes(String key) {
     return (CodeSystem) this.buildCodesAndValues().get(key);
   }
 
+  @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true, keyGenerator = "customKeyGenerator")
   public ValueSet getValues(String key) {
     return (ValueSet) this.buildCodesAndValues().get(key);
   }

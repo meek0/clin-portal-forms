@@ -7,7 +7,7 @@ fhir:
 cache:
   eviction: 30 # 30s
 security:
-  issuer: https://auth.qa.cqgc.hsj.rtss.qc.ca/auth/realms/clin
+  issuer: https://auth.qa.cqgc.hsj.rtss.qc.ca/realms/clin
 logging:
   level:
     bio.ferlab.clin.portal.forms: DEBUG

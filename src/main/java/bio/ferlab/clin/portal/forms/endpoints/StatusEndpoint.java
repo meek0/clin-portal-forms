@@ -12,7 +12,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.endpoint.web.annotation.RestControllerEndpoint;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -40,7 +39,6 @@ public class StatusEndpoint {
 
   private final UserDetails userDetails;
   private final ApplicationContext ctx;
-  private final ServerProperties serverProperties;
 
   @Value("${spring.application.name:}")
   private String appName;
@@ -96,7 +94,6 @@ public class StatusEndpoint {
     builder.append("Profiles: " + Arrays.toString(ctx.getEnvironment().getActiveProfiles()) +"\n");
     builder.append("Server time: " + LocalDateTime.now().format(SIMPLE_FORMATTER) +"\n");
     builder.append("Uptime: " + DurationFormatUtils.formatDuration(System.currentTimeMillis() - ctx.getStartupDate(), DATE_TIME_FORMAT, true) +"\n");
-    builder.append(String.format("Max simultaneous requests: %s\n", serverProperties.getUndertow().getThreads().getIo() * serverProperties.getUndertow().getThreads().getWorker()));
     builder.append("\n");
     return builder.toString();
   }

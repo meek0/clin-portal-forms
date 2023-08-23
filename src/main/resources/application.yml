@@ -1,23 +1,21 @@
 server:
-  undertow:
-    threads: # https://github.com/undertow-io/undertow/blob/master/core/src/main/java/io/undertow/Undertow.java#L438
-      io: 4
-      worker: 20
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 2048
 spring:
   application:
     name: Forms (API)
   main:
-    lazy-initialization: false
+    lazy-initialization: true
+  resources:
+    cache:
+      cachecontrol:
+        max-age: 36000
+        must-revalidate: true
   jackson:
     property-naming-strategy: SNAKE_CASE
     default-property-inclusion: non_null
-springdoc:
-  swagger-ui:
-    enabled: false
-    path: /swagger-ui
-  api-docs:
-    enabled: false
-    path: /openapi
 fhir:
   url: ${FHIR_URL:https://fhir.qa.cqgc.hsj.rtss.qc.ca/fhir}
   timeout: 15000
@@ -44,7 +42,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,status,metrics
+        include: health,status
   endpoint:
     #logfile:
       #external-file: "./logs/app.log"
@@ -60,14 +58,12 @@ security:
   leeway: 5 # seconds
   enabled: ${SECURITY_ENABLED:true}
   audience: ${SECURITY_AUDIENCE:clin-acl}
-  issuer: ${SECURITY_ISSUER:https://auth.qa.cqgc.hsj.rtss.qc.ca/auth/realms/clin}
+  issuer: ${SECURITY_ISSUER:https://auth.qa.cqgc.hsj.rtss.qc.ca/realms/clin}
   system: "clin-system"
   cors:
     - "*"
   publics:
     - "/actuator/health"
-    - "/openapi"
-    - "/swagger-ui"
 logging:
   file:
     name: "./logs/app.log"
@@ -79,5 +75,5 @@ logging:
     bio.ferlab.clin.portal.forms: INFO
     org.hibernate: ERROR
 status:
-  enabled: true
+  enabled: ${STATUS_ENABLED:false}
   logs-size: 50
