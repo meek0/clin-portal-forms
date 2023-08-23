@@ -1,4 +1,4 @@
-FROM maven:3.8.1-openjdk-17-slim as build-api
+FROM maven:3.8-openjdk-17-slim as build-api
 WORKDIR /tmp/api
 COPY . .
 RUN mvn clean install -DskipTests
@@ -25,6 +25,7 @@ RUN $JAVA_HOME/bin/jlink \
     --verbose \
     --add-modules $(cat modules.info) \
     --add-modules jdk.crypto.ec \
+    --add-modules jdk.zipfs \
     --strip-debug \
     --no-man-pages \
     --no-header-files \
@@ -34,7 +35,7 @@ RUN $JAVA_HOME/bin/jlink \
 FROM alpine:latest
 WORKDIR /app
 ENV JAVA_HOME=/jre
-ENV JAVA_OPTS="-XX:+UseZGC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XshowSettings:vm -XX:+PrintCommandLineFlags"
+ENV JAVA_OPTS="-XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XshowSettings:vm -XX:+PrintCommandLineFlags -XX:+TieredCompilation"
 ENV PATH="$PATH:$JAVA_HOME/bin"
 RUN apk update && apk add ca-certificates openssl
 COPY --from=build-jre /tmp/jre/minimal $JAVA_HOME

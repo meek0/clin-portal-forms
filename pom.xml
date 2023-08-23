@@ -12,11 +12,10 @@
 	<artifactId>clin-portal-forms</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>clin-portal-forms</name>
-	<description>Interface between front-end and FHIR for forms submission</description>
+	<description>API between front-end and FHIR</description>
 	<properties>
 		<java.version>17</java.version>
 		<hapifhir.version>5.4.2</hapifhir.version>
-		<openapi.version>2.0.2</openapi.version>
 	</properties>
 	<dependencies>
 		<dependency>

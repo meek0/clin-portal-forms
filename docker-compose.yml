@@ -1,6 +1,6 @@
 version: '3.9'
 services:
-  clin-portal-forms:
+  api:
     build:
       context: .
       dockerfile: Dockerfile

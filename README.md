@@ -12,13 +12,21 @@ Note: the RPT token needs to contain an attribute **fhir_practitioner_id** equal
 
 # Health check
 
-The API has 3 public endpoints available for k8s
+The API has 3 public endpoints available for k8s.
 
 ```
 /actuator/health
 /actuator/health/liveness
 /actuator/health/readyness
 ```
+
+# Status
+
+When enabled gives details about the running API.
+```
+/actuator/status
+```
+*Requires a clin-system token*
 
 # FHIR Client library
 

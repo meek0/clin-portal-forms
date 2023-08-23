@@ -1,8 +1,18 @@
+server:
+  compression:
+    enabled: true
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json
+    min-response-size: 2048
 spring:
   application:
     name: Forms (API)
   main:
     lazy-initialization: true
+  resources:
+    cache:
+      cachecontrol:
+        max-age: 36000
+        must-revalidate: true
   jackson:
     property-naming-strategy: SNAKE_CASE
     default-property-inclusion: non_null
