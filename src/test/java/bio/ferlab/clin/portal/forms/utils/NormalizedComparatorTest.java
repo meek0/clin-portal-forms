@@ -6,24 +6,23 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class NormalizedComparatorTest {
 
   @Test
   void accents() {
-    List<String> expected = List.of("0", "a", "b", "bar", "éa", "eb", "éc", "foo", "z");
+    List<String> expected = List.of("0", "a", "b", "bar", "éa", "eb", "éc", "foo", "réf", "ret", "z");
 
     List<String> shuffled = new ArrayList<>(expected);
     Collections.shuffle(shuffled);
 
-    Collections.sort(shuffled); // default sort put accents at the end
-    assertEquals("0", shuffled.get(0));
-    assertNotEquals("z", shuffled.get(shuffled.size()-1));  // BAD
+    List<String> sorted = new ArrayList<>(shuffled);
+    sorted.sort(new NormalizedComparator());
 
-    shuffled.sort(new NormalizedComparator());  // NormalizedComparator ignore accents
-    assertEquals("0", shuffled.get(0));
-    assertEquals("z", shuffled.get(shuffled.size()-1)); // GOOD
+    assertNotEquals(expected, shuffled);
+    assertEquals(expected, sorted);
   }
 
 }
