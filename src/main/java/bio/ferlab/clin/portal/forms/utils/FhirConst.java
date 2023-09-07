@@ -45,6 +45,7 @@ public class FhirConst {
   public static final String SUPERVISOR_EXT = "http://fhir.cqgc.ferlab.bio/StructureDefinition/resident-supervisor";
 
   public static final String ANALYSIS_REQUEST_CODE = "http://fhir.cqgc.ferlab.bio/CodeSystem/analysis-request-code";
+  public static final String SEQUENCING_REQUEST_CODE = "http://fhir.cqgc.ferlab.bio/CodeSystem/sequencing-request-code";
 
   public static final String OBSERVATION_INTERPRETATION = "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation";
   public static final String OBSERVATION_CODE = "http://fhir.cqgc.ferlab.bio/CodeSystem/observation-code";
