@@ -124,6 +124,7 @@ public class SubmitToFhirMapper {
     serviceRequest.addBasedOn(FhirUtils.toReference(analysis));
     serviceRequest.setRequester(FhirUtils.toReference(practitionerRole));
     serviceRequest.setCode(new CodeableConcept().addCoding(new Coding().setSystem(ANALYSIS_REQUEST_CODE).setCode(panelCode)));
+    serviceRequest.getCode().addCoding(new Coding().setSystem(SEQUENCING_REQUEST_CODE).setCode("75020"));
     serviceRequest.setAuthoredOn(new Date());
     return serviceRequest;
   }

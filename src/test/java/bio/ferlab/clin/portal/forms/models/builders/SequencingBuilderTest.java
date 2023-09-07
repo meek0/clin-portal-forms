@@ -32,6 +32,9 @@ class SequencingBuilderTest {
     assertEquals(ServiceRequest.ServiceRequestStatus.ONHOLD, sr.getStatus());
     assertEquals(FhirUtils.formatResource(analysis), sr.getBasedOn().get(0).getReference());
     assertEquals("code", sr.getCode().getCodingFirstRep().getCode());
+    assertEquals("http://fhir.cqgc.ferlab.bio/CodeSystem/analysis-request-code", sr.getCode().getCodingFirstRep().getSystem());
+    assertEquals("75020", sr.getCode().getCoding().get(1).getCode());
+    assertEquals("http://fhir.cqgc.ferlab.bio/CodeSystem/sequencing-request-code", sr.getCode().getCoding().get(1).getSystem());
     assertEquals(FhirUtils.formatResource(role), sr.getRequester().getReference());
     assertNotNull(sr.getAuthoredOn());
   }
@@ -58,6 +61,9 @@ class SequencingBuilderTest {
     assertEquals(ServiceRequest.ServiceRequestStatus.ONHOLD, sr.getStatus());
     assertEquals(FhirUtils.formatResource(analysis), sr.getBasedOn().get(0).getReference());
     assertEquals("code", sr.getCode().getCodingFirstRep().getCode());
+    assertEquals("http://fhir.cqgc.ferlab.bio/CodeSystem/analysis-request-code", sr.getCode().getCodingFirstRep().getSystem());
+    assertEquals("75020", sr.getCode().getCoding().get(1).getCode());
+    assertEquals("http://fhir.cqgc.ferlab.bio/CodeSystem/sequencing-request-code", sr.getCode().getCoding().get(1).getSystem());
     assertEquals(FhirUtils.formatResource(role), sr.getRequester().getReference());
     assertNotNull(sr.getAuthoredOn());
     assertEquals("Prenatal", sr.getCategoryFirstRep().getText());
