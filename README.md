@@ -2,6 +2,15 @@
 
 This API provides a bridge between the front-end and FHIR Server for **Prescriptions** creation and validation using FHIR Client library.
 
+# DevTools
+
+It's recommended to enable **Devtools (auto reload) for IntelliJ** in settings.
+
+- Compiler > Build project automatically
+- Advanced Settings > Allow auto-make to start even if app is running
+
+Modifying any source files, including the ones in `templates/` will trigger a reload.
+
 # Security
 
 The API checks **RPT token** in request header `Authorization` public certificate and fields inside like: expiration, audience, issuer ... 
