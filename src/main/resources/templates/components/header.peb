@@ -1,0 +1,11 @@
+<div class="header">
+  <table>
+    <tr>
+      <td colspan="2" class="title"><b>Réseau québécois de diagnostic moléculaire</b> - Prescription</td>
+    </tr>
+    <tr>
+      <td>Numéro de prescription : <b>{{id}}</b></td>
+      <td>Créée le (aaaa-mm-jj) : <b>{{lastUpdated | date("yyyy-MM-dd")}}</b></td>
+    </tr>
+  </table>
+</div>

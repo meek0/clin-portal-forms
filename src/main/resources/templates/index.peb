@@ -1,0 +1,7 @@
+{% extends "layouts/base" %}
+
+{% block title %}{{ id }}{% endblock %}
+
+{% block content %}
+    {% include "components/header" %}
+{% endblock %}
