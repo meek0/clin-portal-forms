@@ -3,6 +3,7 @@ package bio.ferlab.clin.portal.forms.models.builders;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.submit.AdditionalInfo;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
+import bio.ferlab.clin.portal.forms.utils.DateUtils;
 import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import org.hl7.fhir.r4.model.Observation;
 import org.hl7.fhir.r4.model.Reference;
@@ -122,7 +123,7 @@ class FoetusBuilderTest {
     assertEquals("final", observation.getStatus().toCode());
     assertEquals("Patient/mother", observation.getSubject().getReference());
     assertEquals("Patient/"+foetus.getId(), observation.getFocusFirstRep().getReference());
-    assertEquals(mapper.mapToDate(now), observation.getValueDateTimeType().getValue());
+    assertEquals(DateUtils.toDate(now), observation.getValueDateTimeType().getValue());
     assertEquals(FhirConst.SYSTEM_DPA, observation.getCode().getCodingFirstRep().getSystem());
     assertEquals(FhirConst.CODE_DPA, observation.getCode().getCodingFirstRep().getCode());
   }
