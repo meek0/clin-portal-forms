@@ -30,8 +30,8 @@ public class WebConfiguration implements WebMvcConfigurer {
     registry
         .addMapping("/**")
         .allowedOriginPatterns(securityConfiguration.getCors().toArray(String[]::new))
-        .allowedMethods(HttpMethod.GET.name(), HttpMethod.POST.name())
-        .allowedHeaders(HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE)
+        .allowedMethods(HttpMethod.GET.name(), HttpMethod.HEAD.name(), HttpMethod.OPTIONS.name(),HttpMethod.POST.name())
+        .allowedHeaders(HttpHeaders.AUTHORIZATION, HttpHeaders.CONTENT_TYPE, HttpHeaders.CONTENT_DISPOSITION)
         .allowCredentials(true)
         .maxAge(3600);
   }

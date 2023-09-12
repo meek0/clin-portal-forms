@@ -18,8 +18,7 @@ class DateUtilsTest {
     final var convertedDate = DateUtils.toDate(expectedLocalDate);
     final var convertedLocalDate = DateUtils.toLocalDate(convertedDate);
 
-    assertEquals("Thu Aug 31 00:00:00 EDT 2023", convertedDate.toString());
-    assertEquals("2023-08-31", convertedLocalDate.toString());
+    assertEquals(expectedLocalDate, convertedLocalDate);
   }
 
 }
