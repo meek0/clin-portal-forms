@@ -4,10 +4,7 @@ import bio.ferlab.clin.portal.forms.models.builders.ObservationsBuilder;
 import bio.ferlab.clin.portal.forms.models.submit.Parent;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.instance.model.api.IBaseResource;
-import org.hl7.fhir.r4.model.BaseResource;
-import org.hl7.fhir.r4.model.Organization;
-import org.hl7.fhir.r4.model.PractitionerRole;
-import org.hl7.fhir.r4.model.Reference;
+import org.hl7.fhir.r4.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -74,5 +71,21 @@ public class FhirUtils {
     return Optional.ofNullable(refs).orElse(new ArrayList<>()).stream()
       .filter(r -> exclude == null || !r.getReference().startsWith(exclude.getSimpleName()))
       .collect(Collectors.toList());
+  }
+
+  public static Optional<Type> findExtension(ServiceRequest serviceRequest, String url) {
+    return serviceRequest != null ? serviceRequest.getExtension().stream().filter(e -> e.getUrl().equals(url)).findFirst().map(Extension::getValue)
+      : Optional.empty();
+  }
+
+  public static Optional<String> findIdentifier(Practitioner practitioner, String code) {
+    return practitioner != null ? practitioner.getIdentifier().stream().filter(i -> i.getType().getCodingFirstRep().getCode().equals(code)).findFirst().map(Identifier::getValue)
+      : Optional.empty();
+  }
+
+  public static Optional<String> findCode(ServiceRequest serviceRequest, String system) {
+    return serviceRequest != null ? serviceRequest.getCode().getCoding().stream().filter(c -> c.getSystem().equals(system))
+      .findFirst()
+      .map(Coding::getCode): Optional.empty();
   }
 }

@@ -11,24 +11,28 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_EN;
+import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_FR;
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
 @RequiredArgsConstructor
 public class TemplateMapper {
+  
+  public static final String EMPTY = "-";
 
   private final CodeSystem analysisCodes;
   private final Locale locale;
 
   public String mapToName(Person person) {
-    return formatName(person.getNameFirstRep());
+    return formatName(person.getNameFirstRep(), false);
   }
 
   public String mapToRAMQ(Person person) {
-    return getIdentifier(person.getIdentifier(), CODE_RAMQ).map(r -> String.format("%s %s %s", r.substring(0,4), r.substring(4,8), r.substring(8,12))).orElse("");
+    return getIdentifier(person.getIdentifier(), CODE_RAMQ).map(r -> String.format("%s %s %s", r.substring(0,4), r.substring(4,8), r.substring(8,12))).orElse(EMPTY);
   }
 
   public String mapToMRN(Patient patient) {
-    return getIdentifier(patient.getIdentifier(), CODE_MRN).map(r -> String.format("%s | %s",r.replace("MRN-", ""), FhirUtils.extractId(patient.getManagingOrganization()))).orElse("");
+    return getIdentifier(patient.getIdentifier(), CODE_MRN).map(r -> String.format("%s | %s",r.replace("MRN-", ""), FhirUtils.extractId(patient.getManagingOrganization()))).orElse(EMPTY);
   }
 
   public String formatDate(Date date) {
@@ -36,30 +40,54 @@ public class TemplateMapper {
   }
 
   public String mapToAuthor(Practitioner practitioner) {
-    final var name = practitioner.getNameFirstRep();
-    final var full = formatName(name);
-    if (name.hasPrefix()) {
-      return  StringUtils.capitalize(name.getPrefixAsSingleString()) + " " + full;
+    return formatDoctorName(practitioner);
+  }
+
+  public String mapToContact(Organization organization, String system) {
+    if (organization == null) return EMPTY;
+    return organization.getContactFirstRep().getTelecom().stream().filter(t -> system.equals(t.getSystem().toCode())).findFirst().map(ContactPoint::getValue).orElse(EMPTY);
+  }
+
+  public String mapToPerformer(Organization organization) {
+    if (organization == null) return EMPTY;
+    String name = "";
+    if (organization.hasAlias()) {
+      name += organization.getAlias().get(0) + " : ";
     }
-    return full;
+    if (organization.hasName()) {
+      name += organization.getName();
+    }
+    return name;
   }
 
   public String mapToAnalysis(ServiceRequest serviceRequest) {
-    final var analysisCode = serviceRequest.getCode().getCoding().stream().filter(c -> ANALYSIS_REQUEST_CODE.equals(c.getSystem()))
-      .findFirst()
-      .map(Coding::getCode).orElse(null);
+    final var analysisCode = FhirUtils.findCode(serviceRequest, ANALYSIS_REQUEST_CODE).orElse(null);
     return analysisCodes.getConcept().stream().filter(c -> c.getCode().equals(analysisCode))
       .findFirst()
       .map(c -> FhirToConfigMapper.getDisplayForLang(c, locale.getLanguage()))
-      .orElse("");
+      .orElse(EMPTY);
   }
 
   public String mapToPanelReflex(ServiceRequest serviceRequest) {
-    return serviceRequest.hasOrderDetail() ? serviceRequest.getOrderDetailFirstRep().getText() : "";
+    return serviceRequest.hasOrderDetail() ? serviceRequest.getOrderDetailFirstRep().getText()
+      .replace(REFLEX_PANEL_PREFIX_FR, "")
+      .replace(REFLEX_PANEL_PREFIX_EN, "") : EMPTY;
   }
 
-  private String formatName(HumanName name) {
-    return String.format("%s %s", name.getFamily().toUpperCase(), StringUtils.capitalize(name.getGivenAsSingleString()));
+  private String formatDoctorName(Practitioner practitioner) {
+    if (practitioner == null)
+      return EMPTY;
+    final var name = formatName(practitioner.getNameFirstRep(), true);
+    final var md = FhirUtils.findIdentifier(practitioner, MEDICAL_LICENSE_CODE);
+    return md.map(s -> name + " - " + s).orElse(name);
+  }
+
+  private String formatName(HumanName name, boolean withPrefix) {
+    var full = String.format("%s %s", name.getFamily().toUpperCase(), StringUtils.capitalize(name.getGivenAsSingleString()));
+    if (withPrefix && name.hasPrefix()) {
+      full = StringUtils.capitalize(name.getPrefixAsSingleString()) + " " + full;
+    }
+    return full;
   }
 
   private Optional<String> getIdentifier(List<Identifier> identifiers, String code) {

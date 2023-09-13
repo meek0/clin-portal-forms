@@ -19,7 +19,10 @@
             </tr>
             <tr>
                 <td>Panel en réflexe : </td>
-                <td><b>{{ mapper.mapToPanelReflex(analysis) }}</b></td>
+                <td rowspan="2"><b>{{ mapper.mapToPanelReflex(analysis) }}</b></td>
+            </tr>
+            <tr>
+                <td ></td>
             </tr>
         </table>
     </div>

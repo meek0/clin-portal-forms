@@ -1,0 +1,35 @@
+{% import "utils" %}
+<div class="panel">
+    <div class="panel-header"><b>À REMPLIR PAR LE CENTRE DE PRÉLÈVEMENT</b></div>
+    <div class="panel-body">
+        <div>
+            Centre de prélèvement : {{ underscored(75) }}
+        </div>
+        <div>
+            Prélèvement fait par : {{ underscored(75) }}
+        </div>
+        <div>
+            Date du prélèvement (aaaa-mm-jj) : {{ underscored(20) }}
+            Heure du prélèvement (hh:mm) : {{ underscored(20) }}
+        </div>
+    </div>
+</div>
+<div class="panel">
+    <div class="panel-header"><b>LABORATOIRE DE DIAGNOSTIC MOLÉCULAIRE ASSIGNÉ À CETTE REQUêTE</b></div>
+    <div class="panel-body">
+     <table>
+            <tr>
+                <td><b>{{  mapper.mapToPerformer(performer) }}</b></td>
+            </tr>
+            <tr>
+                <td>{{ performer.contact[0].address.text }}</td>
+            </tr>
+            <tr>
+                <td>Téléphone : {{ mapper.mapToContact(performer, "phone") }}</td>
+            </tr>
+             <tr>
+               <td>Fax : {{ mapper.mapToContact(performer, "fax") }}</td>
+            </tr>
+        </table>
+    </div>
+</div>

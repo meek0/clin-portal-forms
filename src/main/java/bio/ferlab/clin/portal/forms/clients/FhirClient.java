@@ -90,10 +90,19 @@ public class FhirClient {
     }
   }
 
-   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
+  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public PractitionerRole findPractitionerRoleById(String id) {
     log.debug("Fetch practitioner role by id {}", id);
     return this.getGenericClient().read().resource(PractitionerRole.class).withId(id).execute();
+  }
+
+  @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
+  public Bundle findPractitionerAndRoleByRoleId(String id) {
+    log.debug("Fetch practitioner and role by role id {}", id);
+    return this.getGenericClient().search().forResource(PractitionerRole.class)
+      .where(PractitionerRole.RES_ID.exactly().code(id))
+      .include(PractitionerRole.INCLUDE_PRACTITIONER)
+      .returnBundle(Bundle.class).execute();
   }
 
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
@@ -159,6 +168,7 @@ public class FhirClient {
         .where(ServiceRequest.RES_ID.exactly().code(id))
         .include(ServiceRequest.INCLUDE_REQUESTER)
         .include(ServiceRequest.INCLUDE_PATIENT)
+        .include(ServiceRequest.INCLUDE_PERFORMER)
         .returnBundle(Bundle.class)
         .execute();
   }
@@ -204,13 +214,15 @@ public class FhirClient {
       .setUrl(String.format("Person?link=%s", FhirUtils.formatResource(patient)))
       .setMethod(Bundle.HTTPVerb.GET);
 
-    bundle.addEntry().getRequest()
-      .setUrl(String.format("Organization/%s", FhirUtils.extractId(practitionerRole.getOrganization())))
-      .setMethod(Bundle.HTTPVerb.GET);
+    if (practitionerRole != null) {
+      bundle.addEntry().getRequest()
+        .setUrl(String.format("Organization/%s", FhirUtils.extractId(practitionerRole.getOrganization())))
+        .setMethod(Bundle.HTTPVerb.GET);
 
-    bundle.addEntry().getRequest()
-      .setUrl(String.format("Practitioner/%s", FhirUtils.extractId(practitionerRole.getPractitioner())))
-      .setMethod(Bundle.HTTPVerb.GET);
+      bundle.addEntry().getRequest()
+        .setUrl(String.format("Practitioner/%s", FhirUtils.extractId(practitionerRole.getPractitioner())))
+        .setMethod(Bundle.HTTPVerb.GET);
+    }
 
     return this.getGenericClient().transaction().withBundle(bundle).execute();
   }

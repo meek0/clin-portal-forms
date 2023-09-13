@@ -7,6 +7,7 @@ import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.services.TemplateService;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.DateUtils;
+import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import lombok.RequiredArgsConstructor;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.core.io.ByteArrayResource;
@@ -25,6 +26,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.SUPERVISOR_EXT;
 
 @Controller
 @RequestMapping("/render")
@@ -62,8 +65,12 @@ public class RendererController {
     final var mainBundle = fhirClient.findServiceRequestWithDepsById(id);
     final var mainBundleExtractor = new BundleExtractor(fhirClient.getContext(), mainBundle);
     final var analysis = mainBundleExtractor.getFirstResourcesOfType(ServiceRequest.class);
-    final var practitionerRole = mainBundleExtractor.getFirstResourcesOfType(PractitionerRole.class);
     final var patient = mainBundleExtractor.getFirstResourcesOfType(Patient.class);
+    final var performer = mainBundleExtractor.getFirstResourcesOfType(Organization.class);
+    // Assignation feature will attach several PractitionerRole insider performer BUT we want the one from requester
+    final var practitionerRole = mainBundleExtractor.getFirstResourcesById(PractitionerRole.class, FhirUtils.extractId(analysis.getRequester()));
+    // if the user doesn't belong to the EP/LDM
+    if (analysis == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Prescription not found: " + id);
 
     final var detailsBundle = fhirClient.fetchPrescriptionDetails(analysis, patient, practitionerRole);
     final var detailsBundleExtractor = new BundleExtractor(fhirClient.getContext(), detailsBundle);
@@ -78,12 +85,21 @@ public class RendererController {
     context.put("id", analysis.getIdElement().getIdPart());
     context.put("analysis", analysis);
     context.put("sequencings", sequencings);
+    context.put("performer", performer);
     context.put("practitionerRole", practitionerRole);
     context.put("patient", patient);
     context.put("person", person);
     context.put("practitioner", practitioner);
     context.put("organization", organization);
     context.put("mapper", new TemplateMapper(analysisCodes, locale));
+
+    FhirUtils.findExtension(analysis, SUPERVISOR_EXT).ifPresent(r -> {
+      final Bundle bundle = fhirClient.findPractitionerAndRoleByRoleId(FhirUtils.extractId((Reference)r));
+      final var extractor = new BundleExtractor(fhirClient.getContext(), bundle);
+      context.put("supervisor", extractor.getFirstResourcesOfType(Practitioner.class));
+      context.put("supervisorRole", extractor.getFirstResourcesOfType(PractitionerRole.class));
+    });
+
     return context;
   }
 

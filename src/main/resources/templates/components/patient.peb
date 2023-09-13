@@ -3,9 +3,9 @@
     <div class="panel-body">
         <table>
             <tr>
-                <td style="width: 20%">Nom Prenom : </td>
+                <td style="width: 20%">Nom Prénom : </td>
                 <td style="width: 30%"><b>{{ mapper.mapToName(person) }}</b></td>
-                <td style="width: 50%" rowspan="9" class="patient-card">Carte du patient</td>
+                <td style="width: 50%" rowspan="10"><div class="patient-card">Carte du patient</div></td>
             </tr>
             <tr>
                 <td>Sexe : </td>
@@ -28,13 +28,16 @@
                 <td><b class="type">Cas-index</b></td>
             </tr>
             <tr>
-                <td><br/></td>
+                <td></td>
             </tr>
             <tr>
-                <td><br/></td>
+                <td></td>
             </tr>
             <tr>
-                <td><br/></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td></td>
             </tr>
         </table>
     </div>

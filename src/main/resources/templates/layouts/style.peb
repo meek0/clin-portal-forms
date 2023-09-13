@@ -1,12 +1,15 @@
 {% set PRIMARY_COLOR = "#364a63" %}
 {% set SECONDARY_COLOR = "#dee4ed" %}
-{% set INTERNAL_SPACING = "10px" %}
+{% set COMPONENT_SPACING = "10px" %}
+{% set PANEL_SPACING = "7px" %}
 {% set DOCUMENT_BORDER = "10mm" %}
+{% set BORDER_RADIUS = "5px" %}
+{% set LINE_HEIGHT = "20px" %}
 <style>
     /* header */
     .header {
         line-height: 25px;
-        margin-bottom: {{INTERNAL_SPACING}};
+        margin-bottom: {{COMPONENT_SPACING}};
     }
 
     .title {
@@ -20,47 +23,57 @@
         width: 100%;
         border-spacing: 0;
         font-size: inherit;
-        line-height: inherit;
         border-collapse: collapse;
+    }
+
+    table tr {
+        height: {{LINE_HEIGHT}};
     }
 
     table td {
         vertical-align: top;
     }
 
+    .underscored {
+        border-bottom: 1px solid {{ PRIMARY_COLOR }};
+        display: inline-block;
+    }
+
     .panel {
-        border: 1px solid #BDCADB;
-        border-radius: 5px;
+        border: 1px solid {{SECONDARY_COLOR}};
+        border-radius:{{BORDER_RADIUS}};
         page-break-inside: avoid;
-        margin-bottom: {{INTERNAL_SPACING}};
+        margin-bottom: {{COMPONENT_SPACING}};
     }
 
     .panel-left {
-        margin-right: 5px;
+        margin-right: {{PANEL_SPACING}};
     }
 
     .panel-right {
-        margin-left: 5px;
+        margin-left: {{PANEL_SPACING}};
     }
 
     .panel-body {
        font-size: 100%;
-       padding: {{ INTERNAL_SPACING }};
+       padding: {{ PANEL_SPACING }};
     }
 
     .panel-header {
-        padding: 4px {{INTERNAL_SPACING}};
+        padding: 4px {{PANEL_SPACING}};
         background-color: {{SECONDARY_COLOR}};
+        text-transform: uppercase;
     }
 
     .patient-card {
         border: 2px solid {{SECONDARY_COLOR}};
-        border-radius: 5px;
+        border-radius: {{BORDER_RADIUS}};
         text-align: center;
         vertical-align: middle;
-        width: 85.60mm;
-        height: 53.98mm;
+        width: auto;
+        margin-left: {{PANEL_SPACING}};
         color: {{ SECONDARY_COLOR }};
+        line-height: 53.98mm; /* a bit tricky but it's to center the text inside the div, replaces height prop */
     }
 
     .type {
@@ -68,18 +81,19 @@
         padding: 1px;
     }
 
-/*
-    input[type="checkbox"] {
-        border: 1px solid #BDCADB;
-        border-radius: 5px;
+    .box {
+        border: 1px solid {{SECONDARY_COLOR}};
+        border-radius: 2px;
+        margin-right: {{ PANEL_SPACING }};
+        display: inline-block;
+        padding: 5px;
+        vertical-align: middle;
     }
 
-    .checkbox {
-        margin-right: 3px;
-        width: 10px;
-        height: 10px;
+    .block {
+        margin-bottom: {{ COMPONENT_SPACING }};
+
     }
-*/
 
     /* A4 HTML and PDF styles */
 
@@ -88,10 +102,15 @@
         color: {{ PRIMARY_COLOR }};
         background: #585c68;
         font-size: 9pt;
-        line-height: 13pt;
+        line-height: {{LINE_HEIGHT}};
         letter-spacing: 0.02rem;
         margin: 0;
         padding: 0;
+    }
+
+    p {
+        margin: 0;
+        margin-bottom: {{ PANEL_SPACING }};
     }
 
     #content {
@@ -113,11 +132,9 @@
         body {
             background: white;
             font-size: 8pt;
-            line-height: 12pt;
+            line-height: 13pt;
         }
-        b {
-            font-weight: 400;
-        }
+
         #content {
             margin: 0;
             padding: 0;

@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ReflexBuilder {
 
+  public static final String REFLEX_PANEL_PREFIX_FR = "Panel réflexe: ";
+  public static final String REFLEX_PANEL_PREFIX_EN = "Reflex Panel: ";
+
   /*private final CodesValuesService codesValuesService;
   private final FhirToConfigMapper fhirToConfigMapper;*/
   private final String lang;
@@ -16,9 +19,9 @@ public class ReflexBuilder {
     String reflex = null;
     if (isReflex) {
       if ("fr".equals(lang)) {
-        reflex = String.format("Panel réflexe: %s (%s)", "Maladies musculaires globales", "MMG");
+        reflex = String.format(REFLEX_PANEL_PREFIX_FR + "%s (%s)", "Maladies musculaires globales", "MMG");
       } else {
-        reflex = String.format("Reflex Panel: %s (%s)", "Global Muscular diseases", "MMG");
+        reflex = String.format(REFLEX_PANEL_PREFIX_EN + "%s (%s)", "Global Muscular diseases", "MMG");
       }
       /*final CodeSystem analyse = codesValuesService.getCodes(CodesValuesService.ANALYSE_KEY);
       reflex = analyse.getConcept().stream()

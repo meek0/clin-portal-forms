@@ -84,4 +84,4 @@ status:
   enabled: ${STATUS_ENABLED:false}
   logs-size: 50
 pebble:
-  strictVariables: true
+  strictVariables: false

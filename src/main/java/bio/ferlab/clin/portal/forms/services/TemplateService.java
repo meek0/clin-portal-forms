@@ -30,6 +30,7 @@ public class TemplateService {
   public byte[] convert(String html) {
     try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
       PdfRendererBuilder builder = new PdfRendererBuilder();
+      builder.useFastMode();
       builder.withHtmlContent(html, null);
       builder.toStream(out);
       builder.run();

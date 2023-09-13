@@ -62,4 +62,6 @@ public class FhirConst {
   public static final String SYSTEM_MISSING_PARENT = "http://fhir.cqgc.ferlab.bio/CodeSystem/missing-parent-status";
   public static final String CODE_MISSING_PARENT = "TEMPORARY";
 
+  public static final String MEDICAL_LICENSE_CODE = "MD";
+
 }
