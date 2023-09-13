@@ -4,4 +4,11 @@
 
 {% block content %}
     {% include "components/header" %}
+    {% include "components/patient" %}
+    <table>
+        <tr>
+            <td style="width: 50%">{% include "components/prescription" %}</td>
+            <td>{% include "components/prescriber" %}</td>
+        </tr>
+    </table>
 {% endblock %}

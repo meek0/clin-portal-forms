@@ -1,0 +1,41 @@
+<div class="panel">
+    <div class="panel-header"><b>PATIENT</b></div>
+    <div class="panel-body">
+        <table>
+            <tr>
+                <td style="width: 20%">Nom Prenom : </td>
+                <td style="width: 30%"><b>{{ mapper.mapToName(person) }}</b></td>
+                <td style="width: 50%" rowspan="9" class="patient-card">Carte du patient</td>
+            </tr>
+            <tr>
+                <td>Sexe : </td>
+                <td><b>{{ i18n("messages", person.gender.toCode) }}</b></td>
+            </tr>
+             <tr>
+                <td>DDN (aaaa-mm-jj) : </td>
+                <td><b>{{ mapper.formatDate(person.birthDate) }}</b></td>
+            </tr>
+            <tr>
+                <td>RAMQ : </td>
+                <td><b>{{ mapper.mapToRAMQ(person) }}</b></td>
+            </tr>
+            <tr>
+                <td>Dossier : </td>
+                <td><b>{{ mapper.mapToMRN(patient) }}</b></td>
+            </tr>
+             <tr>
+                <td>Type de patient : </td>
+                <td><b class="type">Cas-index</b></td>
+            </tr>
+            <tr>
+                <td><br/></td>
+            </tr>
+            <tr>
+                <td><br/></td>
+            </tr>
+            <tr>
+                <td><br/></td>
+            </tr>
+        </table>
+    </div>
+</div>

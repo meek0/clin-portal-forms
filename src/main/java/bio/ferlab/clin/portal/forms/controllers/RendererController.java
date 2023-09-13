@@ -1,10 +1,14 @@
 package bio.ferlab.clin.portal.forms.controllers;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
+import bio.ferlab.clin.portal.forms.mappers.TemplateMapper;
+import bio.ferlab.clin.portal.forms.services.CodesValuesService;
+import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.services.TemplateService;
+import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.DateUtils;
-import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import lombok.RequiredArgsConstructor;
+import org.hl7.fhir.r4.model.*;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -19,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 @Controller
@@ -33,13 +38,16 @@ public class RendererController {
     }
   }
 
+  private final LocaleService localeService;
   private final FhirClient fhirClient;
   private final TemplateService templateService;
+  private final CodesValuesService codesValuesService;
 
   @GetMapping(path = "/{id}")
   public ResponseEntity<?> render(@PathVariable String id, @RequestParam(defaultValue = "html") String format) {
 
-    final String template = templateService.parseTemplate("index", prepareContext(id));
+    final Locale locale = localeService.getCurrentLocale();
+    final String template = templateService.parseTemplate("index", prepareContext(id, locale), locale);
 
     if (Format.html.equals(format)) {
       return renderAsHtml(template);
@@ -50,11 +58,32 @@ public class RendererController {
     }
   }
 
-  private Map<String, Object> prepareContext(String id) {
-    final var serviceRequest = fhirClient.findServiceRequestById(id);
+  private Map<String, Object> prepareContext(String id, Locale locale) {
+    final var mainBundle = fhirClient.findServiceRequestWithDepsById(id);
+    final var mainBundleExtractor = new BundleExtractor(fhirClient.getContext(), mainBundle);
+    final var analysis = mainBundleExtractor.getFirstResourcesOfType(ServiceRequest.class);
+    final var practitionerRole = mainBundleExtractor.getFirstResourcesOfType(PractitionerRole.class);
+    final var patient = mainBundleExtractor.getFirstResourcesOfType(Patient.class);
+
+    final var detailsBundle = fhirClient.fetchPrescriptionDetails(analysis, patient, practitionerRole);
+    final var detailsBundleExtractor = new BundleExtractor(fhirClient.getContext(), detailsBundle);
+    final var sequencings = detailsBundleExtractor.getAllResourcesOfType(ServiceRequest.class);
+    final var person = detailsBundleExtractor.getFirstResourcesOfType(Person.class);
+    final var practitioner = detailsBundleExtractor.getFirstResourcesOfType(Practitioner.class);
+    final var organization = detailsBundleExtractor.getFirstResourcesOfType(Organization.class);
+
+    final var analysisCodes = codesValuesService.getCodes(CodesValuesService.ANALYSE_KEY);
+
     final Map<String, Object> context = new HashMap<>();
-    context.put("id", FhirUtils.extractId(serviceRequest.getId()));
-    context.put("lastUpdated", serviceRequest.getMeta().getLastUpdated());
+    context.put("id", analysis.getIdElement().getIdPart());
+    context.put("analysis", analysis);
+    context.put("sequencings", sequencings);
+    context.put("practitionerRole", practitionerRole);
+    context.put("patient", patient);
+    context.put("person", person);
+    context.put("practitioner", practitioner);
+    context.put("organization", organization);
+    context.put("mapper", new TemplateMapper(analysisCodes, locale));
     return context;
   }
 

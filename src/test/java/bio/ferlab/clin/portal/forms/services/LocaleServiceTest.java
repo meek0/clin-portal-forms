@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.List;
+import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
@@ -25,25 +26,31 @@ class LocaleServiceTest {
   
   @Test
   void getCurrentLocale_default() {
-    assertEquals("fr", service.getCurrentLocale());
+    assertEquals("fr", service.getCurrentLang());
+  }
+
+  @Test
+  void getCurrentLang_query_param() {
+    when(request.getParameter("lang")).thenReturn("en-EN");
+    assertEquals("en", service.getCurrentLang());
+  }
+
+  @Test
+  void getCurrentLangSupportedByFhir_supported() {
+    when(request.getParameter("lang")).thenReturn("fr-FR");
+    assertEquals("fr", service.getCurrentLangSupportedByFhir());
+  }
+
+  @Test
+  void getCurrentLangSupportedByFhir_unsupported() {
+    when(request.getParameter("lang")).thenReturn("de");
+    assertEquals("fr", service.getCurrentLangSupportedByFhir());
   }
 
   @Test
   void getCurrentLocale_query_param() {
-    when(request.getParameter("lang")).thenReturn("en");
-    assertEquals("en", service.getCurrentLocale());
-  }
-
-  @Test
-  void getCurrentLocale_format() {
-    when(request.getParameter("lang")).thenReturn("en-EN");
-    assertEquals("en", service.getCurrentLocale());
-  }
-
-  @Test
-  void getCurrentLocale_unsupported() {
-    when(request.getParameter("lang")).thenReturn("de");
-    assertEquals("fr", service.getCurrentLocale());
+    when(request.getParameter("lang")).thenReturn("fr-CA");
+    assertEquals(Locale.CANADA_FRENCH, service.getCurrentLocale());
   }
 
 }

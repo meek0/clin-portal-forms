@@ -36,10 +36,9 @@ public class ConfigController {
 
   @GetMapping("/{panelCode}")
   public Form config(@RequestHeader String authorization,
-                     @PathVariable String panelCode,
-                     @RequestParam(required = false, name = "lang") String queryLang) {
+                     @PathVariable String panelCode) {
     
-    final String lang = localeService.getLocale(queryLang);
+    final String lang = localeService.getCurrentLangSupportedByFhir();
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
 
     PractitionerBuilder.Result roles = new PractitionerBuilder(fhirClient, practitionerId).build();

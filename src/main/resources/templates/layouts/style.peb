@@ -1,58 +1,74 @@
+{% set PRIMARY_COLOR = "#364a63" %}
+{% set SECONDARY_COLOR = "#dee4ed" %}
+{% set INTERNAL_SPACING = "10px" %}
+{% set DOCUMENT_BORDER = "10mm" %}
 <style>
-    table {
-        width: 100%;
-        border-spacing: 0;
-    }
-
-    .panel td {
-        vertical-align: text-top;
-    }
-
+    /* header */
     .header {
-        padding: 0 9px;
         line-height: 25px;
-    }
-
-    .header, .panel {
-        margin-bottom: 12px;
-    }
-
-    .header .separator {
-        border-top: 3px solid #DEE4ED;
-        margin: 5px -9px 5px -9px;
-    }
-
-    .panel .separator {
-        border-top: 2px solid #DEE4ED;
-        margin: 5px -4px 5px -4px;
-    }
-
-    table .right {
-        text-align: right;
-    }
-
-    body {
-        font-family: 'Roboto', sans-serif;
-        color: #364A63;
-        background: #585c68;
-        font-size: 14px;
-        margin: 0;
-        padding: 0;
-        line-height: 18px;
+        margin-bottom: {{INTERNAL_SPACING}};
     }
 
     .title {
-        font-size: 130%;
+        font-size: 160%;
+        letter-spacing: 0.2;
     }
 
-    #content {
-        background-color: white;
-        margin: 50px auto;
-        width: 210mm;
-        height: 297mm;
-        padding: 10mm;  /* used as margin for the printed page */
+    /* table + panel */
+
+    table {
+        width: 100%;
+        border-spacing: 0;
+        font-size: inherit;
+        line-height: inherit;
+        border-collapse: collapse;
     }
 
+    table td {
+        vertical-align: top;
+    }
+
+    .panel {
+        border: 1px solid #BDCADB;
+        border-radius: 5px;
+        page-break-inside: avoid;
+        margin-bottom: {{INTERNAL_SPACING}};
+    }
+
+    .panel-left {
+        margin-right: 5px;
+    }
+
+    .panel-right {
+        margin-left: 5px;
+    }
+
+    .panel-body {
+       font-size: 100%;
+       padding: {{ INTERNAL_SPACING }};
+    }
+
+    .panel-header {
+        padding: 4px {{INTERNAL_SPACING}};
+        background-color: {{SECONDARY_COLOR}};
+    }
+
+    .patient-card {
+        border: 2px solid {{SECONDARY_COLOR}};
+        border-radius: 5px;
+        text-align: center;
+        vertical-align: middle;
+        width: 85.60mm;
+        height: 53.98mm;
+        color: {{ SECONDARY_COLOR }};
+    }
+
+    .type {
+        border: 1px solid {{ PRIMARY_COLOR }};
+        padding: 1px;
+    }
+
+/*
     input[type="checkbox"] {
         border: 1px solid #BDCADB;
         border-radius: 5px;
@@ -63,53 +79,51 @@
         width: 10px;
         height: 10px;
     }
+*/
 
-    .panel {
-        border: 1px solid #BDCADB;
-        border-radius: 5px;
-        page-break-inside: avoid;
+    /* A4 HTML and PDF styles */
+
+    body {
+        font-family: 'Roboto', sans-serif;
+        color: {{ PRIMARY_COLOR }};
+        background: #585c68;
+        font-size: 9pt;
+        line-height: 13pt;
+        letter-spacing: 0.02rem;
+        margin: 0;
+        padding: 0;
     }
 
-    .panel-body {
-       font-size: 80%;
-       padding: 9px;
+    #content {
+        background-color: white;
+        margin: 50px auto;
+        width: 210mm;
+        height: 297mm;
+        padding: {{DOCUMENT_BORDER}};
     }
 
-    .spaced {
-        line-height: 20px;
-    }
-
-    .panel-header {
-        padding: 4px 9px;
-        background-color: #DEE4ED
-    }
-
-    .type {
-        border: 1px solid #364A63;
-        padding: 2px;
-    }
-
-    /* used by flying saucer or printer */
+    /* used by flying saucer or browser printer */
 
     @page {
         size: A4;
-        margin: 0;   /*force flying saucer margin to 0 and use our padding as margin instead*/
+        margin: {{DOCUMENT_BORDER}};
     }
 
     @media print {
         body {
             background: white;
-
+            font-size: 8pt;
+            line-height: 12pt;
+        }
+        b {
+            font-weight: 400;
         }
         #content {
-            font-size: 12px;    /* tweaks to have the most equivalent HTML - PDF format */
-            line-height: 16px;
             margin: 0;
-            width: auto;
-            height: auto;
-        }
-        .spaced {
-            line-height: 18px;
+            padding: 0;
+            width: 100%;
+            height: 100%;
         }
     }
+
 </style>

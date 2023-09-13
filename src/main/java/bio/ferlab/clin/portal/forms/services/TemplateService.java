@@ -1,13 +1,14 @@
 package bio.ferlab.clin.portal.forms.services;
 
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import io.pebbletemplates.pebble.PebbleEngine;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.xhtmlrenderer.pdf.ITextRenderer;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Locale;
 import java.util.Map;
 
 @Service
@@ -16,10 +17,10 @@ public class TemplateService {
 
   private final PebbleEngine engine;
 
-  public String parseTemplate(String templateName, Map<String, Object> context) {
+  public String parseTemplate(String templateName, Map<String, Object> context, Locale locale) {
     try (StringWriter writer = new StringWriter()) {
       final var compiledTemplate = engine.getTemplate(templateName);
-      compiledTemplate.evaluate(writer, context);
+      compiledTemplate.evaluate(writer, context, locale);
       return writer.toString();
     } catch (IOException e) {
       throw new RuntimeException("Failed to parse template", e);
@@ -28,10 +29,10 @@ public class TemplateService {
 
   public byte[] convert(String html) {
     try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-      ITextRenderer renderer = new ITextRenderer();
-      renderer.setDocumentFromString(html);
-      renderer.layout();
-      renderer.createPDF(out);
+      PdfRendererBuilder builder = new PdfRendererBuilder();
+      builder.withHtmlContent(html, null);
+      builder.toStream(out);
+      builder.run();
       return out.toByteArray();
     } catch (IOException e) {
       throw new RuntimeException("Failed to convert HTML to PDF", e);

@@ -190,6 +190,31 @@ public class FhirClient {
         .execute();
   }
 
+  // data refreshed very often, don't cache
+  public Bundle fetchPrescriptionDetails(ServiceRequest serviceRequest, Patient patient, PractitionerRole practitionerRole) {
+    log.info("Fetch codes and values from FHIR");
+    Bundle bundle = new Bundle();
+    bundle.setType(Bundle.BundleType.BATCH);
+
+    bundle.addEntry().getRequest()
+      .setUrl(String.format("ServiceRequest?based-on=%s&_profile=%s", FhirUtils.formatResource(serviceRequest), SEQUENCING_SERVICE_REQUEST))
+      .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+      .setUrl(String.format("Person?link=%s", FhirUtils.formatResource(patient)))
+      .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+      .setUrl(String.format("Organization/%s", FhirUtils.extractId(practitionerRole.getOrganization())))
+      .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+      .setUrl(String.format("Practitioner/%s", FhirUtils.extractId(practitionerRole.getPractitioner())))
+      .setMethod(Bundle.HTTPVerb.GET);
+
+    return this.getGenericClient().transaction().withBundle(bundle).execute();
+  }
+
   @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle fetchCodesAndValues() {
     log.info("Fetch codes and values from FHIR");

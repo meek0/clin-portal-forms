@@ -99,13 +99,13 @@ public class FhirToConfigMapper {
         .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
   }
   
-  private String getDisplayForLang(ValueSet.ConceptReferenceComponent concept, String lang) {
+  public static String getDisplayForLang(ValueSet.ConceptReferenceComponent concept, String lang) {
     return concept.getDesignation().stream().filter(c -> StringUtils.isNotBlank(lang) && lang.equals(c.getLanguage()))
         .map(ValueSet.ConceptReferenceDesignationComponent::getValue)
         .findFirst().orElse(concept.getDisplay());
   }
 
-  private String getDisplayForLang(CodeSystem.ConceptDefinitionComponent concept, String lang) {
+  public static String getDisplayForLang(CodeSystem.ConceptDefinitionComponent concept, String lang) {
     return concept.getDesignation().stream().filter(c -> StringUtils.isNotBlank(lang) && lang.equals(c.getLanguage()))
         .map(CodeSystem.ConceptDefinitionDesignationComponent::getValue)
         .findFirst().orElse(concept.getDisplay());

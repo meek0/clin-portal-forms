@@ -1,11 +1,10 @@
 <div class="header">
   <table>
     <tr>
-      <td colspan="2" class="title"><b>Réseau québécois de diagnostic moléculaire</b> - Prescription</td>
+      <td class="title"><b>Réseau québécois de diagnostic moléculaire</b> - Requête postnatale</td>
     </tr>
     <tr>
-      <td>Numéro de prescription : <b>{{id}}</b></td>
-      <td>Créée le (aaaa-mm-jj) : <b>{{lastUpdated | date("yyyy-MM-dd")}}</b></td>
+      <td>Numéro de requête : <b>{{id}}</b> &nbsp;&nbsp;&nbsp; Créée le (aaaa-mm-jj) : <b>{{mapper.formatDate(analysis.authoredOn)}}</b></td>
     </tr>
   </table>
 </div>

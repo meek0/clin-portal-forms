@@ -1,0 +1,22 @@
+<div class="panel panel-right">
+    <div class="panel-header"><b>MÉDECIN PRESCRIPTEUR</b></div>
+    <div class="panel-body">
+     <table>
+            <tr>
+                <td><b>{{ mapper.mapToAuthor(practitioner) }} ({{ i18n("messages", practitionerRole.codeFirstRep.codingFirstRep.code) }})</b></td>
+            </tr>
+            <tr>
+                <td><br/></td>
+            </tr>
+             <tr>
+               <td><br/></td>
+            </tr>
+            <tr>
+                <td><br/></td>
+            </tr>
+            <tr>
+                <td><br/></td>
+            </tr>
+        </table>
+    </div>
+</div>
