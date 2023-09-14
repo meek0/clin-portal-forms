@@ -48,6 +48,12 @@ public class TemplateMapper {
     return organization.getContactFirstRep().getTelecom().stream().filter(t -> system.equals(t.getSystem().toCode())).findFirst().map(ContactPoint::getValue).orElse(EMPTY);
   }
 
+  public String mapToContact(PractitionerRole practitionerRole, PractitionerRole supervisorRole, String system) {
+    PractitionerRole role = supervisorRole != null ? supervisorRole : practitionerRole;
+    if (role == null) return EMPTY;
+    return role.getTelecom().stream().filter(t -> system.equals(t.getSystem().toCode())).findFirst().map(ContactPoint::getValue).orElse(EMPTY);
+  }
+
   public String mapToPerformer(Organization organization) {
     if (organization == null) return EMPTY;
     String name = "";

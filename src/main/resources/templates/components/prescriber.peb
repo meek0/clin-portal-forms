@@ -12,10 +12,10 @@
                <td>{{ organization.name }}</td>
             </tr>
             <tr>
-               <td>{{ mapper.mapToContact(organization, "phone") }}</td>
+               <td>{{ mapper.mapToContact(practitionerRole, supervisorRole, "phone") }}</td>
             </tr>
             <tr>
-               <td>{{ mapper.mapToContact(organization, "email") }}</td>
+               <td>{{ mapper.mapToContact(practitionerRole, supervisorRole, "email") }}</td>
             </tr>
              <tr>
                 <td></td>

@@ -100,6 +100,8 @@ public class RendererController {
       context.put("supervisorRole", extractor.getFirstResourcesOfType(PractitionerRole.class));
     });
 
+    context.put("idBarcodeBase64", templateService.convertToBase64(templateService.generateBarcodeImage(id)));
+
     return context;
   }
 
