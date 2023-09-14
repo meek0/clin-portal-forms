@@ -14,7 +14,8 @@ class TemplateServiceTest {
 
   @Test
   void parseTemplate() {
-    final var result = service.parseTemplate("templates/test.peb", Map.of("value", "foo"), null);
+    var path = this.getClass().getClassLoader().getResource("templates/test.peb").getPath();
+    final var result = service.parseTemplate(path, Map.of("value", "foo"), null);
     assertEquals("<p>foo</p>", result);
   }
 
