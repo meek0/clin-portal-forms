@@ -56,6 +56,25 @@ Return of experience using FHIR Client library instead of OpenFeign to perform t
 - [Official FHIR Client Doc.](https://hapifhir.io/hapi-fhir/docs/client/introduction.html)
 - [Example of custom queries](https://github.com/hapifhir/hapi-fhir/blob/master/hapi-fhir-structures-r4/src/test/java/ca/uhn/fhir/rest/client/ITestClient.java)
 
+# Prescription rendering
+
+## GET /render/`id`?`format=`HTML&`lang`=fr
+
+### Parameters
+| Name     |Required|Type| Description                  |
+|----------|---|---|------------------------------|
+| `id`     |true|String| ServiceRequest (Analysis) ID | 
+| `format` |false|String| HTML (default) or PDF        | 
+| `lang`   |false|String| fr (default) or en           | 
+
+### Limitations
+
+Due to the PDF export there are some limitations when rendering the HTML Prescription to be taken into account:
+- the HTML must a standalone page using no static resources (nothing from `static/`). 
+- CSS must be inline `style=` or inside a template file such as `style.peb`
+- images must be base64 encoded bytes like `<img src="data:image/png;base64,<bytes>"`
+- Flexbox and Grid layout aren't supported use tables instead.
+
 # Examples
 
 Find bellow some endpoints call examples

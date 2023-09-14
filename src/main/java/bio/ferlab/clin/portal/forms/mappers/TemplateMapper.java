@@ -3,6 +3,7 @@ package bio.ferlab.clin.portal.forms.mappers;
 import bio.ferlab.clin.portal.forms.utils.DateUtils;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
 
@@ -15,6 +16,7 @@ import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_FR;
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
+@Slf4j
 @RequiredArgsConstructor
 public class TemplateMapper {
   
@@ -24,65 +26,116 @@ public class TemplateMapper {
   private final Locale locale;
 
   public String mapToName(Person person) {
-    return formatName(person.getNameFirstRep(), false);
+    try {
+      return formatName(person.getNameFirstRep(), false);
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
   }
 
   public String mapToRAMQ(Person person) {
-    return getIdentifier(person.getIdentifier(), CODE_RAMQ).map(r -> String.format("%s %s %s", r.substring(0,4), r.substring(4,8), r.substring(8,12))).orElse(EMPTY);
+    try {
+      return getIdentifier(person.getIdentifier(), CODE_RAMQ).map(r -> String.format("%s %s %s", r.substring(0,4), r.substring(4,8), r.substring(8,12)).toUpperCase()).orElse(EMPTY);
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
   }
 
   public String mapToMRN(Patient patient) {
-    return getIdentifier(patient.getIdentifier(), CODE_MRN).map(r -> String.format("%s | %s",r.replace("MRN-", ""), FhirUtils.extractId(patient.getManagingOrganization()))).orElse(EMPTY);
+    try {
+      var org = Optional.ofNullable(FhirUtils.extractId(patient.getManagingOrganization())).orElse(EMPTY).toUpperCase();
+      return getIdentifier(patient.getIdentifier(), CODE_MRN).map(r -> String.format("%s | %s",r.toUpperCase().replace("MRN-", ""), org)).orElse(EMPTY);
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
   }
 
   public String formatDate(Date date) {
-    return DateUtils.FORMATTER_YYYYMMdd.format(DateUtils.toLocalDate(date));
+    try {
+      return DateUtils.FORMATTER_YYYYMMdd.format(DateUtils.toLocalDate(date));
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
   }
 
   public String mapToAuthor(Practitioner practitioner) {
-    return formatDoctorName(practitioner);
+    try {
+      return formatDoctorName(practitioner);
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
   }
 
   public String mapToContact(Organization organization, String system) {
-    if (organization == null) return EMPTY;
-    return organization.getContactFirstRep().getTelecom().stream().filter(t -> system.equals(t.getSystem().toCode())).findFirst().map(ContactPoint::getValue).orElse(EMPTY);
+    try {
+      return getTelecom(organization.getContactFirstRep().getTelecom(), system).orElse(EMPTY);
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
   }
 
   public String mapToContact(PractitionerRole practitionerRole, PractitionerRole supervisorRole, String system) {
-    PractitionerRole role = supervisorRole != null ? supervisorRole : practitionerRole;
-    if (role == null) return EMPTY;
-    return role.getTelecom().stream().filter(t -> system.equals(t.getSystem().toCode())).findFirst().map(ContactPoint::getValue).orElse(EMPTY);
+    try {
+      Optional<String> practitionerContact = Optional.ofNullable(practitionerRole).flatMap(r -> getTelecom(r.getTelecom(), system));
+      Optional<String> supervisorContact = Optional.ofNullable(supervisorRole).flatMap(s -> getTelecom(s.getTelecom(), system));
+      return supervisorContact.or(() -> practitionerContact).orElse(EMPTY);
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
   }
 
   public String mapToPerformer(Organization organization) {
-    if (organization == null) return EMPTY;
-    String name = "";
-    if (organization.hasAlias()) {
-      name += organization.getAlias().get(0) + " : ";
+    try {
+      String name = "";
+      if (organization.hasAlias()) {
+        name += organization.getAlias().get(0) + " : ";
+      }
+      if (organization.hasName()) {
+        name += organization.getName();
+      }
+      return name.isEmpty() ? EMPTY : name;
+    } catch (Exception e) {
+      return this.handleError(e);
     }
-    if (organization.hasName()) {
-      name += organization.getName();
-    }
-    return name;
   }
 
   public String mapToAnalysis(ServiceRequest serviceRequest) {
-    final var analysisCode = FhirUtils.findCode(serviceRequest, ANALYSIS_REQUEST_CODE).orElse(null);
-    return analysisCodes.getConcept().stream().filter(c -> c.getCode().equals(analysisCode))
-      .findFirst()
-      .map(c -> FhirToConfigMapper.getDisplayForLang(c, locale.getLanguage()))
-      .orElse(EMPTY);
+    try {
+      final var analysisCode = FhirUtils.findCode(serviceRequest, ANALYSIS_REQUEST_CODE).orElse(null);
+      return analysisCodes.getConcept().stream().filter(c -> c.getCode().equals(analysisCode))
+        .findFirst()
+        .map(c -> FhirToConfigMapper.getDisplayForLang(c, getLang()))
+        .orElse(EMPTY);
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
   }
 
   public String mapToPanelReflex(ServiceRequest serviceRequest) {
-    return serviceRequest.hasOrderDetail() ? serviceRequest.getOrderDetailFirstRep().getText()
-      .replace(REFLEX_PANEL_PREFIX_FR, "")
-      .replace(REFLEX_PANEL_PREFIX_EN, "") : EMPTY;
+    try {
+      return serviceRequest.hasOrderDetail() ? serviceRequest.getOrderDetailFirstRep().getText()
+        .replace(REFLEX_PANEL_PREFIX_FR, "")
+        .replace(REFLEX_PANEL_PREFIX_EN, "").trim() : EMPTY;
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
+  private String handleError(Exception e) {
+    // could implement a strict mode later
+    log.warn(e.getMessage());
+    return EMPTY;
+  }
+
+  private Optional<String> getTelecom(List<ContactPoint> contactPoints, String system) {
+    return contactPoints.stream().filter(t -> system.equals(t.getSystem().toCode())).findFirst().map(ContactPoint::getValue);
+  }
+
+  private String getLang() {
+    return Optional.ofNullable(locale).map(Locale::getLanguage).orElse(null);
   }
 
   private String formatDoctorName(Practitioner practitioner) {
-    if (practitioner == null)
-      return EMPTY;
     final var name = formatName(practitioner.getNameFirstRep(), true);
     final var md = FhirUtils.findIdentifier(practitioner, MEDICAL_LICENSE_CODE);
     return md.map(s -> name + " - " + s).orElse(name);
