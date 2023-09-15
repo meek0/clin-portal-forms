@@ -9,7 +9,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.TOKEN_ATTR_REALM_ACCESS;
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.USER_ROLES_CLIN_PREFIX;
@@ -43,10 +42,10 @@ public class JwtUtils {
       .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "missing " + TOKEN_ATTR_REALM_ACCESS)));
 
     // ignore all roles that aren't clin
-    return roles.stream().filter(r -> r.startsWith(USER_ROLES_CLIN_PREFIX)).collect(Collectors.toList());
+    return roles.stream().filter(r -> r.startsWith(USER_ROLES_CLIN_PREFIX)).toList();
   }
 
-  public static class RealmAccess {
+  private static class RealmAccess {
     public List<String> roles = new ArrayList();
   }
   

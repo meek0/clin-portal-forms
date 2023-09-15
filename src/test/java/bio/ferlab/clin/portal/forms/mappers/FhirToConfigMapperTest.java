@@ -27,7 +27,7 @@ class FhirToConfigMapperTest {
   
   @BeforeEach
   void beforeEach() {
-    when(labelsService.getLabel(any(), any())).thenReturn("label");
+    when(labelsService.get(any(), any())).thenReturn("label");
   }
   
   @Test

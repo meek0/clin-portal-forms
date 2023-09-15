@@ -3,6 +3,7 @@ package bio.ferlab.clin.portal.forms.mappers;
 import bio.ferlab.clin.portal.forms.models.builders.ObservationsBuilder;
 import bio.ferlab.clin.portal.forms.models.submit.Patient;
 import bio.ferlab.clin.portal.forms.models.submit.*;
+import bio.ferlab.clin.portal.forms.utils.DateUtils;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import bio.ferlab.clin.portal.forms.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
@@ -13,21 +14,13 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
 @Component
 public class SubmitToFhirMapper {
-  
-  private final ZoneId zoneId = ZoneId.systemDefault();
-  
-  public Date mapToDate(LocalDate localDate) {
-    return Date.from(localDate.atStartOfDay(zoneId).toInstant());
-  }
   
   public long mapToAge(Date birthDate) {
     // ChronoUnit.YEARS doesn't work, in case you want to use it ...
@@ -63,7 +56,7 @@ public class SubmitToFhirMapper {
   
   public void updatePerson(Patient patient, Person person, org.hl7.fhir.r4.model.Patient linkedPatient) {
     updateIdentifier(person.getIdentifier(), SYSTEM_RAMQ, CODE_RAMQ, Utils.removeSpaces(patient.getRamq()), null);
-    person.setBirthDate(mapToDate(patient.getBirthDate()));
+    person.setBirthDate(DateUtils.toDate(patient.getBirthDate()));
     person.setGender(mapToGender(patient.getGender()));
     person.getName().clear();
     person.addName().addGiven(patient.getFirstName()).setFamily(patient.getLastName());
@@ -172,7 +165,7 @@ public class SubmitToFhirMapper {
           obs.addExtension(AGE_AT_ONSET_EXT, new Coding().setCode(o.getAgeCode()));
         }
         return obs;
-      }).collect(Collectors.toList()));
+      }).toList());
 
       if(StringUtils.isNotBlank(signs.getComment())) {
         Observation obsg = createObservation(patient, "OBSG", "exam",null, null, signs.getComment());
@@ -188,7 +181,7 @@ public class SubmitToFhirMapper {
           obs.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(getInterpretationCode(o.getInterpretation()))));
           o.getValues().forEach(v -> obs.getValueCodeableConcept().addCoding(new Coding().setSystem(HP_CODE).setCode(v)));
           return obs;
-        }).collect(Collectors.toList()));
+        }).toList());
 
       if(StringUtils.isNotBlank(exams.getComment())) {
         Observation obsg = createObservation(patient, "INVES", "exam", null, null, exams.getComment());
@@ -273,7 +266,7 @@ public class SubmitToFhirMapper {
       default:
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "patient.additional_info gestational_age should be ddm or dpa");
     }
-    observation.getValueDateTimeType().setValue(mapToDate(additionalInfo.getGestationalDate()));
+    observation.getValueDateTimeType().setValue(DateUtils.toDate(additionalInfo.getGestationalDate()));
     return observation;
   }
 
@@ -298,7 +291,7 @@ public class SubmitToFhirMapper {
   private void addParentObservation(List<Observation> observations, org.hl7.fhir.r4.model.Patient patient, Parent parent, String code) {
     if (parent != null && EnumSet.of(Parent.Moment.later, Parent.Moment.never).contains(parent.getParentEnterMoment())) {
       final Observation obs = createObservation(patient, code, "social-history", null, SYSTEM_MISSING_PARENT, CODE_MISSING_PARENT);
-      obs.setEffective(new Period().setStart(mapToDate(LocalDate.now())));
+      obs.setEffective(new Period().setStart(DateUtils.toDate(LocalDate.now())));
       String sanitizedComment = FhirUtils.sanitizeNoteComment(parent.getParentNoInfoReason());
       obs.addNote(new Annotation().setText(sanitizedComment));
       observations.add(obs);
@@ -336,8 +329,8 @@ public class SubmitToFhirMapper {
           observation.setValue(new StringType(valueStr));
         }
       }
-    } else if (value instanceof Boolean) {
-      observation.setValue(new BooleanType((Boolean) value));
+    } else if (value instanceof Boolean b) {
+      observation.setValue(new BooleanType(b));
     }
     return observation;
   }

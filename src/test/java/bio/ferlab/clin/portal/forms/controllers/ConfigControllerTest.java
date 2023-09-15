@@ -47,7 +47,7 @@ class ConfigControllerTest {
 
   @Test
   void mmg() {
-    Form form = controller.config("Bearer " + token, "MMG", null);
+    Form form = controller.config("Bearer " + token, "MMG");
     assertEquals("org1", form.getConfig().getPrescribingInstitutions().get(0).getValue());
     // validate sort by name
     assertEquals("HP:A", form.getConfig().getClinicalSigns().getDefaultList().get(0).getValue());
@@ -59,7 +59,7 @@ class ConfigControllerTest {
   @Test
   void unsupported() {
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-      controller.config("Bearer " + token, "foo", null);
+      controller.config("Bearer " + token, "foo");
     });
     assertEquals("unsupported form panel code: foo available codes: [MMG]", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());

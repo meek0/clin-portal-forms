@@ -1,0 +1,21 @@
+{% macro sample(name) %}
+	<div>
+        {{box()}}
+        Sang : {{ name }}
+    {{spaces()}}
+        Nombre de tubes :
+        {{ underscored(10) }}
+    </div>
+{% endmacro %}
+
+        {% macro underscored(size) %}
+     <div style="width: {{size}}%" class="underscored"></div>
+{% endmacro %}
+
+        {% macro box() %}
+    <div class="box"></div>
+{% endmacro %}
+
+    {% macro spaces() %}
+    &nbsp;&nbsp;&nbsp;
+{% endmacro %}

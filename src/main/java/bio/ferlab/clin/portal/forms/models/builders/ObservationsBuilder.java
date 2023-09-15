@@ -59,7 +59,7 @@ public class ObservationsBuilder {
     if (signs != null) {
       for (int i = 0; i < signs.getSigns().size(); i++) {
         final Signs cs = signs.getSigns().get(i);
-        if (cs.getIsObserved() && cs.getAgeCode() == null) {
+        if (Boolean.TRUE.equals(cs.getIsObserved()) && cs.getAgeCode() == null) {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("age_code can't be empty for clinical_signs[%s].is_observed = true", i));
         }
       }

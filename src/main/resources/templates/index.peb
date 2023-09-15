@@ -1,0 +1,16 @@
+{% extends "layouts/base" %}
+
+{% block title %}{{ id }}{% endblock %}
+
+{% block content %}
+    {% include "components/header" %}
+    {% include "components/patient" %}
+    <table>
+        <tr>
+            <td style="width: 50%">{% include "components/prescription" %}</td>
+            <td style="width: 50%">{% include "components/prescriber" %}</td>
+        </tr>
+    </table>
+    {% include "components/post-birth" %}
+    {% include "components/performer" %}
+{% endblock %}

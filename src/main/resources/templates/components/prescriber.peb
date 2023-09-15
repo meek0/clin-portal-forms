@@ -1,0 +1,25 @@
+<div class="panel panel-right">
+    <div class="panel-header"><b>MÉDECIN PRESCRIPTEUR</b></div>
+    <div class="panel-body">
+     <table>
+            <tr>
+                <td><b>{{ mapper.mapToAuthor(practitioner) }} {{ mapper.mapToRole(practitionerRole) }}</b></td>
+            </tr>
+            <tr>
+                <td><b>{{ mapper.mapToAuthor(supervisor) }}</b></td>
+            </tr>
+             <tr>
+               <td>{{ organization.name }}</td>
+            </tr>
+            <tr>
+               <td>{{ mapper.mapToContact(practitionerRole, supervisorRole, "phone") }}</td>
+            </tr>
+            <tr>
+               <td>{{ mapper.mapToContact(practitionerRole, supervisorRole, "email") }}</td>
+            </tr>
+             <tr>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+</div>

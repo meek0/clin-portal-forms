@@ -48,11 +48,11 @@ public class PatientBuilder {
       BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
       final Person person = bundleExtractor.getFirstResourcesOfType(Person.class);
       final List<Patient> patients = bundleExtractor.getAllResourcesOfType(Patient.class);
-      final Optional<Patient> patient = patients.stream().filter(p -> p.getManagingOrganization()
+      final Optional<Patient> pa = patients.stream().filter(p -> p.getManagingOrganization()
           .getReference().equals(FhirUtils.formatResource(new Organization().setId(this.patient.getEp())))).findFirst();
 
       this.personByRamq = Optional.ofNullable(person);
-      this.patientByRamq = patient;
+      this.patientByRamq = pa;
     }
     return this;
   }
@@ -61,10 +61,10 @@ public class PatientBuilder {
     if(StringUtils.isNotBlank(patient.getMrn())) {
       Bundle bundle = this.fhirClient.findPersonAndPatientByMrnAndEp(patient.getMrn(), patient.getEp());
       BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
-      final Patient patient = bundleExtractor.getFirstResourcesOfType(Patient.class);
+      final Patient pa = bundleExtractor.getFirstResourcesOfType(Patient.class);
       final Person person = bundleExtractor.getFirstResourcesOfType(Person.class);
 
-      this.patientByMrn = Optional.ofNullable(patient);
+      this.patientByMrn = Optional.ofNullable(pa);
       this.personByMrn = Optional.ofNullable(person);
     }
     return this;

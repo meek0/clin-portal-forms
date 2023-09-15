@@ -1,0 +1,39 @@
+{% import "utils" %}
+
+<div class="panel">
+    <div class="panel-header"><b>À REMPLIR PAR LE MÉDECIN PRESCRIPTEUR</b></div>
+    <div class="panel-body">
+            <div class="block">
+                <div><b>Échantillon</b></div>
+                <div>
+                    {{box()}} Nouveau prélèvement {{spaces()}}
+                    {{box()}} ADN déjà disponible au laboratoire. Numéro(s) d'échantillon(s) (obligatoire) :
+                    {{underscored(15)}}
+                </div>
+            </div>
+
+            <div class="block">
+                <div><b>Nature des échantillons : <span class="type">Postnatal</span></b></div>
+                {{ sample("1ml EDTA (néonatal)") }}
+                {{ sample("2ml EDTA") }}
+                {{ sample("5ml EDTA") }}
+                <div>
+                    {{box()}} Autre type d'échantillon : {{ underscored(25) }}
+                 </div>
+                <div>
+                    Commentaire : {{ underscored(75) }}
+                </div>
+            </div>
+
+            <div class="block">
+                <div><b>Consentement du patient</b></div>
+                <div>
+                    {{box()}} Je confirme que le patient ou son tuteur légal a signé le formulaire de consentement pour cette demande d’analyse
+                </div>
+                <div>{{ spaces() }}<i>Note: aucune analyse ne sera effectuée avant la réception du formluaire de consentement dùment signé</i></div>
+            </div>
+            <div>
+                Signature du médecin prescripteur : {{ underscored(25) }}
+            </div>
+    </div>
+</div>

@@ -19,12 +19,12 @@ class LabelsServiceTest {
 
   @Test
   void getLabel() {
-    assertEquals("foo", service.getLabel("CODE1", "fr"));
-    assertEquals("bar", service.getLabel("CODE2", "en"));// fr by default
-    assertNull(service.getLabel("CODE3", "fr"));
-    assertNull(service.getLabel("unknown", "fr"));
-    assertNull(service.getLabel("", "fr"));
-    assertNull(service.getLabel(null, null));
+    assertEquals("foo", service.get("CODE1", "fr"));
+    assertEquals("bar", service.get("CODE2", "en"));// fr by default
+    assertNull(service.get("CODE3", "fr"));
+    assertNull(service.get("unknown", "fr"));
+    assertNull(service.get("", "fr"));
+    assertNull(service.get(null, null));
   }
 
 }

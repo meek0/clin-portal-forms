@@ -62,11 +62,11 @@ public class SearchPrescriptionBuilder {
       Bundle bundle = this.fhirClient.findPersonAndPatientByRamq(ramq);
       BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
       final List<Patient> patients = bundleExtractor.getAllResourcesOfType(Patient.class);
-      final List<String> patientIds = patients.stream().map(p -> p.getIdElement().getIdPart()).distinct().collect(Collectors.toList());
+      final List<String> patientIds = patients.stream().map(p -> p.getIdElement().getIdPart()).distinct().toList();
       // find all service requests for every patient id
       final Bundle allBundle = this.fhirClient.fetchServiceRequestsByPatientIds(patientIds);
       final List<ServiceRequest> serviceRequests = new BundleExtractor(fhirClient.getContext(), allBundle).getAllResourcesOfType(ServiceRequest.class);
-      final List<String> serviceRequestIds = serviceRequests.stream().map(sr -> sr.getIdElement().getIdPart()).distinct().collect(Collectors.toList());
+      final List<String> serviceRequestIds = serviceRequests.stream().map(sr -> sr.getIdElement().getIdPart()).distinct().toList();
       // Easy way is to call SearchPrescriptionBuilder again for every IDs
       serviceRequestIds.forEach(srId -> prescriptions.addAll(new SearchPrescriptionBuilder(fhirClient, mapper, practitionerId, srId, null).validate().build().getPrescriptions()));
     }

@@ -69,4 +69,17 @@ class BundleExtractorTest {
     assertEquals("bar", extractor.extractFirstIdFromResponse("Type2"));
   }
 
+  @Test
+  void getFirstResourcesById() {
+    final Bundle bundle = new Bundle();
+    bundle.addEntry().setResource(new PractitionerRole().setId("id1"));
+    bundle.addEntry().setResource(new PractitionerRole().setId("id2"));
+    bundle.addEntry().setResource(new PractitionerRole().setId("id3"));
+    final BundleExtractor extractor = new BundleExtractor(fhirContext, bundle);
+    assertNull(extractor.getFirstResourcesById(null,null));
+    assertNull(extractor.getFirstResourcesById(null,""));
+    assertNull(extractor.getFirstResourcesById(ServiceRequest.class,"id3"));
+    assertEquals("id3", extractor.getFirstResourcesById(PractitionerRole.class,"id3").getIdElement().getIdPart());
+  }
+
 }

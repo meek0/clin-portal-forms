@@ -2,14 +2,15 @@ package bio.ferlab.clin.portal.forms.mappers;
 
 import bio.ferlab.clin.portal.forms.models.search.SearchPatient;
 import bio.ferlab.clin.portal.forms.models.search.SearchPrescription;
+import bio.ferlab.clin.portal.forms.utils.DateUtils;
 import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
-import bio.ferlab.clin.portal.forms.utils.Utils;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.stereotype.Component;
 
 @Component
 public class FhirToSearchMapper {
+
   public SearchPatient mapToSearch(org.hl7.fhir.r4.model.Person person, Patient patient) {
     final SearchPatient search = new SearchPatient();
     if (person != null ){
@@ -46,7 +47,7 @@ public class FhirToSearchMapper {
       prescription.setPrescriberName(practitioner.getNameFirstRep().getNameAsSingleString());
     }
     if (analysis.hasAuthoredOn()) {
-      prescription.setDate(Utils.getDateFormat().format(analysis.getAuthoredOn()));
+      prescription.setDate(DateUtils.FORMATTER_YYYYMMdd.format(DateUtils.toLocalDate(analysis.getAuthoredOn())));
     }
     if (person.hasName()) {
       prescription.setPatientName(person.getNameFirstRep().getNameAsSingleString());
