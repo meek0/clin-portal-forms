@@ -202,7 +202,7 @@ public class FhirClient {
 
   // data refreshed very often, don't cache
   public Bundle fetchPrescriptionDetails(ServiceRequest serviceRequest, Patient patient, PractitionerRole practitionerRole) {
-    log.info("Fetch codes and values from FHIR");
+    log.info("Fetch prescription details for id: {}", serviceRequest.getIdElement().getIdPart());
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.BATCH);
 
