@@ -16,7 +16,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
@@ -166,7 +165,7 @@ public class SubmitToFhirMapper {
           obs.addExtension(AGE_AT_ONSET_EXT, new Coding().setCode(o.getAgeCode()));
         }
         return obs;
-      }).collect(Collectors.toList()));
+      }).toList());
 
       if(StringUtils.isNotBlank(signs.getComment())) {
         Observation obsg = createObservation(patient, "OBSG", "exam",null, null, signs.getComment());
@@ -182,7 +181,7 @@ public class SubmitToFhirMapper {
           obs.addInterpretation(new CodeableConcept(new Coding().setSystem(OBSERVATION_INTERPRETATION).setCode(getInterpretationCode(o.getInterpretation()))));
           o.getValues().forEach(v -> obs.getValueCodeableConcept().addCoding(new Coding().setSystem(HP_CODE).setCode(v)));
           return obs;
-        }).collect(Collectors.toList()));
+        }).toList());
 
       if(StringUtils.isNotBlank(exams.getComment())) {
         Observation obsg = createObservation(patient, "INVES", "exam", null, null, exams.getComment());
@@ -330,8 +329,8 @@ public class SubmitToFhirMapper {
           observation.setValue(new StringType(valueStr));
         }
       }
-    } else if (value instanceof Boolean) {
-      observation.setValue(new BooleanType((Boolean) value));
+    } else if (value instanceof Boolean b) {
+      observation.setValue(new BooleanType(b));
     }
     return observation;
   }

@@ -34,7 +34,7 @@ public class RendererController {
 
   enum Format {
     html, pdf;
-    boolean equals(String format) {
+    boolean is(String format) {
       return this.name().equalsIgnoreCase(format);
     }
   }
@@ -52,9 +52,9 @@ public class RendererController {
     final Locale locale = localeService.getCurrentLocale();
     final String template = templateService.parseTemplate("index", prepareContext(id, locale), locale);
 
-    if (Format.html.equals(format)) {
+    if (Format.html.is(format)) {
       return renderAsHtml(template);
-    } else if (Format.pdf.equals(format)) {
+    } else if (Format.pdf.is(format)) {
       return renderAsPdf(id, template);
     } else {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported format: " + format);

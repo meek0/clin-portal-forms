@@ -32,19 +32,19 @@ public class FhirToConfigMapper {
     return practitionerRoles.stream().map(r -> {
       String orgId = r.getOrganization().getReferenceElement().getIdPart();
       return ValueName.builder().name(orgId).value(orgId).build();
-    }).collect(Collectors.toList());
+    }).toList();
   }
   
   public List<ValueName> mapToClinicalSigns(CodeSystem hp, String lang) {
     return hp.getConcept().stream()
         .skip(1)
         .limit(10)
-        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).toList();
   }
 
   public List<ValueName> mapToClinicalSigns(ValueSet hpByType, String lang) {
     return hpByType.getCompose().getIncludeFirstRep().getConcept().stream()
-        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).toList();
   }
 
   public List<ValueName> mapToOnsetAge(ValueSet age, String lang) {
@@ -53,12 +53,12 @@ public class FhirToConfigMapper {
 
   public List<ValueName> mapToParentalLinks(CodeSystem links, String lang) {
     return links.getConcept().stream()
-        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).toList();
   }
 
   public List<ValueName> mapToEthnicities(CodeSystem ethnicity, String lang) {
     return ethnicity.getConcept().stream()
-        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).toList();
   }
 
   public List<ValueNameExtra> mapToParaclinicalExams(CodeSystem observation, String lang, List<ValueSet> multiValues) {
@@ -68,7 +68,7 @@ public class FhirToConfigMapper {
             .value(c.getCode())
             .extra(buildExtra(c.getCode(), lang, multiValues))
             .build())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   public List<ValueNameExtra> mapToParaclinicalExams(ValueSet observation, String lang, List<ValueSet> multiValues) {
@@ -78,7 +78,7 @@ public class FhirToConfigMapper {
             .value(c.getCode())
             .extra(buildExtra(c.getCode(), lang, multiValues))
             .build())
-        .collect(Collectors.toList());
+        .toList();
   }
   
   private Extra buildExtra(String code, String lang, List<ValueSet> multiValues) {
@@ -96,7 +96,7 @@ public class FhirToConfigMapper {
   
   private List<ValueName> extractValuesByLang(ValueSet valueSet, String lang) {
     return valueSet.getCompose().getIncludeFirstRep().getConcept().stream()
-        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).collect(Collectors.toList());
+        .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).toList();
   }
   
   public static String getDisplayForLang(ValueSet.ConceptReferenceComponent concept, String lang) {

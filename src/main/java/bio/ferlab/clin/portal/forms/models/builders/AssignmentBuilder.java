@@ -14,6 +14,7 @@ import org.hl7.fhir.r4.model.ServiceRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
@@ -56,7 +57,7 @@ public class AssignmentBuilder {
         }
       });
       // build performer list
-      final var updatedPerformers = FhirUtils.filterByTypes(analysis.getPerformer(), PractitionerRole.class);
+      final var updatedPerformers = new ArrayList<>(FhirUtils.filterByTypes(analysis.getPerformer(), PractitionerRole.class));
       assignments.forEach(ass -> {
         updatedPerformers.add(new Reference("PractitionerRole/"+ass));
       });

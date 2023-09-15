@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/assignment")
@@ -40,7 +39,6 @@ public class AssignmentController {
   private List<String> filterPerformers(ServiceRequest serviceRequest) {
     return serviceRequest.getPerformer().stream()
       .filter(p -> p.getReference().startsWith(PractitionerRole.class.getSimpleName()))
-      .map(p -> p.getReferenceElement().getIdPart())
-      .collect(Collectors.toList());
+      .map(p -> p.getReferenceElement().getIdPart()).toList();
   }
 }

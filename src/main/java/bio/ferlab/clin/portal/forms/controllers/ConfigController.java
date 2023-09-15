@@ -18,7 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.DEFAULT_EXAM_SUFFIX;
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.DEFAULT_HPO_SUFFIX;
@@ -66,11 +65,11 @@ public class ConfigController {
     // use form default or generic values
     final String useSameType = this.fhirConfiguration.getSameTypes().getOrDefault(panelCode, panelCode);
     final List<ValueSet> hpByTypes = fhirConfiguration.getTypesWithDefault().stream()
-        .map(t -> codesValuesService.getValues(t + CodesValuesService.HP_BY_TYPE_SUFFIX)).collect(Collectors.toList());
+        .map(t -> codesValuesService.getValues(t + CodesValuesService.HP_BY_TYPE_SUFFIX)).toList();
     final List<ValueSet> obsByTypes = fhirConfiguration.getTypesWithDefault().stream()
-        .map(t -> codesValuesService.getValues(t + CodesValuesService.OBS_BY_TYPE_SUFFIX)).collect(Collectors.toList());
+        .map(t -> codesValuesService.getValues(t + CodesValuesService.OBS_BY_TYPE_SUFFIX)).toList();
     final List<ValueSet> multiValues = fhirConfiguration.getMultiValuesObservationCodes().stream()
-        .map(t -> codesValuesService.getValues(t + CodesValuesService.MULTI_VALUES_SUFFIX)).collect(Collectors.toList());
+        .map(t -> codesValuesService.getValues(t + CodesValuesService.MULTI_VALUES_SUFFIX)).toList();
     this.applyFormHpByTypeOrDefault(useSameType, form, lang, hp, hpByTypes);
     this.applyFormObservationByTypeOrDefault(useSameType, form, lang, observation, obsByTypes, multiValues);
     

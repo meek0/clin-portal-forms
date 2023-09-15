@@ -8,6 +8,8 @@ import java.util.Optional;
 
 public class DateUtils {
 
+  private DateUtils(){}
+
   public static final ZoneId ZONE_ID_DEFAULT = ZoneId.systemDefault();
   public static final DateTimeFormatter FORMATTER_YYYYMMdd = DateTimeFormatter.ofPattern("yyyy-MM-dd");
   public static final DateTimeFormatter FORMATTER_YYYYMMddTHHmmss = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss");

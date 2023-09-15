@@ -9,7 +9,6 @@ import org.hl7.fhir.r4.model.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.DOCTOR_PREFIX;
 
@@ -50,7 +49,7 @@ public class FhirUtils {
   }
 
   public static ObservationsBuilder.Affected toAffected(Parent.Status status) {
-    return Optional.ofNullable(status).map((s) -> switch (s) {
+    return Optional.ofNullable(status).map(s -> switch (s) {
       case affected -> ObservationsBuilder.Affected.POS;
       case not_affected -> ObservationsBuilder.Affected.NEG;
       case unknown -> ObservationsBuilder.Affected.IND;
@@ -69,8 +68,7 @@ public class FhirUtils {
 
   public static List<Reference> filterByTypes(List<Reference> refs, Class<? extends BaseResource> exclude) {
     return Optional.ofNullable(refs).orElse(new ArrayList<>()).stream()
-      .filter(r -> exclude == null || !r.getReference().startsWith(exclude.getSimpleName()))
-      .collect(Collectors.toList());
+      .filter(r -> exclude == null || !r.getReference().startsWith(exclude.getSimpleName())).toList();
   }
 
   public static Optional<Type> findExtension(ServiceRequest serviceRequest, String url) {

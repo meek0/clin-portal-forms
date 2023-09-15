@@ -18,6 +18,7 @@ class DateUtilsTest {
     final var convertedDate = DateUtils.toDate(expectedLocalDate);
     final var convertedLocalDate = DateUtils.toLocalDate(convertedDate);
 
+    assertEquals(DateUtils.FORMATTER_YYYYMMdd.format(expectedLocalDate), DateUtils.FORMATTER_YYYYMMdd.format(DateUtils.toLocalDate(convertedDate)));
     assertEquals(expectedLocalDate, convertedLocalDate);
   }
 

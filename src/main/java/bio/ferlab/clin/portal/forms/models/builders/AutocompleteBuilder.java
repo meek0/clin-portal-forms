@@ -16,7 +16,6 @@ import org.hl7.fhir.r4.model.PractitionerRole;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class AutocompleteBuilder {
@@ -35,7 +34,7 @@ public class AutocompleteBuilder {
       // and filter here instead of asking FHIR to query filter in database. 
       // considering findPractitionerAndRoleByEp can be cached it will be better 
       final List<PractitionerRole> roles = bundleExtractor.getAllResourcesOfType(PractitionerRole.class)
-        .stream().filter(r -> FhirUtils.isDoctor(r, ep)).collect(Collectors.toList());
+        .stream().filter(r -> FhirUtils.isDoctor(r, ep)).toList();
       final List<Practitioner> practitioners = bundleExtractor.getAllResourcesOfType(Practitioner.class);
       // not a stream.filter(...) because un-readable
       for (Practitioner p : practitioners) {
