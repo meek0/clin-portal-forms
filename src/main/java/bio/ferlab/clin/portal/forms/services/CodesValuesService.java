@@ -82,11 +82,13 @@ public class CodesValuesService {
   }
 
   private void validate(CodeSystem codes, ValueSet values) {
-    for (ValueSet.ConceptReferenceComponent concept : values.getCompose().getIncludeFirstRep().getConcept()) {
-      final String code = concept.getCode();
-      Optional<CodeSystem.ConceptDefinitionComponent> res = codes.getConcept().stream().filter(c -> c.getCode().equals(code)).findFirst();
-      if (res.isEmpty()) {
-        logOnceService.warn(String.format("Missing CodeSystem for code: %s", code));
+    if (codes != null && values != null ) {
+      for (ValueSet.ConceptReferenceComponent concept : values.getCompose().getIncludeFirstRep().getConcept()) {
+        final String code = concept.getCode();
+        Optional<CodeSystem.ConceptDefinitionComponent> res = codes.getConcept().stream().filter(c -> c.getCode().equals(code)).findFirst();
+        if (res.isEmpty()) {
+          logOnceService.warn(String.format("Missing CodeSystem for code: %s", code));
+        }
       }
     }
   }

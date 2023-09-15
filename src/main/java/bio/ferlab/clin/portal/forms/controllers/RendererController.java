@@ -2,9 +2,7 @@ package bio.ferlab.clin.portal.forms.controllers;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.mappers.TemplateMapper;
-import bio.ferlab.clin.portal.forms.services.CodesValuesService;
-import bio.ferlab.clin.portal.forms.services.LocaleService;
-import bio.ferlab.clin.portal.forms.services.TemplateService;
+import bio.ferlab.clin.portal.forms.services.*;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.DateUtils;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
@@ -42,9 +40,11 @@ public class RendererController {
   }
 
   private final LocaleService localeService;
+  private final LogOnceService logOnceService;
   private final FhirClient fhirClient;
   private final TemplateService templateService;
   private final CodesValuesService codesValuesService;
+  private final MessagesService messagesService;
 
   @GetMapping(path = "/{id}")
   public ResponseEntity<?> render(@PathVariable String id, @RequestParam(defaultValue = "html") String format) {
@@ -91,7 +91,7 @@ public class RendererController {
     context.put("person", person);
     context.put("practitioner", practitioner);
     context.put("organization", organization);
-    context.put("mapper", new TemplateMapper(analysisCodes, locale));
+    context.put("mapper", new TemplateMapper(id, logOnceService, messagesService, analysisCodes, locale));
 
     FhirUtils.findExtension(analysis, SUPERVISOR_EXT).ifPresent(r -> {
       final Bundle bundle = fhirClient.findPractitionerAndRoleByRoleId(FhirUtils.extractId((Reference)r));

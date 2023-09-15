@@ -91,7 +91,7 @@ public class FhirToConfigMapper {
   }
   
   private String getLabel(String code, String lang) {
-    return labelsService.getLabel(code, lang);
+    return labelsService.get(code, lang);
   }
   
   private List<ValueName> extractValuesByLang(ValueSet valueSet, String lang) {

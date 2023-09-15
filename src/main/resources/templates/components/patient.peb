@@ -9,9 +9,9 @@
             </tr>
             <tr>
                 <td>Sexe : </td>
-                <td><b>{{ i18n("messages", person.gender.toCode) }}</b></td>
+                <td><b>{{ mapper.mapToGender(person) }}</b></td>
             </tr>
-             <tr>
+            <tr>
                 <td>DDN (aaaa-mm-jj) : </td>
                 <td><b>{{ mapper.formatDate(person.birthDate) }}</b></td>
             </tr>
@@ -23,7 +23,7 @@
                 <td>Dossier : </td>
                 <td><b>{{ mapper.mapToMRN(patient) }}</b></td>
             </tr>
-             <tr>
+            <tr>
                 <td>Type de patient : </td>
                 <td><b class="type">Cas-index</b></td>
             </tr>

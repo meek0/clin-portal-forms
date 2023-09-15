@@ -3,7 +3,7 @@
     <div class="panel-body">
      <table>
             <tr>
-                <td><b>{{ mapper.mapToAuthor(practitioner) }} {% if practitionerRole is not null %}({{ i18n("messages", practitionerRole.codeFirstRep.codingFirstRep.code) }}){% endif %}</b></td>
+                <td><b>{{ mapper.mapToAuthor(practitioner) }} {{ mapper.mapToRole(practitionerRole) }}</b></td>
             </tr>
             <tr>
                 <td><b>{{ mapper.mapToAuthor(supervisor) }}</b></td>

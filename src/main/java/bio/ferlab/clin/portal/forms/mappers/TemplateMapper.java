@@ -1,5 +1,7 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
+import bio.ferlab.clin.portal.forms.services.LogOnceService;
+import bio.ferlab.clin.portal.forms.services.MessagesService;
 import bio.ferlab.clin.portal.forms.utils.DateUtils;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import lombok.RequiredArgsConstructor;
@@ -22,8 +24,30 @@ public class TemplateMapper {
   
   public static final String EMPTY = "-";
 
+  private final String id;
+  private final LogOnceService logOnceService;
+  private final MessagesService messagesService;
   private final CodeSystem analysisCodes;
   private final Locale locale;
+
+  public String mapToGender(Person person) {
+    try {
+      return i18n(person.getGender().toCode());
+    } catch (Exception e) {
+      this.handleError(e);
+      return "";
+    }
+  }
+
+  public String mapToRole(PractitionerRole role) {
+    try {
+      var res = i18n(role.getCodeFirstRep().getCodingFirstRep().getCode());
+      return StringUtils.isNotBlank(res) ? "("+res+")" : "";
+    }catch ( Exception e) {
+      this.handleError(e);
+      return "";
+    }
+  }
 
   public String mapToName(Person person) {
     try {
@@ -121,9 +145,12 @@ public class TemplateMapper {
     }
   }
 
+  private String i18n(String key) {
+    return Optional.ofNullable(this.messagesService.get(key, locale.getLanguage())).orElse("");
+  }
+
   private String handleError(Exception e) {
-    // could implement a strict mode later
-    log.warn(e.getMessage());
+    logOnceService.warn(String.format("Template[%s]: %s", id, e.getMessage()));
     return EMPTY;
   }
 

@@ -1,21 +1,29 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
+import bio.ferlab.clin.portal.forms.services.LogOnceService;
+import bio.ferlab.clin.portal.forms.services.MessagesService;
 import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_EN;
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_FR;
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.ANALYSIS_REQUEST_CODE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 class TemplateMapperTest {
 
+  final MessagesService messagesService = Mockito.mock(MessagesService.class);
+  final LogOnceService logOnceService = Mockito.mock(LogOnceService.class);
   final CodeSystem codeSystem = new CodeSystem();
-  final TemplateMapper mapper = new TemplateMapper(codeSystem, null);
+  final TemplateMapper mapper = new TemplateMapper("id", logOnceService, messagesService, codeSystem, Locale.FRENCH);
 
   @Test
   void mapToName() {
@@ -122,6 +130,26 @@ class TemplateMapperTest {
     assertEquals("reflex", mapper.mapToPanelReflex(serviceRequest));
     serviceRequest.setOrderDetail(List.of(new CodeableConcept().setText(REFLEX_PANEL_PREFIX_EN + "reflex")));
     assertEquals("reflex", mapper.mapToPanelReflex(serviceRequest));
+  }
+
+  @Test
+  void mapToGender() {
+    assertEquals("", mapper.mapToGender(null));
+    Person person = new Person();
+    assertEquals("", mapper.mapToGender(person));
+    person.setGender(Enumerations.AdministrativeGender.UNKNOWN);
+    when(messagesService.get(any(), any())).thenReturn("gender");
+    assertEquals("gender", mapper.mapToGender(person));
+  }
+
+  @Test
+  void mapToRole() {
+    assertEquals("", mapper.mapToRole(null));
+    PractitionerRole role = new PractitionerRole();
+    assertEquals("", mapper.mapToRole(role));
+    role.addCode(new CodeableConcept().addCoding(new Coding().setCode("doctor")));
+    when(messagesService.get(any(), any())).thenReturn("role");
+    assertEquals("(role)", mapper.mapToRole(role));
   }
 
 }
