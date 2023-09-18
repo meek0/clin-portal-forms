@@ -118,7 +118,7 @@ public class RendererController {
     return ResponseEntity.ok()
       .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + fileName)
       .contentLength(resource.contentLength())
-      .contentType(MediaType.APPLICATION_OCTET_STREAM)
+      .contentType(MediaType.APPLICATION_PDF)
       .body(resource);
   }
 }
