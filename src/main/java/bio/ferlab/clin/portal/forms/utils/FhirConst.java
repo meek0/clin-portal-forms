@@ -7,6 +7,8 @@ public class FhirConst {
   public static final String LDM_PREFIX = "LDM";
   public static final String DOCTOR_PREFIX = "doctor";
 
+  public static final String PRENATAL = "Prenatal";
+
   public static final String TOKEN_ATTR_REALM_ACCESS = "realm_access";
   public static final String USER_ROLES_CLIN_PREFIX = "clin";
   public static final String USER_ROLE_PRESCRIBER = "clin_prescriber";

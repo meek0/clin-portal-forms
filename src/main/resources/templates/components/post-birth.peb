@@ -4,7 +4,7 @@
     <div class="panel-header"><b>À REMPLIR PAR LE MÉDECIN PRESCRIPTEUR</b></div>
     <div class="panel-body">
             <div class="block">
-                <div><b>Échantillon</b></div>
+                <div><b>Échantillons</b></div>
                 <div>
                     {{box()}} Nouveau prélèvement {{spaces()}}
                     {{box()}} ADN déjà disponible au laboratoire. Numéro(s) d'échantillon(s) (obligatoire) :

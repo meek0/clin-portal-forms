@@ -5,7 +5,8 @@ fhir:
   url: https://fhir.qa.cqgc.hsj.rtss.qc.ca/fhir
   validate: true
 cache:
-  eviction: 30 # 30s
+  eviction: 60
+  short-eviction: 30
 security:
   issuer: https://auth.qa.cqgc.hsj.rtss.qc.ca/realms/clin
 logging:

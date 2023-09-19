@@ -5,7 +5,8 @@ fhir:
   url: http://localhost:8080/fhir
   validate: true
 cache:
-  eviction: 30 # 30s
+  eviction: 60
+  short-eviction: 30
 security:
   issuer: http://localhost:8081/auth/realms/clin
 logging:

@@ -171,7 +171,7 @@ public class TemplateMapper {
   private String formatName(HumanName name, boolean withPrefix) {
     var full = String.format("%s %s", name.getFamily().toUpperCase(), StringUtils.capitalize(name.getGivenAsSingleString()));
     if (withPrefix && name.hasPrefix()) {
-      full = StringUtils.capitalize(name.getPrefixAsSingleString()) + " " + full;
+      full = StringUtils.capitalize(name.getPrefixAsSingleString()) + ". " + full;
     }
     return full;
   }
