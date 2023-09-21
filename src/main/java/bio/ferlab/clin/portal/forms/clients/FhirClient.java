@@ -212,8 +212,10 @@ public class FhirClient {
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.BATCH);
 
+    // Mandatory for FHIR Analysis has to be part of the response
+    // cf: PrescriptionMasking and MetaTagPerson
     bundle.addEntry().getRequest()
-      .setUrl(String.format("ServiceRequest/%s", analysis.getIdElement().getIdPart()))
+      .setUrl(String.format(String.format("ServiceRequest/%s?_profile=%s", analysis.getIdElement().getIdPart(), ANALYSIS_SERVICE_REQUEST)))
       .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()
@@ -221,7 +223,7 @@ public class FhirClient {
       .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()
-      .setUrl(String.format("ServiceRequest?based-on=%s", FhirUtils.formatResource(analysis)))
+      .setUrl(String.format("ServiceRequest?based-on=%s&_profile=%s", FhirUtils.formatResource(analysis), SEQUENCING_SERVICE_REQUEST))
       .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()

@@ -20,8 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConst.PRENATAL;
-import static bio.ferlab.clin.portal.forms.utils.FhirConst.SEQUENCING_SERVICE_REQUEST;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -44,9 +43,23 @@ class RendererControllerTest {
   }
 
   @Test
+  void not_analysis() throws IOException {
+    final var mainBundle = new Bundle();
+    final var analysis = new ServiceRequest();
+    mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(analysis));
+    when(fhirClient.findServiceRequestWithDepsById(any())).thenReturn(mainBundle);
+    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
+      controller.render("1234", "html");
+    });
+    assertEquals(400, exception.getStatusCode().value());
+    assertEquals("Prescription isn't an analysis: 1234", exception.getReason());
+  }
+
+  @Test
   void foetus() throws IOException {
     final var mainBundle = new Bundle();
     final var analysis = new ServiceRequest();
+    analysis.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
     analysis.addCategory().setText(PRENATAL);
     mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(analysis));
     when(fhirClient.findServiceRequestWithDepsById(any())).thenReturn(mainBundle);
@@ -80,6 +93,7 @@ class RendererControllerTest {
     var analysis = new ServiceRequest();
     analysis.setId("analysisId");
     analysis.setSubject(new Reference("Patient/p1"));
+    analysis.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
 
     mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(analysis));
 

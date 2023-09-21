@@ -21,11 +21,11 @@ class LocaleServiceTest {
   @BeforeEach
   void setup() {
     when(configuration.getSupportedLangs()).thenReturn(List.of("fr", "en"));
-    when(request.getParameter("lang")).thenReturn(null);
   }
   
   @Test
   void getCurrentLocale_default() {
+    when(request.getParameter("lang")).thenReturn(null);
     assertEquals("fr", service.getCurrentLang());
   }
 
