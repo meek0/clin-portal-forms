@@ -1,6 +1,6 @@
 {% extends "layouts/base" %}
 
-{% block title %}{{ id }}{% endblock %}
+{% block title %}{{ sequencingId }}{% endblock %}
 
 {% block content %}
     {% include "components/header" %}

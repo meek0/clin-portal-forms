@@ -2,10 +2,10 @@
   <table>
     <tr>
       <td class="title"><b>Réseau québécois de diagnostic moléculaire</b> - Requête postnatale</td>
-       <td class="barcode" rowspan="2"><img src="data:image/png;base64,{{ idBarcodeBase64 }}"/><br/>{{ id }}</td>
+       <td class="barcode" rowspan="2"><img src="data:image/png;base64,{{ idBarcodeBase64 }}"/><br/>{{ sequencingId }}</td>
     </tr>
     <tr>
-      <td>Numéro de requête : <b>{{id}}</b> &nbsp;&nbsp;&nbsp; Créée le (aaaa-mm-jj) : <b>{{mapper.formatDate(analysis.authoredOn)}}</b></td>
+      <td>Numéro de requête : <b>{{sequencingId}}</b> &nbsp;&nbsp;&nbsp; Créée le (aaaa-mm-jj) : <b>{{mapper.formatDate(analysis.authoredOn)}}</b></td>
     </tr>
   </table>
 </div>

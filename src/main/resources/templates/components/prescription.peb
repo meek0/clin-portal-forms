@@ -4,7 +4,7 @@
         <table>
             <tr>
                 <td style="width: 20%">Numéro de prescription : </td>
-                <td style="width: 30%"><b>{{ id }}</b></td>
+                <td style="width: 30%"><b>{{ analysisId }}</b></td>
             </tr>
             <tr>
                 <td>Créée le (aaaa-mm-jj) : </td>

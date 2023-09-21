@@ -24,7 +24,8 @@ spring:
       additional-paths: templates/
 fhir:
   url: ${FHIR_URL:https://fhir.qa.cqgc.hsj.rtss.qc.ca/fhir}
-  timeout: 15000
+  timeout: 15000 # milliseconds
+  cache: 300 # milliseconds
   pool-size: 20
   validate: false
   supported-langs:
@@ -44,6 +45,7 @@ fhir:
     - emg
 cache:
   eviction: 3600 # 1h
+  short-eviction: 60 # sec
 management:
   endpoints:
     web:

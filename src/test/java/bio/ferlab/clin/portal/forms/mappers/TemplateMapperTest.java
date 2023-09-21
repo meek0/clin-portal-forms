@@ -68,7 +68,7 @@ class TemplateMapperTest {
     practitioner.getNameFirstRep().setFamily("Doe").setGiven(List.of(new StringType("John")));
     assertEquals("DOE John", mapper.mapToAuthor(practitioner));
     practitioner.getNameFirstRep().addPrefix("Dr");
-    assertEquals("Dr DOE John", mapper.mapToAuthor(practitioner));
+    assertEquals("Dr. DOE John", mapper.mapToAuthor(practitioner));
   }
 
   @Test

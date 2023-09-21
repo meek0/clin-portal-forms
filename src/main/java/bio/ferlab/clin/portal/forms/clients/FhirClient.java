@@ -72,7 +72,7 @@ public class FhirClient {
     final var outcome = this.genericClient.update().resource(serviceRequest).execute();
     return (ServiceRequest) outcome.getResource();
   }
-  
+
   public Bundle submitForm(String personRef, String patientRef, Bundle bundle) {
     try {
       logDebug(bundle);
@@ -92,13 +92,13 @@ public class FhirClient {
 
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public PractitionerRole findPractitionerRoleById(String id) {
-    log.debug("Fetch practitioner role by id {}", id);
+    log.debug("Fetch practitioner role by id: {}", id);
     return this.getGenericClient().read().resource(PractitionerRole.class).withId(id).execute();
   }
 
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findPractitionerAndRoleByRoleId(String id) {
-    log.debug("Fetch practitioner and role by role id {}", id);
+    log.debug("Fetch practitioner and role by role id: {}", id);
     return this.getGenericClient().search().forResource(PractitionerRole.class)
       .where(PractitionerRole.RES_ID.exactly().code(id))
       .include(PractitionerRole.INCLUDE_PRACTITIONER)
@@ -107,7 +107,7 @@ public class FhirClient {
 
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findAllPractitionerRoles() {
-    log.debug("Fetch all practitioner roles");
+    log.info("Fetch all practitioner roles");
     return this.getGenericClient().search().forResource(PractitionerRole.class)
       .count(Integer.MAX_VALUE)
       .returnBundle(Bundle.class).execute();
@@ -115,22 +115,24 @@ public class FhirClient {
   
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findPractitionerRoleByPractitionerId(String practitionerId) {
-    log.debug("Fetch practitioner roles by practitioner id {}", practitionerId);
+    log.debug("Fetch practitioner roles by practitioner id: {}", practitionerId);
     return this.getGenericClient().search().forResource(PractitionerRole.class)
         .where(PractitionerRole.PRACTITIONER.hasId(practitionerId)).returnBundle(Bundle.class).execute();
   }
 
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findPractitionerAndRoleByEp(String ep) {
-    log.debug("Fetch practitioner and roles by ep {}", ep);
+    log.debug("Fetch practitioner and roles by ep: {}", ep);
     return this.getGenericClient().search().forResource(PractitionerRole.class)
         .where(PractitionerRole.ORGANIZATION.hasId(ep))
         .include(PractitionerRole.INCLUDE_PRACTITIONER)
         .count(Integer.MAX_VALUE)
         .returnBundle(Bundle.class).execute();
   }
-  
+
+  @Cacheable(value = CacheConfiguration.CACHE_FHIR, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle fetchAdditionalPrescriptionData(String practitionerId, String patientId) {
+    log.debug("Fetch additional prescription data practitionerId: {} patient: {}", practitionerId, patientId);
     final Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.BATCH);
     
@@ -148,8 +150,10 @@ public class FhirClient {
 
     return this.getGenericClient().transaction().withBundle(bundle).execute();
   }
-  
+
+  @Cacheable(value = CacheConfiguration.CACHE_FHIR, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle fetchServiceRequestsByPatientIds(List<String> patientIds) {
+    log.debug("Fetch service request by patient ids: {}", patientIds);
     final Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.BATCH);
     
@@ -161,26 +165,27 @@ public class FhirClient {
     
     return this.getGenericClient().transaction().withBundle(bundle).execute();
   }
-  
-  // data refreshed very often, don't cache
+
+  @Cacheable(value = CacheConfiguration.CACHE_FHIR, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findServiceRequestWithDepsById(String id) {
+    log.debug("Fetch service request with deps by id: {}", id);
     return this.getGenericClient().search().forResource(ServiceRequest.class)
         .where(ServiceRequest.RES_ID.exactly().code(id))
         .include(ServiceRequest.INCLUDE_REQUESTER)
-        .include(ServiceRequest.INCLUDE_PATIENT)
         .include(ServiceRequest.INCLUDE_PERFORMER)
         .returnBundle(Bundle.class)
         .execute();
   }
 
-  // data refreshed very often, don't cache
+  @Cacheable(value = CacheConfiguration.CACHE_FHIR, sync = true, keyGenerator = "customKeyGenerator")
   public ServiceRequest findServiceRequestById(String id) {
-    log.debug("Fetch service request by id {}", id);
+    log.debug("Fetch service request by id: {}", id);
     return this.getGenericClient().read().resource(ServiceRequest.class).withId(id).execute();
   }
-  
-  // data refreshed very often, don't cache
+
+  @Cacheable(value = CacheConfiguration.CACHE_FHIR, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findPersonAndPatientByRamq(String ramq) {
+    log.debug("Fetch person and patient by ramq: {}", ramq);
     return this.getGenericClient().search()
         .forResource(Person.class)
         .where(Person.IDENTIFIER.exactly().code(ramq))
@@ -189,8 +194,9 @@ public class FhirClient {
         .execute();
   }
 
-  // data refreshed very often, don't cache
+  @Cacheable(value = CacheConfiguration.CACHE_FHIR, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findPersonAndPatientByMrnAndEp(String mrn, String ep) {
+    log.debug("Fetch person and patient by mrn and ep: {} {}", mrn, ep);
     return this.getGenericClient().search()
         .forResource(Patient.class)
         .where(Patient.IDENTIFIER.exactly().code(mrn))
@@ -200,18 +206,28 @@ public class FhirClient {
         .execute();
   }
 
-  // data refreshed very often, don't cache
-  public Bundle fetchPrescriptionDetails(ServiceRequest serviceRequest, Patient patient, PractitionerRole practitionerRole) {
-    log.info("Fetch prescription details for id: {}", serviceRequest.getIdElement().getIdPart());
+  @Cacheable(value = CacheConfiguration.CACHE_FHIR, sync = true, keyGenerator = "customKeyGenerator")
+  public Bundle fetchPrescriptionDetails(ServiceRequest analysis, PractitionerRole practitionerRole) {
+    log.debug("Fetch prescription details for id: {}", analysis.getIdElement().getIdPart());
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.BATCH);
 
+    // Mandatory for FHIR Analysis has to be part of the response
+    // cf: PrescriptionMasking and MetaTagPerson
     bundle.addEntry().getRequest()
-      .setUrl(String.format("ServiceRequest?based-on=%s&_profile=%s", FhirUtils.formatResource(serviceRequest), SEQUENCING_SERVICE_REQUEST))
+      .setUrl(String.format(String.format("ServiceRequest/%s?_profile=%s", analysis.getIdElement().getIdPart(), ANALYSIS_SERVICE_REQUEST)))
       .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()
-      .setUrl(String.format("Person?link=%s", FhirUtils.formatResource(patient)))
+      .setUrl(String.format("Patient/%s", FhirUtils.extractId(analysis.getSubject())))
+      .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+      .setUrl(String.format("ServiceRequest?based-on=%s&_profile=%s", FhirUtils.formatResource(analysis), SEQUENCING_SERVICE_REQUEST))
+      .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+      .setUrl(String.format("Person?link=%s", analysis.getSubject().getReference()))
       .setMethod(Bundle.HTTPVerb.GET);
 
     if (practitionerRole != null) {
