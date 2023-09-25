@@ -1,11 +1,11 @@
-FROM maven:3.8-openjdk-17-slim as build-api
+FROM maven:3.9.4-amazoncorretto-21 as build-api
 WORKDIR /tmp/api
 COPY . .
 RUN mvn clean install -DskipTests
 
 # following part 'build-jre' is optional, build a modular JRE limited to what the app is using
 # reduce docker image size + improve JRE load time
-FROM openjdk:17-alpine as build-jre
+FROM amazoncorretto:21-alpine as build-jre
 WORKDIR /tmp/jre
 COPY --from=build-api /tmp/api/target/clin-portal-forms-0.0.1-SNAPSHOT.jar app.jar
 RUN unzip app.jar -d unzip
@@ -15,7 +15,7 @@ RUN $JAVA_HOME/bin/jdeps \
     --print-module-deps \
     -q \
     --recursive \
-    --multi-release 17 \
+    --multi-release 21 \
     --class-path="./unzip/BOOT-INF/lib/*" \
     --module-path="./unzip/BOOT-INF/lib/*" \
     ./app.jar > modules.info

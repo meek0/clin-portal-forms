@@ -19,6 +19,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -114,12 +116,12 @@ class RendererControllerTest {
   }
 
   private void assertContent(String snapshotPath, ResponseEntity<String> response) throws IOException {
-    var expected = IOUtils.resourceToString(snapshotPath, StandardCharsets.UTF_8, getClass().getClassLoader()).replaceAll(" ", "");
+    var expected = IOUtils.resourceToString(snapshotPath, StandardCharsets.UTF_8, getClass().getClassLoader());
     assertEquals(sanitize(expected), sanitize(response.getBody()));
   }
 
   private String sanitize(String file) {
-    return file.replaceAll("\t", "").replaceAll(" ", "");
+    return Arrays.stream(file.replaceAll("\t", " ").split("\n")).map(String::trim).collect(Collectors.joining("\n"));
   }
 
 }

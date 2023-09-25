@@ -1,7 +1,7 @@
 {% import "utils" %}
 
 <div class="panel">
-    <div class="panel-header"><b>À REMPLIR PAR LE MÉDECIN PRESCRIPTEUR</b></div>
+    <div class="panel-header"><b>À REMPLIR PAR LE CENTRE / MÉDECIN PRESCRIPTEUR</b></div>
     <div class="panel-body">
             <div class="block">
                 <div><b>Échantillons</b></div>
@@ -30,7 +30,7 @@
                 <div>
                     {{box()}} Je confirme que le patient ou son tuteur légal a signé le formulaire de consentement pour cette demande d’analyse
                 </div>
-                <div>{{ spaces() }}<i>Note: aucune analyse ne sera effectuée avant la réception du formluaire de consentement dùment signé</i></div>
+                <div>{{ spaces() }}<i>Note : aucune analyse ne sera effectuée avant la réception du formluaire de consentement dùment signé</i></div>
             </div>
             <div>
                 Signature du médecin prescripteur : {{ underscored(25) }}
