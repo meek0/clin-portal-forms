@@ -26,6 +26,15 @@ class TemplateMapperTest {
   final TemplateMapper mapper = new TemplateMapper("id", logOnceService, messagesService, codeSystem, Locale.FRENCH);
 
   @Test
+  void mapToAddress() {
+    assertEquals("-", mapper.mapToAddress(null));
+    Organization org = new Organization();
+    assertEquals("-", mapper.mapToAddress(org));
+    org.getContactFirstRep().getAddress().setText("foo");
+    assertEquals("foo", mapper.mapToAddress(org));
+  }
+
+  @Test
   void mapToName() {
     assertEquals("-", mapper.mapToName(null));
     Person person = new Person();

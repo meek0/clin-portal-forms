@@ -8,6 +8,9 @@ spring:
     name: Forms (API)
   main:
     lazy-initialization: true
+  threads:
+    virtual:
+      enabled: true
   resources:
     cache:
       cachecontrol:

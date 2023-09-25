@@ -22,7 +22,7 @@
                 <td><b>{{  mapper.mapToPerformer(performer) }}</b></td>
             </tr>
             <tr>
-                <td>{{ performer.contact[0].address.text }}</td>
+                <td>{{ mapper.mapToAddress(performer) }}</td>
             </tr>
             <tr>
                 <td>Téléphone : {{ mapper.mapToContact(performer, "phone") }}</td>

@@ -10,7 +10,7 @@
     /* header */
     .header {
         line-height: 25px;
-        margin-bottom: {{COMPONENT_SPACING}};
+        margin-bottom: {{COMPONENT_SPACING_HALF}};
     }
 
     .title {
@@ -33,6 +33,10 @@
 
     table td {
         vertical-align: top;
+    }
+
+    table td.right {
+        text-align: right;
     }
 
     .underscored {
@@ -74,7 +78,7 @@
         width: auto;
         margin-left: {{PANEL_SPACING}};
         color: {{ SECONDARY_COLOR }};
-        line-height: 53.98mm; /* a bit tricky but it's to center the text inside the div, replaces height prop */
+        line-height: 16; /* a bit tricky but it's to center the text inside the div, replaces height prop */
     }
 
     .type {

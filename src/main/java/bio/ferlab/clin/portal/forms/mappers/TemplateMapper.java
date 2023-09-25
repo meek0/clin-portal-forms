@@ -30,6 +30,15 @@ public class TemplateMapper {
   private final CodeSystem analysisCodes;
   private final Locale locale;
 
+  public String mapToAddress(Organization organization) {
+    try {
+      var addr =  organization.getContactFirstRep().getAddress().getText();
+      return Optional.ofNullable(addr).orElse(EMPTY);
+    } catch (Exception e) {
+      return handleError(e);
+    }
+  }
+
   public String mapToGender(Person person) {
     try {
       return i18n(person.getGender().toCode());
