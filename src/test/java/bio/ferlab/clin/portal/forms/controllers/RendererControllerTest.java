@@ -121,7 +121,12 @@ class RendererControllerTest {
   }
 
   private String sanitize(String file) {
-    return Arrays.stream(file.replaceAll("\t", " ").split("\n")).map(String::trim).collect(Collectors.joining("\n"));
+    return Arrays.stream(file
+        .replaceAll("\t", " ")
+        .replaceAll("\\d{4}-\\d{2}-\\d{2}", "0000-00-00") // dates
+        .split("\n"))
+      .map(String::trim)
+      .collect(Collectors.joining("\n"));
   }
 
 }

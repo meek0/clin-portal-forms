@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -108,6 +109,8 @@ public class RendererController {
     context.put("organization", organization);
     // don't know how thread-safe is Pebble renderer, let's instance a new mapper instead of having a singleton
     context.put("mapper", new TemplateMapper(id, logOnceService, messagesService, analysisCodes, locale));
+    context.put("now", new Date());
+    context.put("version", "1.0");
 
     FhirUtils.findExtension(analysis, SUPERVISOR_EXT).ifPresent(r -> {
       final Bundle bundle = fhirClient.findPractitionerAndRoleByRoleId(FhirUtils.extractId((Reference)r));

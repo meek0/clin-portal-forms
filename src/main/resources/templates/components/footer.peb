@@ -1,0 +1,6 @@
+<table>
+    <tr>
+        <td style="width: 50%">Version {{ version }} &nbsp; Date : {{ now | date("yyyy-MM-dd") }}</td>
+        <td style="width: 50%" class="right">Page {{ page }} de {{ total }}</td>
+    </tr>
+</table>

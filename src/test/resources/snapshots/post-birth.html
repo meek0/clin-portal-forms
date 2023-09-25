@@ -10,7 +10,7 @@
         /* header */
         .header {
         line-height: 25px;
-        margin-bottom: 10px;
+        margin-bottom: 5px;
         }
 
         .title {
@@ -33,6 +33,10 @@
 
         table td {
         vertical-align: top;
+        }
+
+        table td.right {
+        text-align: right;
         }
 
         .underscored {
@@ -74,7 +78,7 @@
         width: auto;
         margin-left: 7px;
         color: #dee4ed;
-        line-height: 53.98mm; /* a bit tricky but it's to center the text inside the div, replaces height prop */
+        line-height: 16; /* a bit tricky but it's to center the text inside the div, replaces height prop */
         }
 
         .type {
@@ -171,7 +175,7 @@
             <tr>
                 <td style="width: 20%">Nom Prénom : </td>
                 <td style="width: 30%"><b>-</b></td>
-                <td style="width: 50%" rowspan="10"><div class="patient-card">Carte du patient</div></td>
+                <td style="width: 50%" rowspan="9"><div class="patient-card">Carte du patient</div></td>
             </tr>
             <tr>
                 <td>Sexe : </td>
@@ -192,9 +196,6 @@
             <tr>
                 <td>Type de patient : </td>
                 <td><b class="type">Cas-index</b></td>
-            </tr>
-            <tr>
-                <td></td>
             </tr>
             <tr>
                 <td></td>
@@ -345,7 +346,7 @@
                     <td><b>-</b></td>
                 </tr>
                 <tr>
-                    <td></td>
+                    <td>-</td>
                 </tr>
                 <tr>
                     <td>Téléphone : -</td>
@@ -356,6 +357,11 @@
             </table>
         </div>
     </div>
-</div>
+    <table>
+        <tr>
+            <td style="width: 50%">Version 1.0 &nbsp; Date : 1900-12-01</td>
+            <td style="width: 50%" class="right">Page 1 de 1</td>
+        </tr>
+    </table>  </div>
 </body>
 </html>
