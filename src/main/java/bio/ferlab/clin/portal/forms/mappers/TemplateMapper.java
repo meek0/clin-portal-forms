@@ -22,7 +22,7 @@ import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 @RequiredArgsConstructor
 public class TemplateMapper {
   
-  public static final String EMPTY = "-";
+  public static final String EMPTY = "";
 
   private final String id;
   private final LogOnceService logOnceService;
@@ -43,18 +43,17 @@ public class TemplateMapper {
     try {
       return i18n(person.getGender().toCode());
     } catch (Exception e) {
-      this.handleError(e);
-      return "";
+      return this.handleError(e);
     }
   }
 
   public String mapToRole(PractitionerRole role) {
     try {
-      var res = i18n(role.getCodeFirstRep().getCodingFirstRep().getCode());
-      return StringUtils.isNotBlank(res) ? "("+res+")" : "";
+      var code = role.getCodeFirstRep().getCodingFirstRep().getCode();
+      var res = RESIDENT_PREFIX.equals(code) ? i18n(role.getCodeFirstRep().getCodingFirstRep().getCode()): "";
+      return StringUtils.isNotBlank(res) ? "("+res+")" : EMPTY;
     }catch ( Exception e) {
-      this.handleError(e);
-      return "";
+      return this.handleError(e);
     }
   }
 
@@ -77,7 +76,8 @@ public class TemplateMapper {
   public String mapToMRN(Patient patient) {
     try {
       var org = Optional.ofNullable(FhirUtils.extractId(patient.getManagingOrganization())).orElse(EMPTY).toUpperCase();
-      return getIdentifier(patient.getIdentifier(), CODE_MRN).map(r -> String.format("%s | %s",r.toUpperCase().replace("MRN-", ""), org)).orElse(EMPTY);
+      var mrn = getIdentifier(patient.getIdentifier(), CODE_MRN).map(r -> r.toUpperCase().replace("MRN-", "")).orElse(EMPTY);
+      return StringUtils.isNotBlank(org) ? mrn + " | "+ org : mrn;
     } catch (Exception e) {
       return this.handleError(e);
     }

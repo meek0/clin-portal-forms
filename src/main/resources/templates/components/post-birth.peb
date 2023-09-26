@@ -30,7 +30,9 @@
                 <div>
                     {{box()}} Je confirme que le patient ou son tuteur légal a signé le formulaire de consentement pour cette demande d’analyse
                 </div>
-                <div>{{ spaces() }}<i>Note : aucune analyse ne sera effectuée avant la réception du formluaire de consentement dùment signé</i></div>
+                <div>
+                    {{box("hidden")}}<i>Note : aucune analyse ne sera effectuée avant la réception du formluaire de consentement dùment signé</i>
+                </div>
             </div>
             <div>
                 Signature du médecin prescripteur : {{ underscored(25) }}

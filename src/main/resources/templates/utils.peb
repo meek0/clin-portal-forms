@@ -8,14 +8,14 @@
     </div>
 {% endmacro %}
 
-        {% macro underscored(size) %}
+{% macro underscored(size) %}
      <div style="width: {{size}}%" class="underscored"></div>
 {% endmacro %}
 
-        {% macro box() %}
-    <div class="box"></div>
+{% macro box(class = "") %}
+    <div class="box {{ class }}"></div>
 {% endmacro %}
 
-    {% macro spaces() %}
+{% macro spaces() %}
     &nbsp;&nbsp;&nbsp;
 {% endmacro %}
