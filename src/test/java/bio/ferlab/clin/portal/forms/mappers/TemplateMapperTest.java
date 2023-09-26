@@ -27,53 +27,53 @@ class TemplateMapperTest {
 
   @Test
   void mapToAddress() {
-    assertEquals("-", mapper.mapToAddress(null));
+    assertEquals("", mapper.mapToAddress(null));
     Organization org = new Organization();
-    assertEquals("-", mapper.mapToAddress(org));
+    assertEquals("", mapper.mapToAddress(org));
     org.getContactFirstRep().getAddress().setText("foo");
     assertEquals("foo", mapper.mapToAddress(org));
   }
 
   @Test
   void mapToName() {
-    assertEquals("-", mapper.mapToName(null));
+    assertEquals("", mapper.mapToName(null));
     Person person = new Person();
-    assertEquals("-", mapper.mapToName(person));
+    assertEquals("", mapper.mapToName(person));
     person.getNameFirstRep().setFamily("Doe").setGiven(List.of(new StringType("John")));
     assertEquals("DOE John", mapper.mapToName(person));
   }
 
   @Test
   void mapToRAMQ() {
-    assertEquals("-", mapper.mapToRAMQ(null));
+    assertEquals("", mapper.mapToRAMQ(null));
     Person person = new Person();
-    assertEquals("-", mapper.mapToRAMQ(person));
+    assertEquals("", mapper.mapToRAMQ(person));
     person.addIdentifier(new Identifier().setValue("abcd12345678").setType(new CodeableConcept().addCoding(new Coding().setCode("JHN"))));
     assertEquals("ABCD 1234 5678", mapper.mapToRAMQ(person));
   }
 
   @Test
   void mapToMRN() {
-    assertEquals("-", mapper.mapToMRN(null));
+    assertEquals("", mapper.mapToMRN(null));
     Patient patient = new Patient();
-    assertEquals("-", mapper.mapToMRN(patient));
+    assertEquals("", mapper.mapToMRN(patient));
     patient.addIdentifier(new Identifier().setValue("mrn-foo-1234").setType(new CodeableConcept().addCoding(new Coding().setCode("MR"))));
-    assertEquals("FOO-1234 | -", mapper.mapToMRN(patient));
+    assertEquals("FOO-1234", mapper.mapToMRN(patient));
     patient.setManagingOrganization(new Reference("Organization/bar"));
     assertEquals("FOO-1234 | BAR", mapper.mapToMRN(patient));
   }
 
   @Test
   void formatDate() {
-    assertEquals("-", mapper.formatDate(null));
+    assertEquals("", mapper.formatDate(null));
     assertNotNull(mapper.formatDate(new Date()));
   }
 
   @Test
   void mapToAuthor() {
-    assertEquals("-", mapper.mapToAuthor(null));
+    assertEquals("", mapper.mapToAuthor(null));
     Practitioner practitioner = new Practitioner();
-    assertEquals("-", mapper.mapToAuthor(practitioner));
+    assertEquals("", mapper.mapToAuthor(practitioner));
     practitioner.getNameFirstRep().setFamily("Doe").setGiven(List.of(new StringType("John")));
     assertEquals("DOE John", mapper.mapToAuthor(practitioner));
     practitioner.getNameFirstRep().addPrefix("Dr");
@@ -82,9 +82,9 @@ class TemplateMapperTest {
 
   @Test
   void mapToContact_organization() {
-    assertEquals("-", mapper.mapToContact(null, null));
+    assertEquals("", mapper.mapToContact(null, null));
     Organization organization = new Organization();
-    assertEquals("-", mapper.mapToContact(organization, null));
+    assertEquals("", mapper.mapToContact(organization, null));
     organization.getContactFirstRep().addTelecom(new ContactPoint().setSystem(ContactPoint.ContactPointSystem.PHONE).setValue("123456789"));
     organization.getContactFirstRep().addTelecom(new ContactPoint().setSystem(ContactPoint.ContactPointSystem.EMAIL).setValue("foo@bar"));
     assertEquals("123456789", mapper.mapToContact(organization, "phone"));
@@ -93,9 +93,9 @@ class TemplateMapperTest {
 
   @Test
   void mapToContact_prescriber() {
-    assertEquals("-", mapper.mapToContact(null,null,null));
+    assertEquals("", mapper.mapToContact(null,null,null));
     PractitionerRole prescriber = new PractitionerRole();
-    assertEquals("-", mapper.mapToContact(prescriber, null, null));
+    assertEquals("", mapper.mapToContact(prescriber, null, null));
     prescriber.addTelecom(new ContactPoint().setSystem(ContactPoint.ContactPointSystem.EMAIL).setValue("prescriber@mail"));
     assertEquals("prescriber@mail", mapper.mapToContact(prescriber,null, "email"));
     PractitionerRole supervisor = new PractitionerRole();
@@ -106,9 +106,9 @@ class TemplateMapperTest {
 
   @Test
   void mapToPerformer() {
-    assertEquals("-", mapper.mapToPerformer(null));
+    assertEquals("", mapper.mapToPerformer(null));
     Organization organization = new Organization();
-    assertEquals("-", mapper.mapToPerformer(organization));
+    assertEquals("", mapper.mapToPerformer(organization));
     organization.setName("My Organization");
     assertEquals("My Organization", mapper.mapToPerformer(organization));
     organization.setAlias(List.of(new StringType("ORG")));
@@ -117,22 +117,22 @@ class TemplateMapperTest {
 
   @Test
   void mapToAnalysis() {
-    assertEquals("-", mapper.mapToAnalysis(null));
+    assertEquals("", mapper.mapToAnalysis(null));
     ServiceRequest serviceRequest = new ServiceRequest();
-    assertEquals("-", mapper.mapToAnalysis(serviceRequest));
+    assertEquals("", mapper.mapToAnalysis(serviceRequest));
     serviceRequest.getCode().addCoding(new Coding().setSystem(ANALYSIS_REQUEST_CODE).setCode("code"));
-    assertEquals("-", mapper.mapToAnalysis(serviceRequest));
+    assertEquals("", mapper.mapToAnalysis(serviceRequest));
     codeSystem.addConcept(new CodeSystem.ConceptDefinitionComponent().setCode("another_code").setDisplay("not_that_analysis"));
-    assertEquals("-", mapper.mapToAnalysis(serviceRequest));
+    assertEquals("", mapper.mapToAnalysis(serviceRequest));
     codeSystem.addConcept(new CodeSystem.ConceptDefinitionComponent().setCode("code").setDisplay("analysis"));
     assertEquals("analysis", mapper.mapToAnalysis(serviceRequest));
   }
 
   @Test
   void mapToPanelReflex() {
-    assertEquals("-", mapper.mapToPanelReflex(null));
+    assertEquals("", mapper.mapToPanelReflex(null));
     ServiceRequest serviceRequest = new ServiceRequest();
-    assertEquals("-", mapper.mapToPanelReflex(serviceRequest));
+    assertEquals("", mapper.mapToPanelReflex(serviceRequest));
     serviceRequest.setOrderDetail(List.of(new CodeableConcept().setText(" reflex")));
     assertEquals("reflex", mapper.mapToPanelReflex(serviceRequest));
     serviceRequest.setOrderDetail(List.of(new CodeableConcept().setText(REFLEX_PANEL_PREFIX_FR + "reflex")));
@@ -158,7 +158,9 @@ class TemplateMapperTest {
     assertEquals("", mapper.mapToRole(role));
     role.addCode(new CodeableConcept().addCoding(new Coding().setCode("doctor")));
     when(messagesService.get(any(), any())).thenReturn("role");
+    assertEquals("", mapper.mapToRole(role));
+    role.getCode().clear(); // reset role
+    role.addCode(new CodeableConcept().addCoding(new Coding().setCode("405277009")));
     assertEquals("(role)", mapper.mapToRole(role));
   }
-
 }
