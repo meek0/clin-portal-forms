@@ -1,6 +1,6 @@
 <div class="panel panel-left">
     <div class="panel-header"><b>PRESCRIPTION</b></div>
-    <div class="panel-body">
+    <div class="panel-body fixed-height">
         <table>
             <tr>
                 <td style="width: 20%">Numéro de prescription : </td>
@@ -15,14 +15,14 @@
                 <td rowspan="2"><b>{{ mapper.mapToAnalysis(analysis) }}</b></td>
             </tr>
              <tr>
-                <td ><br/></td>
+                <td></td>
             </tr>
             <tr>
                 <td>Panel en réflexe : </td>
                 <td rowspan="2"><b>{{ mapper.mapToPanelReflex(analysis) }}</b></td>
             </tr>
             <tr>
-                <td ></td>
+                <td></td>
             </tr>
         </table>
     </div>

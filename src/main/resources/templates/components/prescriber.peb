@@ -1,6 +1,6 @@
 <div class="panel panel-right">
     <div class="panel-header"><b>MÉDECIN PRESCRIPTEUR</b></div>
-    <div class="panel-body">
+    <div class="panel-body fixed-height">
      <table>
             <tr>
                 <td><b>{{ mapper.mapToAuthor(practitioner) }} {{ mapper.mapToRole(practitionerRole) }}</b></td>

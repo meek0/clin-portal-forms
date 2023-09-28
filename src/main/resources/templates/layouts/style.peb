@@ -29,14 +29,23 @@
 
     table tr {
         height: {{LINE_HEIGHT}};
+        vertical-align: top;
     }
-
+    
     table td {
         vertical-align: top;
     }
 
     table td.right {
         text-align: right;
+    }
+
+    .fixed-height tr {
+       height: inherit;
+    }
+
+    .fixed-height {
+       height: 125px;
     }
 
     .underscored {
@@ -150,6 +159,10 @@
             background: white;
             font-size: 8pt;
             line-height: 13pt;
+        }
+
+        .fixed-height {
+           height: 110px;
         }
 
         #content {
