@@ -29,6 +29,7 @@
 
         table tr {
         height: 20px;
+        vertical-align: top;
         }
 
         table td {
@@ -37,6 +38,14 @@
 
         table td.right {
         text-align: right;
+        }
+
+        .fixed-height tr {
+        height: inherit;
+        }
+
+        .fixed-height {
+        height: 125px;
         }
 
         .underscored {
@@ -152,6 +161,10 @@
         line-height: 13pt;
         }
 
+        .fixed-height {
+        height: 110px;
+        }
+
         #content {
         margin: 0;
         padding: 0;
@@ -221,7 +234,7 @@
     <tr>
         <td style="width: 50%"><div class="panel panel-left">
             <div class="panel-header"><b>PRESCRIPTION</b></div>
-            <div class="panel-body">
+            <div class="panel-body fixed-height">
                 <table>
                     <tr>
                         <td style="width: 20%">Numéro de prescription : </td>
@@ -236,21 +249,21 @@
                         <td rowspan="2"><b></b></td>
                     </tr>
                     <tr>
-                        <td ><br/></td>
+                        <td></td>
                     </tr>
                     <tr>
                         <td>Panel en réflexe : </td>
                         <td rowspan="2"><b></b></td>
                     </tr>
                     <tr>
-                        <td ></td>
+                        <td></td>
                     </tr>
                 </table>
             </div>
         </div></td>
         <td style="width: 50%"><div class="panel panel-right">
             <div class="panel-header"><b>MÉDECIN PRESCRIPTEUR</b></div>
-            <div class="panel-body">
+            <div class="panel-body fixed-height">
                 <table>
                     <tr>
                         <td><b> </b></td>
