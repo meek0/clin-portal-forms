@@ -1,11 +1,11 @@
 <div class="header">
   <table>
     <tr>
-      <td class="title"><b>Réseau québécois de diagnostic moléculaire</b> - Requête postnatale</td>
+      <td class="title"><b>{{ i18n("messages", "header_title_1")}}</b> - {{ i18n("messages", "header_title_2")}}</td>
        <td class="barcode" rowspan="2"><img src="data:image/png;base64,{{ idBarcodeBase64 }}"/><br/>{{ sequencingId }}</td>
     </tr>
     <tr>
-      <td>Numéro de requête : <b>{{sequencingId}}</b> &nbsp;&nbsp;&nbsp; Créée le (aaaa-mm-jj) : <b>{{mapper.formatDate(analysis.authoredOn)}}</b></td>
+      <td>{{ i18n("messages","request_number") }} : <b>{{sequencingId}}</b> &nbsp;&nbsp;&nbsp; {{ i18n("messages","created") }} : <b>{{mapper.formatDate(analysis.authoredOn)}}</b></td>
     </tr>
   </table>
 </div>

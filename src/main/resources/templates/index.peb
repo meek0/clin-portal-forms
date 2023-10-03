@@ -11,7 +11,7 @@
             <td style="width: 50%">{% include "components/prescriber" %}</td>
         </tr>
     </table>
-    {% include "components/post-birth" %}
+    {% include "components/samples" %}
     {% include "components/performer" %}
     {% include "components/footer" with {"page": "1", "total": "1"} %}
 {% endblock %}

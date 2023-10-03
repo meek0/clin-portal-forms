@@ -1,21 +1,21 @@
 {% import "utils" %}
 <div class="panel">
-    <div class="panel-header"><b>À REMPLIR PAR LE CENTRE DE PRÉLÈVEMENT</b></div>
+    <div class="panel-header"><b>{{ i18n("messages", "performer_title")}}</b></div>
     <div class="panel-body">
         <div>
-            Centre de prélèvement : {{ underscored(75) }}
+            {{ i18n("messages", "performer_center")}} : {{ underscored(75) }}
         </div>
         <div>
-            Prélèvement fait par : {{ underscored(75) }}
+            {{ i18n("messages", "performer_author")}} : {{ underscored(75) }}
         </div>
         <div>
-            Date du prélèvement (aaaa-mm-jj) : {{ underscored(20) }}
-            Heure du prélèvement (hh:mm) : {{ underscored(20) }}
+            {{ i18n("messages", "performer_date")}} : {{ underscored(20) }}
+            {{ i18n("messages", "performer_time")}} : {{ underscored(20) }}
         </div>
     </div>
 </div>
 <div class="panel">
-    <div class="panel-header"><b>LABORATOIRE DE DIAGNOSTIC MOLÉCULAIRE ASSIGNÉ À CETTE REQUêTE</b></div>
+    <div class="panel-header"><b>{{ i18n("messages", "performer_contact_title")}}</b></div>
     <div class="panel-body">
      <table>
             <tr>
@@ -25,10 +25,10 @@
                 <td>{{ mapper.mapToAddress(performer) }}</td>
             </tr>
             <tr>
-                <td>Téléphone : {{ mapper.mapToContact(performer, "phone") }}</td>
+                <td>{{ i18n("messages", "performer_contact_phone")}} : {{ mapper.mapToContact(performer, "phone") }}</td>
             </tr>
              <tr>
-               <td>Fax : {{ mapper.mapToContact(performer, "fax") }}</td>
+               <td>{{ i18n("messages", "performer_contact_fax")}} : {{ mapper.mapToContact(performer, "fax") }}</td>
             </tr>
         </table>
     </div>

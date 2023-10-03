@@ -1,5 +1,5 @@
 <div class="panel panel-right">
-    <div class="panel-header"><b>MÉDECIN PRESCRIPTEUR</b></div>
+    <div class="panel-header"><b>{{ i18n("messages", "prescriber_title") }}</b></div>
     <div class="panel-body fixed-height">
      <table>
             <tr>

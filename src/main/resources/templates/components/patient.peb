@@ -1,31 +1,31 @@
 <div class="panel">
-    <div class="panel-header"><b>PATIENT</b></div>
+    <div class="panel-header"><b>{{ i18n("messages", "patient_title")}}</b></div>
     <div class="panel-body">
         <table>
             <tr>
-                <td style="width: 20%">Nom Prénom : </td>
+                <td style="width: 20%">{{ i18n("messages", "patient_names") }} : </td>
                 <td style="width: 30%"><b>{{ mapper.mapToName(person) }}</b></td>
-                <td style="width: 50%" rowspan="9"><div class="patient-card">Carte du patient</div></td>
+                <td style="width: 50%" rowspan="9"><div class="patient-card">{{ i18n("messages", "patient_card") }}</div></td>
             </tr>
             <tr>
-                <td>Sexe : </td>
+                <td>{{ i18n("messages", "patient_gender") }} : </td>
                 <td><b>{{ mapper.mapToGender(person) }}</b></td>
             </tr>
             <tr>
-                <td>DDN (aaaa-mm-jj) : </td>
+                <td>{{ i18n("messages", "patient_birthdate") }} : </td>
                 <td><b>{{ mapper.formatDate(person.birthDate) }}</b></td>
             </tr>
             <tr>
-                <td>RAMQ : </td>
+                <td>{{ i18n("messages", "patient_ramq") }} : </td>
                 <td><b>{{ mapper.mapToRAMQ(person) }}</b></td>
             </tr>
             <tr>
-                <td>Dossier : </td>
+                <td>{{ i18n("messages", "patient_mrn") }} : </td>
                 <td><b>{{ mapper.mapToMRN(patient) }}</b></td>
             </tr>
             <tr>
-                <td>Type de patient : </td>
-                <td><b class="type">Cas-index</b></td>
+                <td>{{ i18n("messages", "patient_type") }} : </td>
+                <td><b class="type">{{ i18n("messages", "patient_index_case") }}</b></td>
             </tr>
             <tr>
                 <td></td>

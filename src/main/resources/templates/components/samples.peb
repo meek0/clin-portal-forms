@@ -1,0 +1,41 @@
+{% import "utils" %}
+
+<div class="panel">
+    <div class="panel-header"><b>{{ i18n("messages", "samples_title")}}</b></div>
+    <div class="panel-body">
+            <div class="block">
+                <div><b>{{ i18n("messages", "samples")}}</b></div>
+                <div>
+                    {{box()}} {{ i18n("messages", "samples_new")}} {{spaces()}}
+                    {{box()}} {{ i18n("messages", "samples_existing")}} :
+                    {{underscored(15)}}
+                </div>
+            </div>
+
+            <div class="block">
+                <div><b>{{ i18n("messages", "samples_type")}} : <span class="type">Postnatal</span></b></div>
+                {{ sample(i18n("messages", "samples_type_1")) }}
+                {{ sample(i18n("messages", "samples_type_2")) }}
+                {{ sample(i18n("messages", "samples_type_5")) }}
+                <div>
+                    {{box()}} {{ i18n("messages", "samples_type_other")}} : {{ underscored(25) }}
+                 </div>
+                <div>
+                    {{ i18n("messages", "samples_comment")}} : {{ underscored(75) }}
+                </div>
+            </div>
+
+            <div class="block">
+                <div><b>{{ i18n("messages", "samples_patient_consent")}}</b></div>
+                <div>
+                    {{box()}} {{ i18n("messages", "samples_patient_consent_comment")}}
+                </div>
+                <div>
+                    {{box("hidden")}}<i>{{ i18n("messages", "samples_patient_consent_note")}}</i>
+                </div>
+            </div>
+            <div>
+                {{ i18n("messages", "samples_prescriber_signature")}} : {{ underscored(25) }}
+            </div>
+    </div>
+</div>
