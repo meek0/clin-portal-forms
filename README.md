@@ -100,7 +100,7 @@ Find bellow some endpoints call examples
         "clinical_signs": {
             "default_list": [
                 {
-                    "name": "Test répétitions CTG",
+                    "name": "Neonatal hypotonia",
                     "value": "HP:0001319"
                 },
                 ...
