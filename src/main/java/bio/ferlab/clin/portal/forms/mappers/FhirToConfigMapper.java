@@ -21,20 +21,20 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class FhirToConfigMapper {
-  
+
   private final LabelsService labelsService;
-  
+
   public Set<String> mapToAnalyseCodes( CodeSystem analyseCode) {
     return analyseCode.getConcept().stream().map(CodeSystem.ConceptDefinitionComponent::getCode).collect(Collectors.toSet());
   }
-  
+
   public List<ValueName> mapToPrescribingInst(List<PractitionerRole> practitionerRoles) {
     return practitionerRoles.stream().map(r -> {
       String orgId = r.getOrganization().getReferenceElement().getIdPart();
       return ValueName.builder().name(orgId).value(orgId).build();
     }).toList();
   }
-  
+
   public List<ValueName> mapToClinicalSigns(CodeSystem hp, String lang) {
     return hp.getConcept().stream()
         .skip(1)
@@ -67,7 +67,7 @@ public class FhirToConfigMapper {
             .name(getDisplayForLang(c, lang))
             .value(c.getCode())
             .extra(buildExtra(c.getCode(), lang, multiValues))
-            .build())
+            .build().formatWithTooltip())
         .toList();
   }
 
@@ -77,10 +77,10 @@ public class FhirToConfigMapper {
             .name(getDisplayForLang(c, lang))
             .value(c.getCode())
             .extra(buildExtra(c.getCode(), lang, multiValues))
-            .build())
+            .build().formatWithTooltip())
         .toList();
   }
-  
+
   private Extra buildExtra(String code, String lang, List<ValueSet> multiValues) {
     Optional<ValueSet> byCode = multiValues.stream().filter(vs -> (code + FhirConst.ABNORMALITIES_SUFFIX).equalsIgnoreCase(vs.getName())).findFirst();
     if(byCode.isPresent()) {
@@ -89,16 +89,16 @@ public class FhirToConfigMapper {
       return Extra.builder().label(getLabel(code, lang)).type(ExtraType.string).build();
     }
   }
-  
+
   private String getLabel(String code, String lang) {
     return labelsService.get(code, lang);
   }
-  
+
   private List<ValueName> extractValuesByLang(ValueSet valueSet, String lang) {
     return valueSet.getCompose().getIncludeFirstRep().getConcept().stream()
         .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).toList();
   }
-  
+
   public static String getDisplayForLang(ValueSet.ConceptReferenceComponent concept, String lang) {
     return concept.getDesignation().stream().filter(c -> StringUtils.isNotBlank(lang) && lang.equals(c.getLanguage()))
         .map(ValueSet.ConceptReferenceDesignationComponent::getValue)

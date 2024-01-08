@@ -13,7 +13,7 @@ Modifying any source files, including the ones in `templates/` will trigger a re
 
 # Security
 
-The API checks **RPT token** in request header `Authorization` public certificate and fields inside like: expiration, audience, issuer ... 
+The API checks **RPT token** in request header `Authorization` public certificate and fields inside like: expiration, audience, issuer ...
 
 If valid, the token is then forward to FHIR Server which will validate the authenticity again and access rights of the user.
 
@@ -63,14 +63,14 @@ Return of experience using FHIR Client library instead of OpenFeign to perform t
 ### Parameters
 | Name     |Required|Type| Description                  |
 |----------|---|---|------------------------------|
-| `id`     |true|String| ServiceRequest (Analysis) ID | 
-| `format` |false|String| HTML (default) or PDF        | 
-| `lang`   |false|String| fr (default) or en           | 
+| `id`     |true|String| ServiceRequest (Analysis) ID |
+| `format` |false|String| HTML (default) or PDF        |
+| `lang`   |false|String| fr (default) or en           |
 
 ### Limitations
 
 Due to the PDF export there are some limitations when rendering the HTML Prescription to be taken into account:
-- the HTML must a standalone page using no static resources (nothing from `static/`). 
+- the HTML must a standalone page using no static resources (nothing from `static/`).
 - CSS must be inline `style=` or inside a template file such as `style.peb`
 - images must be base64 encoded bytes like `<img src="data:image/png;base64,<bytes>"`
 - Flexbox and Grid layout aren't supported use tables instead.
@@ -84,8 +84,8 @@ Find bellow some endpoints call examples
 ### Parameters
 |Name|Required|Type|Description|
 |---|---|---|---|
-|`panel-code`|true|String|possible values: [RHAB, MITN, MYOC, MMG, MYAC, HYPM, RGDI, DYSM]| 
-|`lang`|false|String|| 
+|`panel-code`|true|String|possible values: [RHAB, MITN, MYOC, MMG, MYAC, HYPM, RGDI, DYSM]|
+|`lang`|false|String||
 ### Response
 
 ```json
@@ -100,7 +100,7 @@ Find bellow some endpoints call examples
         "clinical_signs": {
             "default_list": [
                 {
-                    "name": "Neonatal hypotonia",
+                    "name": "Test répétitions CTG",
                     "value": "HP:0001319"
                 },
                 ...
@@ -116,8 +116,9 @@ Find bellow some endpoints call examples
         "paraclinical_exams": {
             "default_list": [
                 {
-                    "name": "Créatine kinase sérique",
+                    "name": "Test répétitions CTG",
                     "value": "CKIN",
+                    "tooltip": "maladie de Steinert",
                     "extra": {
                         "type": "string",
                         "label": "Saisir un texte"
@@ -291,9 +292,9 @@ Two new sections `mother` and `father` at the same level than `patient`
         }
     ]
 },
-"father": { 
-    "parent_enter_moment": [later|never], 
-    "parent_no_info_reason": "optional later/never reason" 
+"father": {
+    "parent_enter_moment": [later|never],
+    "parent_no_info_reason": "optional later/never reason"
 }
 ```
 *Note: if `parent_clinical_status: not_affected|unknown` then `signs` isn't required*
@@ -311,8 +312,8 @@ Two new sections `mother` and `father` at the same level than `patient`
 ### Parameters
 |Name|Required|Type| Description                  |
 |---|---|---|------------------------------|
-|`ep`|true|String| Two `ep` can have the same `mrn` | 
-|`ramq`|false|String| required if `mrn` is null    | 
+|`ep`|true|String| Two `ep` can have the same `mrn` |
+|`ramq`|false|String| required if `mrn` is null    |
 |`mrn`|false|String| required if `ramq` is null   |
 ### Response
 ```json
@@ -331,7 +332,7 @@ Two new sections `mother` and `father` at the same level than `patient`
 ### Parameters
 | Name   |Required|Type| Description                |
 |--------|---|---|----------------------------|
-| `id`   |false|String| required if `ramq` is null | 
+| `id`   |false|String| required if `ramq` is null |
 | `ramq` |false|String| required if `id` is null   |
 ### Response
 ```json
@@ -358,8 +359,8 @@ Two new sections `mother` and `father` at the same level than `patient`
 ### Parameters
 |Name|Required|Type|Description|
 |---|---|---|---|
-|`ep`|true|String|| 
-|`prefix`|true|String|to match supervisor `id firstName lastName`| 
+|`ep`|true|String||
+|`prefix`|true|String|to match supervisor `id firstName lastName`|
 ### Response
 ```json
 [
@@ -389,7 +390,7 @@ Backend validations:
 {
     "analysis_id": "445076", // the service request ID
     "assignments": [ // the practitioner roles IDs
-        "PRR00001", 
+        "PRR00001",
         "PRR00002"
     ]
 }

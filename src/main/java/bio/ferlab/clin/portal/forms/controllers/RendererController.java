@@ -50,7 +50,7 @@ public class RendererController {
   @GetMapping(path = "/{id}")
   public ResponseEntity<?> render(@PathVariable String id, @RequestParam(defaultValue = "html") String format) {
 
-    final var locale = localeService.getCurrentLocale();
+    final var locale = LocaleService.DEFAULT_LOCALE; // localeService.getCurrentLocale();
     final var context =  prepareContext(id, locale);
     final var template = templateService.parseTemplate("index", context, locale);
 

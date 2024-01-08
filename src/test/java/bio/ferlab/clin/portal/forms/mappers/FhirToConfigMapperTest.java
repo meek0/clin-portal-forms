@@ -24,12 +24,12 @@ class FhirToConfigMapperTest {
 
   final LabelsService labelsService = Mockito.mock(LabelsService.class);
   final FhirToConfigMapper mapper = new FhirToConfigMapper(labelsService);
-  
+
   @BeforeEach
   void beforeEach() {
     when(labelsService.get(any(), any())).thenReturn("label");
   }
-  
+
   @Test
   void mapToAnalyseCodes() {
     final CodeSystem codeSystem = new CodeSystem();
@@ -39,7 +39,7 @@ class FhirToConfigMapperTest {
     var result = mapper.mapToAnalyseCodes(codeSystem);
     assertEquals("1 2 3", StringUtils.join(result, " "));
   }
-  
+
   @Test
   void mapToPrescribingInst() {
     final List<PractitionerRole> roles = new ArrayList<>();
@@ -66,7 +66,7 @@ class FhirToConfigMapperTest {
       assertEquals(String.valueOf(i), v.getValue());
     }
   }
-  
+
   @Test
   void mapToClinicalSigns_values() {
     final ValueSet valueSet = new ValueSet();
@@ -76,7 +76,7 @@ class FhirToConfigMapperTest {
     var result = mapper.mapToClinicalSigns(valueSet,"fr");
     assertEquals("ValueName(name=display0, value=0) ValueName(name=display1, value=1)", StringUtils.join(result, " "));
   }
-  
+
   @Test
   void mapToOnsetAge() {
     final ValueSet valueSet = new ValueSet();
@@ -90,7 +90,7 @@ class FhirToConfigMapperTest {
     var result = mapper.mapToOnsetAge(valueSet, "fr");
     assertEquals("ValueName(name=display0, value=0) ValueName(name=fr1, value=1) ValueName(name=display2, value=2)", StringUtils.join(result, " "));
   }
-  
+
   @Test
   void mapToParentalLinks() {
     final CodeSystem codeSystem = new CodeSystem();
@@ -110,32 +110,38 @@ class FhirToConfigMapperTest {
     var result = mapper.mapToEthnicities(codeSystem, null);
     assertEquals("ValueName(name=display0, value=0) ValueName(name=display1, value=1)", StringUtils.join(result, " "));
   }
-  
+
   @Test
   void mapToParaclinicalExams() {
     final CodeSystem codeSystem = new CodeSystem();
-    Stream.iterate(0, n -> n +1).limit(2).forEach(n -> {
+    Stream.iterate(0, n -> n +1).limit(3).forEach(n -> {
       var concept = new CodeSystem.ConceptDefinitionComponent().setDisplay("display"+n).setCode(n.toString());
       if (n.equals(1)) {  // add 1 translation
         concept.getDesignation().add(new CodeSystem.ConceptDefinitionDesignationComponent().setLanguage("fr").setValue("fr" + n));
+      }
+      if (n.equals(2)) {  // add a tooltip with spaces
+        concept.setDisplay(concept.getDisplay()+ "( Tooltip"+n+") ");
       }
       codeSystem.getConcept().add(concept);
     });
 
     var multiValue = new ValueSet().setName("1-abnormalities");
     multiValue.getCompose().getIncludeFirstRep().getConceptFirstRep().setCode("code1").getDesignation().add(new ValueSet.ConceptReferenceDesignationComponent().setLanguage("fr").setValue("fr1"));
-    
+
     var result = mapper.mapToParaclinicalExams(codeSystem, "fr", List.of(multiValue));
-    assertEquals("ValueNameExtra(name=display0, value=0, extra=Extra(type=string, label=label, options=null)) ValueNameExtra(name=fr1, value=1, extra=Extra(type=multi_select, label=label, options=[ValueName(name=fr1, value=code1)]))", StringUtils.join(result, " "));
+    assertEquals("ValueNameExtra(name=display0, value=0, tooltip=null, extra=Extra(type=string, label=label, options=null)) ValueNameExtra(name=fr1, value=1, tooltip=null, extra=Extra(type=multi_select, label=label, options=[ValueName(name=fr1, value=code1)])) ValueNameExtra(name=display2, value=2, tooltip=Tooltip2, extra=Extra(type=string, label=label, options=null))", StringUtils.join(result, " "));
   }
-  
+
   @Test
   void mapToParaclinicalExams_values() {
     final ValueSet valueSet = new ValueSet();
-    Stream.iterate(0, n -> n +1).limit(2).forEach(n -> {
+    Stream.iterate(0, n -> n +1).limit(3).forEach(n -> {
       var concept = new ValueSet.ConceptReferenceComponent().setDisplay("display"+n).setCode(n.toString());
       if (n.equals(0)) {  // add 1 translation
         concept.getDesignation().add(new ValueSet.ConceptReferenceDesignationComponent().setLanguage("fr").setValue("fr" + n));
+      }
+      if (n.equals(2)) {  // add a tooltip with spaces
+        concept.setDisplay(concept.getDisplay()+ "( Tooltip"+n+") ");
       }
       valueSet.getCompose().getIncludeFirstRep().addConcept(concept);
     });
@@ -144,7 +150,7 @@ class FhirToConfigMapperTest {
     multiValue.getCompose().getIncludeFirstRep().getConceptFirstRep().setCode("code0").getDesignation().add(new ValueSet.ConceptReferenceDesignationComponent().setLanguage("fr").setValue("fr0"));
 
     var result = mapper.mapToParaclinicalExams(valueSet, "fr", List.of(multiValue));
-    assertEquals("ValueNameExtra(name=fr0, value=0, extra=Extra(type=multi_select, label=label, options=[ValueName(name=fr0, value=code0)])) ValueNameExtra(name=display1, value=1, extra=Extra(type=string, label=label, options=null))", StringUtils.join(result, " "));
+    assertEquals("ValueNameExtra(name=fr0, value=0, tooltip=null, extra=Extra(type=multi_select, label=label, options=[ValueName(name=fr0, value=code0)])) ValueNameExtra(name=display1, value=1, tooltip=null, extra=Extra(type=string, label=label, options=null)) ValueNameExtra(name=display2, value=2, tooltip=Tooltip2, extra=Extra(type=string, label=label, options=null))", StringUtils.join(result, " "));
 
   }
 }
