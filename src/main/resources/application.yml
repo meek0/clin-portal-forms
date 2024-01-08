@@ -5,9 +5,10 @@ server:
     min-response-size: 2048
 spring:
   application:
-    name: Forms (API)
+    name: Forms
   main:
     lazy-initialization: true
+    keep-alive: true
   threads:
     virtual:
       enabled: true
@@ -33,7 +34,7 @@ fhir:
   validate: false
   supported-langs:
     - fr
-  types-with-default: # will load <type>-default-hpo <type>-default-exam 
+  types-with-default: # will load <type>-default-hpo <type>-default-exam
     - mmg
     - mitn
     - rgdi
@@ -78,8 +79,9 @@ security:
 logging:
   file:
     name: "./logs/app.log"
-    max-history: 3
+    max-history: 7 # days
     max-size: 1MB
+    total-size-cap: 10MB
   level:
     root: ERROR
     org.springframework.web: ERROR

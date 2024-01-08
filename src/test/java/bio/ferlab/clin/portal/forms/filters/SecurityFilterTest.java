@@ -34,10 +34,10 @@ class SecurityFilterTest {
 
   @Test
   void doFilterInternal() throws ServletException, IOException {
-    final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+    final HttpServletRequest request = Mockito.mock(MockHttpServletRequest.class);
     when(request.getHeader(any())).thenReturn("token");
-    final HttpServletResponse response = Mockito.mock(HttpServletResponse.class);
-    final FilterChain chain = Mockito.mock(FilterChain.class);
+    final HttpServletResponse response = Mockito.mock(MockHttpServletResponse.class);
+    final FilterChain chain = Mockito.mock(MockFilterChain.class);
     filter.doFilterInternal(request, response, chain);
     verify(request).getHeader(eq("Authorization"));
     verify(service).checkAuthorization(eq("token"));
@@ -46,14 +46,14 @@ class SecurityFilterTest {
 
   @Test
   void shouldNotFilter_options() throws ServletException {
-    final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+    final HttpServletRequest request = Mockito.mock(MockHttpServletRequest.class);
     when(request.getMethod()).thenReturn(HttpMethod.OPTIONS.name());
     assertTrue(filter.shouldNotFilter(request));
   }
 
   @Test
   void shouldNotFilter_publics() throws ServletException {
-    final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+    final HttpServletRequest request = Mockito.mock(MockHttpServletRequest.class);
     when(request.getMethod()).thenReturn(HttpMethod.GET.name());
     when(request.getRequestURI()).thenReturn("/foo/abc");
     assertTrue(filter.shouldNotFilter(request));
@@ -61,10 +61,15 @@ class SecurityFilterTest {
 
   @Test
   void shouldNotFilter_default() throws ServletException {
-    final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+    final HttpServletRequest request = Mockito.mock(MockHttpServletRequest.class);
     when(request.getMethod()).thenReturn(HttpMethod.GET.name());
     when(request.getRequestURI()).thenReturn("/bar");
     assertFalse(filter.shouldNotFilter(request));
   }
+
+  // dont ask me why ... mockito doesnt like to mock interface
+  private static abstract class MockHttpServletRequest implements HttpServletRequest {}
+  private static abstract class MockHttpServletResponse implements HttpServletResponse {}
+  private static abstract class MockFilterChain implements FilterChain {}
 
 }
