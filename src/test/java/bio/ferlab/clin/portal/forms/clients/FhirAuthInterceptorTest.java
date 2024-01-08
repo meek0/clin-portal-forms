@@ -20,7 +20,7 @@ class FhirAuthInterceptorTest {
 
   @Test
   void forwardRequestAuth() {
-    final IHttpRequest request = Mockito.mock(IHttpRequest.class);
+    final IHttpRequest request = Mockito.mock(MockIHttpRequest.class);
     when(httpServletRequest.getHeader(any())).thenReturn("Bearer foo");
     fhirAuthInterceptor.interceptRequest(request);
     verify(request).addHeader(eq(HttpHeaders.AUTHORIZATION), eq("Bearer foo"));
@@ -28,7 +28,7 @@ class FhirAuthInterceptorTest {
 
   @Test
   void sanitizeAuth() {
-    final IHttpRequest request = Mockito.mock(IHttpRequest.class);
+    final IHttpRequest request = Mockito.mock(MockIHttpRequest.class);
     when(httpServletRequest.getHeader(any())).thenReturn("foo");
     RuntimeException exception = assertThrows(RuntimeException.class, () -> {
       fhirAuthInterceptor.interceptRequest(request);
@@ -36,4 +36,6 @@ class FhirAuthInterceptorTest {
     assertEquals("Token forwarded to FHIR is invalid: foo", exception.getMessage());
   }
 
+  // dont ask me why ... mockito doesnt like to mock interface
+  private static abstract class MockIHttpRequest implements IHttpRequest {}
 }
