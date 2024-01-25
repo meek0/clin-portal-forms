@@ -1,0 +1,42 @@
+<div class="panel">
+    <div class="panel-header"><b>{{ i18n("messages", "clinical_title") }}</b></div>
+    <div class="panel-body bottom-border">
+        <table>
+             <tr>
+                <td style="width: 20%">{{ i18n("messages", "clinical_observed") }} : </td>
+                <td><b></b></td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "clinical_not_observed") }} : </td>
+                <td><b></b></td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "clinical_comment") }} : </td>
+                <td><b></b></td>
+            </tr>
+        </table>
+    </div>
+    <div class="panel-body bottom-border">
+
+    </div>
+     <div class="panel-body">
+        <table>
+             <tr>
+                <td style="width: 20%">{{ i18n("messages", "clinical_family_history") }} : </td>
+                <td><b></b></td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "clinical_inbreeding") }} : </td>
+                <td><b></b></td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "clinical_ethnicity") }} : </td>
+                <td><b></b></td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "clinical_hypothesis") }} : </td>
+                <td><b></b></td>
+            </tr>
+        </table>
+    </div>
+</div>

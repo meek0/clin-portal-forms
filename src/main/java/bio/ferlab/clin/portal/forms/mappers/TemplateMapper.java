@@ -2,6 +2,7 @@ package bio.ferlab.clin.portal.forms.mappers;
 
 import bio.ferlab.clin.portal.forms.services.LogOnceService;
 import bio.ferlab.clin.portal.forms.services.MessagesService;
+import bio.ferlab.clin.portal.forms.services.TemplateService;
 import bio.ferlab.clin.portal.forms.utils.DateUtils;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import lombok.RequiredArgsConstructor;
@@ -21,14 +22,19 @@ import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 @Slf4j
 @RequiredArgsConstructor
 public class TemplateMapper {
-  
+
   public static final String EMPTY = "";
 
   private final String id;
   private final LogOnceService logOnceService;
   private final MessagesService messagesService;
+  private final TemplateService templateService;
   private final CodeSystem analysisCodes;
   private final Locale locale;
+
+  public String mapToBarcodeBase64(String value) {
+    return templateService.convertToBase64(templateService.generateBarcodeImage(value));
+  }
 
   public String mapToAddress(Organization organization) {
     try {
@@ -149,6 +155,14 @@ public class TemplateMapper {
       return serviceRequest.hasOrderDetail() ? serviceRequest.getOrderDetailFirstRep().getText()
         .replace(REFLEX_PANEL_PREFIX_FR, "")
         .replace(REFLEX_PANEL_PREFIX_EN, "").trim() : EMPTY;
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
+  public String mapToComment(ServiceRequest serviceRequest) {
+    try {
+      return serviceRequest.getNoteFirstRep().getText();
     } catch (Exception e) {
       return this.handleError(e);
     }

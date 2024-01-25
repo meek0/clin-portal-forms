@@ -57,7 +57,7 @@ public class RendererController {
     if (Format.html.is(format)) {
       return renderAsHtml(template);
     } else if (Format.pdf.is(format)) {
-      return renderAsPdf(String.valueOf(context.get("sequencingId")), template);
+      return renderAsPdf(id, template);
     } else {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unsupported format: " + format);
     }
@@ -85,30 +85,32 @@ public class RendererController {
     final var detailsBundleExtractor = new BundleExtractor(fhirClient.getContext(), detailsBundle);
     final var sequencings = detailsBundleExtractor.getAllResourcesOfType(ServiceRequest.class).stream()
       .filter(s -> s.getMeta().hasProfile(SEQUENCING_SERVICE_REQUEST)).toList();
-    final var patient = detailsBundleExtractor.getFirstResourcesOfType(Patient.class);
-    final var person = detailsBundleExtractor.getFirstResourcesOfType(Person.class);
+    final var probandPatient = detailsBundleExtractor.getFirstResourcesOfType(Patient.class);
+    final var probandPerson = detailsBundleExtractor.getFirstResourcesOfType(Person.class);
     final var practitioner = detailsBundleExtractor.getFirstResourcesOfType(Practitioner.class);
     final var organization = detailsBundleExtractor.getFirstResourcesOfType(Organization.class);
 
     final var analysisCodes = codesValuesService.getCodes(CodesValuesService.ANALYSE_KEY);
 
-    final var sequencing = sequencings.stream()
+    final var probandSequencing = sequencings.stream()
       .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
       .findFirst().orElseThrow(() -> new RuntimeException("Can't find sequencing for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
 
     final Map<String, Object> context = new HashMap<>();
-    context.put("analysisId", analysis.getIdElement().getIdPart());
-    context.put("sequencingId", sequencing.getIdElement().getIdPart());
+
     context.put("analysis", analysis);
-    context.put("sequencing", sequencing);
+
+    context.put("probandSequencing", probandSequencing);
+    context.put("probandPatient", probandPatient);
+    context.put("probandPerson", probandPerson);
+
     context.put("performer", performer);
     context.put("practitionerRole", practitionerRole);
-    context.put("patient", patient);
-    context.put("person", person);
     context.put("practitioner", practitioner);
     context.put("organization", organization);
+
     // don't know how thread-safe is Pebble renderer, let's instance a new mapper instead of having a singleton
-    context.put("mapper", new TemplateMapper(id, logOnceService, messagesService, analysisCodes, locale));
+    context.put("mapper", new TemplateMapper(id, logOnceService, messagesService, templateService, analysisCodes, locale));
     context.put("now", new Date());
     context.put("version", "1.0");
 
@@ -119,7 +121,9 @@ public class RendererController {
       context.put("supervisorRole", extractor.getFirstResourcesOfType(PractitionerRole.class));
     });
 
-    context.put("idBarcodeBase64", templateService.convertToBase64(templateService.generateBarcodeImage(id)));
+
+    //context.put("analysisBarcodeBase64", templateService.convertToBase64(templateService.generateBarcodeImage(analysis.getIdElement().getIdPart())));
+    //context.put("sequencingBarcodeBase64", templateService.convertToBase64(templateService.generateBarcodeImage(sequencing.getIdElement().getIdPart())));
 
     return context;
   }

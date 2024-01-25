@@ -9,8 +9,12 @@
         {% include "layouts/style" %}
 	</head>
 	<body>
-		<div id="content">
-        {% block content %}
+		<div class="page">
+        {% block page1 %}
+        {% endblock %}
+		</div>
+		<div class="page">
+        {% block page2 %}
         {% endblock %}
 		</div>
 	</body>

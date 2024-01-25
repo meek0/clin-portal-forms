@@ -85,7 +85,7 @@ class RendererControllerTest {
     ResponseEntity<ByteArrayResource> pdf = (ResponseEntity<ByteArrayResource>) controller.render("1234", "pdf");
     assertTrue(pdf.getBody().contentLength() > 0);
     var contentDisposition = pdf.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION);
-    assertTrue(contentDisposition.startsWith("attachment; filename=sequencingId_"));
+    assertTrue(contentDisposition.startsWith("attachment; filename=1234_"));
     assertTrue(contentDisposition.endsWith(".pdf"));
   }
 
