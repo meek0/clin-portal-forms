@@ -89,25 +89,35 @@ public class RendererController {
     final var probandPerson = detailsBundleExtractor.getFirstResourcesOfType(Person.class);
     final var practitioner = detailsBundleExtractor.getFirstResourcesOfType(Practitioner.class);
     final var organization = detailsBundleExtractor.getFirstResourcesOfType(Organization.class);
+    final var impressions = detailsBundleExtractor.getAllResourcesOfType(ClinicalImpression.class);
+    final var observations = detailsBundleExtractor.getAllResourcesOfType(Observation.class);
 
     final var analysisCodes = codesValuesService.getCodes(CodesValuesService.ANALYSE_KEY);
 
     final var probandSequencing = sequencings.stream()
       .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
       .findFirst().orElseThrow(() -> new RuntimeException("Can't find sequencing for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
+    final var probandImpression = impressions.stream()
+      .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
+      .findFirst().orElseThrow(() -> new RuntimeException("Can't find clinical impression for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
+    final var probandObservations = observations.stream()
+      .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
+      .toList();
 
     final Map<String, Object> context = new HashMap<>();
 
     context.put("analysis", analysis);
 
-    context.put("probandSequencing", probandSequencing);
-    context.put("probandPatient", probandPatient);
-    context.put("probandPerson", probandPerson);
-
     context.put("performer", performer);
     context.put("practitionerRole", practitionerRole);
     context.put("practitioner", practitioner);
     context.put("organization", organization);
+
+    context.put("probandSequencing", probandSequencing);
+    context.put("probandPatient", probandPatient);
+    context.put("probandPerson", probandPerson);
+    context.put("probandImpression", probandImpression);
+    context.put("probandObservations", probandObservations);
 
     // don't know how thread-safe is Pebble renderer, let's instance a new mapper instead of having a singleton
     context.put("mapper", new TemplateMapper(id, logOnceService, messagesService, templateService, analysisCodes, locale));

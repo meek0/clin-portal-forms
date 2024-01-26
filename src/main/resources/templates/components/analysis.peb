@@ -13,7 +13,7 @@
         </table>
     </div>
     <div class="panel-body bottom-border">
-        <table>
+        <table class="collapsable">
             <tr>
                 <td style="width: 20%">{{ i18n("messages", "prescriber_title") }} : </td>
                 <td><b>{{ mapper.mapToAuthor(practitioner) }} {{ mapper.mapToRole(practitionerRole) }}</b></td>

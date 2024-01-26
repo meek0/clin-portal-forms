@@ -4,6 +4,7 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import ca.uhn.fhir.context.FhirContext;
 import org.apache.commons.io.IOUtils;
 import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.ClinicalImpression;
 import org.hl7.fhir.r4.model.Reference;
 import org.hl7.fhir.r4.model.ServiceRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -106,7 +107,11 @@ class RendererControllerTest {
     sequencing.getMeta().addProfile(SEQUENCING_SERVICE_REQUEST);
     sequencing.setSubject(new Reference("Patient/p1"));
 
+    final var clinical = new ClinicalImpression();
+    clinical.setSubject(new Reference("Patient/p1"));
+
     detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(sequencing));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(clinical));
 
     final var codesAndValuesBundle = new Bundle();
 

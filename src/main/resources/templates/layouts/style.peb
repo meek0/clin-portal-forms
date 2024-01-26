@@ -45,7 +45,7 @@
         height: 2px;
     }
 
-    .fixed-height tr {
+    table.collapsable tr {
        height: inherit;
     }
 

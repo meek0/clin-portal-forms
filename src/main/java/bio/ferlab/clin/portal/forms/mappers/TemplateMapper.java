@@ -24,6 +24,7 @@ import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 public class TemplateMapper {
 
   public static final String EMPTY = "";
+  public static final String BR ="\n";
 
   private final String id;
   private final LogOnceService logOnceService;
@@ -163,6 +164,44 @@ public class TemplateMapper {
   public String mapToComment(ServiceRequest serviceRequest) {
     try {
       return serviceRequest.getNoteFirstRep().getText();
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
+  public String mapToSigns(List<Observation> obs, String code, String interpretation) {
+    try {
+      StringBuilder builder = new StringBuilder();
+      var values = obs.stream()
+        .filter(o -> o.getCode().getCodingFirstRep().getCode().equals(code))
+        .filter(o -> StringUtils.isBlank(interpretation) || o.getInterpretationFirstRep().getCodingFirstRep().getCode().equals(interpretation))
+        .map(Observation::getValue).toList();
+      for (var value: values) {
+        if (value instanceof CodeableConcept vc) {
+          builder.append(vc.getCodingFirstRep().getCode() + BR);
+        } else if (value instanceof StringType vs) {
+          builder.append(vs.getValue()  + BR);
+        } else if (value instanceof BooleanType vb) {
+          builder.append(i18n(vb.asStringValue())  + BR);
+        }
+      }
+      return builder.toString();
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
+  public String mapToExams(List<Observation> obs) {
+    try {
+      StringBuilder builder = new StringBuilder();
+      var values = obs.stream()
+        .filter(o -> o.getCategoryFirstRep().getCodingFirstRep().getCode().equals("procedure")).toList();
+      for (var value: values) {
+        var code = value.getCode().getCodingFirstRep().getCode();
+        var interpretation = value.getInterpretationFirstRep().getCodingFirstRep().getCode();
+        builder.append(code + " " + interpretation + BR);
+      }
+      return builder.toString();
     } catch (Exception e) {
       return this.handleError(e);
     }
