@@ -1,5 +1,6 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
+import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LogOnceService;
 import bio.ferlab.clin.portal.forms.services.MessagesService;
 import bio.ferlab.clin.portal.forms.services.TemplateService;
@@ -24,8 +25,9 @@ class TemplateMapperTest {
   final MessagesService messagesService = Mockito.mock(MessagesService.class);
   final LogOnceService logOnceService = Mockito.mock(LogOnceService.class);
   final TemplateService templateService = Mockito.mock(TemplateService.class);
+  final CodesValuesService codesValuesService = Mockito.mock(CodesValuesService.class);
   final CodeSystem codeSystem = new CodeSystem();
-  final TemplateMapper mapper = new TemplateMapper("id", logOnceService, messagesService, templateService, codeSystem, Locale.FRENCH);
+  final TemplateMapper mapper = new TemplateMapper("id", logOnceService, messagesService, templateService, codesValuesService, codeSystem, Locale.FRENCH);
 
   @Test
   void mapToAddress() {

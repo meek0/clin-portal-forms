@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FhirUtilsTest {
-  
+
   @Test
   void formatResource() {
     final Resource patient = new Patient().setId("foo");
@@ -34,7 +34,7 @@ class FhirUtilsTest {
     final String expected = new Reference("Patient/foo").getReference();
     assertEquals(expected, FhirUtils.toReference(patient).getReference());
   }
-  
+
   @Test
   void extractId() {
     assertNull(FhirUtils.extractId((Reference) null));
@@ -89,7 +89,7 @@ class FhirUtilsTest {
     assertEquals("ref2", ((Reference) FhirUtils.findExtension(sr, "url2").get()).getReference());
     assertTrue(FhirUtils.findExtension(sr, "url3").isEmpty());
     assertTrue(FhirUtils.findExtension(sr, null).isEmpty());
-    assertTrue(FhirUtils.findExtension(null, "url1").isEmpty());
+    assertTrue(FhirUtils.findExtension((ServiceRequest) null, "url1").isEmpty());
     assertTrue(FhirUtils.findExtension(sr, "url0").isEmpty());
   }
 

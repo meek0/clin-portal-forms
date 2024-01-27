@@ -3,7 +3,7 @@
     <div class="panel-body bottom-border">
         <table>
              <tr>
-                <td style="width: 20%">{{ i18n("messages", "prescription_analysis") }} : </td>
+                <td class="col-left">{{ i18n("messages", "prescription_analysis") }} : </td>
                 <td><b>{{ mapper.mapToAnalysis(analysis) }}</b></td>
             </tr>
             <tr>
@@ -15,7 +15,7 @@
     <div class="panel-body bottom-border">
         <table class="collapsable">
             <tr>
-                <td style="width: 20%">{{ i18n("messages", "prescriber_title") }} : </td>
+                <td class="col-left">{{ i18n("messages", "prescriber_title") }} : </td>
                 <td><b>{{ mapper.mapToAuthor(practitioner) }} {{ mapper.mapToRole(practitionerRole) }}</b></td>
             </tr>
             <tr>
@@ -39,7 +39,7 @@
      <div class="panel-body">
         <table>
              <tr>
-                <td style="width: 20%">{{ i18n("messages", "analysis_comment") }} : </td>
+                <td class="col-left">{{ i18n("messages", "analysis_comment") }} : </td>
                 <td>{{ mapper.mapToComment(analysis) }}</td>
             </tr>
         </table>

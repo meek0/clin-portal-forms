@@ -120,7 +120,7 @@ public class RendererController {
     context.put("probandObservations", probandObservations);
 
     // don't know how thread-safe is Pebble renderer, let's instance a new mapper instead of having a singleton
-    context.put("mapper", new TemplateMapper(id, logOnceService, messagesService, templateService, analysisCodes, locale));
+    context.put("mapper", new TemplateMapper(id, logOnceService, messagesService, templateService, codesValuesService, analysisCodes, locale));
     context.put("now", new Date());
     context.put("version", "1.0");
 

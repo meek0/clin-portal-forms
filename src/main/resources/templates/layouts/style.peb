@@ -36,6 +36,10 @@
         vertical-align: top;
     }
 
+    table td.col-left {
+        width: 21%;
+    }
+
     table td.right {
         text-align: right;
     }

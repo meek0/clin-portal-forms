@@ -3,8 +3,8 @@
     <div class="panel-body fixed-height">
         <table>
             <tr>
-                <td style="width: 20%">{{ i18n("messages", "prescription_number") }} : </td>
-                <td style="width: 30%"><b>{{ analysis.getIdElement().getIdPart() }}</b></td>
+                <td class="col-left">{{ i18n("messages", "prescription_number") }} : </td>
+                <td style="width: 29%"><b>{{ analysis.getIdElement().getIdPart() }}</b></td>
             </tr>
             <tr>
                 <td>{{ i18n("messages","created") }} : </td>

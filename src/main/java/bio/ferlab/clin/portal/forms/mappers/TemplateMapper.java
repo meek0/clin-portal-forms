@@ -1,5 +1,6 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
+import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LogOnceService;
 import bio.ferlab.clin.portal.forms.services.MessagesService;
 import bio.ferlab.clin.portal.forms.services.TemplateService;
@@ -10,10 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_EN;
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_FR;
@@ -24,12 +22,12 @@ import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 public class TemplateMapper {
 
   public static final String EMPTY = "";
-  public static final String BR ="\n";
 
   private final String id;
   private final LogOnceService logOnceService;
   private final MessagesService messagesService;
   private final TemplateService templateService;
+  private final CodesValuesService codesValuesService;
   private final CodeSystem analysisCodes;
   private final Locale locale;
 
@@ -169,42 +167,62 @@ public class TemplateMapper {
     }
   }
 
-  public String mapToSigns(List<Observation> obs, String code, String interpretation) {
+  public List<String> mapToSigns(List<Observation> obs, String code, String interpretation) {
+    var signs = new ArrayList<String>();
     try {
-      StringBuilder builder = new StringBuilder();
-      var values = obs.stream()
+      var filtered = obs.stream()
         .filter(o -> o.getCode().getCodingFirstRep().getCode().equals(code))
         .filter(o -> StringUtils.isBlank(interpretation) || o.getInterpretationFirstRep().getCodingFirstRep().getCode().equals(interpretation))
-        .map(Observation::getValue).toList();
-      for (var value: values) {
-        if (value instanceof CodeableConcept vc) {
-          builder.append(vc.getCodingFirstRep().getCode() + BR);
-        } else if (value instanceof StringType vs) {
-          builder.append(vs.getValue()  + BR);
-        } else if (value instanceof BooleanType vb) {
-          builder.append(i18n(vb.asStringValue())  + BR);
+        .toList();
+      for (var sign: filtered) {
+        var signCode = sign.getValue();
+        var signAge = mapToI18nAgeAtOnset(sign);
+        if (signCode instanceof CodeableConcept v) {
+          String signStr = v.getCodingFirstRep().getCode();
+          if (StringUtils.isNotBlank(signAge)) {
+            signStr += " - " + signAge;
+          }
+          signs.add(signStr);
+        } else if (signCode instanceof StringType v) {
+          signs.add(v.getValue());
+        } else if (signCode instanceof BooleanType v) {
+          signs.add(v.asStringValue());
+
         }
       }
-      return builder.toString();
     } catch (Exception e) {
-      return this.handleError(e);
+      this.handleError(e);
     }
+    return signs;
   }
 
-  public String mapToExams(List<Observation> obs) {
+  public String mapToSign(List<Observation> obs, String code, String interpretation) {
+    var signs = mapToSigns(obs, code, interpretation);
+    return signs.isEmpty() ? EMPTY : signs.get(0);
+  }
+
+  public List<String> mapToExams(List<Observation> obs) {
+    var exams = new ArrayList<String>();
     try {
-      StringBuilder builder = new StringBuilder();
       var values = obs.stream()
         .filter(o -> o.getCategoryFirstRep().getCodingFirstRep().getCode().equals("procedure")).toList();
       for (var value: values) {
         var code = value.getCode().getCodingFirstRep().getCode();
         var interpretation = value.getInterpretationFirstRep().getCodingFirstRep().getCode();
-        builder.append(code + " " + interpretation + BR);
+        exams.add(code + " " + interpretation);
       }
-      return builder.toString();
     } catch (Exception e) {
-      return this.handleError(e);
+      this.handleError(e);
     }
+    return exams;
+  }
+
+  private String mapToI18nAgeAtOnset(Observation o) {
+    ValueSet allAges = codesValuesService.getValues(CodesValuesService.AGE_KEY);
+    return FhirUtils.findExtension(o, AGE_AT_ONSET_EXT).map(e -> ((Coding) e).getCode())
+      .flatMap(code -> allAges.getCompose().getIncludeFirstRep().getConcept().stream().filter(c -> c.getCode().equals(code)).findFirst())
+      .map(code -> FhirToConfigMapper.getDisplayForLang(code, getLang()))
+      .orElse(EMPTY);
   }
 
   private String i18n(String key) {
