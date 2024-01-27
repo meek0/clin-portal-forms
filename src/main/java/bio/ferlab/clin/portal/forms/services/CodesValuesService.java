@@ -45,7 +45,6 @@ public class CodesValuesService {
   }
 
   public Object getHPOByCode(String code) {
-    CodeSystem allHPOs = getCodes(CodesValuesService.HP_KEY);
     final List<ValueSet> hpByTypes = fhirConfiguration.getTypesWithDefault().stream()
       .map(t -> getValues(t + CodesValuesService.HP_BY_TYPE_SUFFIX)).toList();
     for(ValueSet hpByType: hpByTypes) {
@@ -55,32 +54,13 @@ public class CodesValuesService {
         }
       }
     }
-    if (allHPOs != null) {
-      for (var concept : allHPOs.getConcept()) {
-        if (concept.getCode().equals(code)) {
-          return concept;
-        }
-      }
-    }
-    return null;
+    return getValueByKeyCode(HP_KEY, code);
   }
 
-  public CodeSystem.ConceptDefinitionComponent getObservationByCode(String code) {
-    var allObs = getCodes(CodesValuesService.OBSERVATION_KEY);
-    if (allObs != null) {
-      for (var concept : allObs.getConcept()) {
-        if (concept.getCode().equals(code)) {
-          return concept;
-        }
-      }
-    }
-    return null;
-  }
-
-  public CodeSystem.ConceptDefinitionComponent getEthnicityByCode(String code) {
-    var allObs = getCodes(CodesValuesService.ETHNICITY_KEY);
-    if (allObs != null) {
-      for (var concept : allObs.getConcept()) {
+  public CodeSystem.ConceptDefinitionComponent getValueByKeyCode(String key, String code) {
+    var all = getCodes(key);
+    if (all != null) {
+      for (var concept : all.getConcept()) {
         if (concept.getCode().equals(code)) {
           return concept;
         }

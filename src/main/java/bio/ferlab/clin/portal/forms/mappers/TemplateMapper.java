@@ -192,7 +192,7 @@ public class TemplateMapper {
         } else if (signCode instanceof StringType v) {
           signs.add(v.asStringValue());
         } else if (signCode instanceof BooleanType v) {
-          signs.add(v.asStringValue());
+          signs.add(i18n(v.asStringValue()));
         }
       }
     } catch (Exception e) {
@@ -208,7 +208,7 @@ public class TemplateMapper {
 
   public String mapToEthnicity(List<Observation> obs) {
     var code = mapToSign(obs, "ETHN", "").replace("(","").replace(")", "").trim();
-    var eth = codesValuesService.getEthnicityByCode(code);
+    var eth = codesValuesService.getValueByKeyCode(CodesValuesService.ETHNICITY_KEY, code);
     if (eth != null) {
       return FhirToConfigMapper.getDisplayForLang(eth, getLang());
     } else {
@@ -223,7 +223,7 @@ public class TemplateMapper {
         .filter(o -> o.getCategoryFirstRep().getCodingFirstRep().getCode().equals("procedure")).toList();
       for (var exam: filtered) {
         var code = exam.getCode().getCodingFirstRep().getCode();
-        var name = codesValuesService.getObservationByCode(code);
+        var name = codesValuesService.getValueByKeyCode(CodesValuesService.OBSERVATION_KEY, code);
 
         String examName = name != null ? FhirToConfigMapper.getDisplayForLang(name, getLang()) : code;
         String examComment = EMPTY;
@@ -261,6 +261,27 @@ public class TemplateMapper {
   }
 
   public record Exam(String name, String comment){}
+
+  public String mapToFamilyHistory(List<FamilyMemberHistory> histories) {
+    var all = new ArrayList<String>();
+    try {
+      for(var history: histories) {
+        String str = history.getNoteFirstRep().getText();
+        var code = history.getRelationship().getCodingFirstRep().getCode();
+        var value = codesValuesService.getValueByKeyCode(CodesValuesService.PARENTAL_KEY, code);
+        if (value != null) {
+          var name = FhirToConfigMapper.getDisplayForLang(value, getLang());
+          str+= " ("+name+")";
+        } else {
+          str+= " ("+code+")";
+        }
+        all.add(str);
+      }
+    } catch (Exception e) {
+      this.handleError(e);
+    }
+    return StringUtils.join(all, ", ");
+  }
 
   private String mapToI18nAgeAtOnset(Observation o) {
     ValueSet allAges = codesValuesService.getValues(CodesValuesService.AGE_KEY);

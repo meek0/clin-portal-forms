@@ -91,6 +91,7 @@ public class RendererController {
     final var organization = detailsBundleExtractor.getFirstResourcesOfType(Organization.class);
     final var impressions = detailsBundleExtractor.getAllResourcesOfType(ClinicalImpression.class);
     final var observations = detailsBundleExtractor.getAllResourcesOfType(Observation.class);
+    final var familyHistories = detailsBundleExtractor.getAllResourcesOfType(FamilyMemberHistory.class);
 
     final var analysisCodes = codesValuesService.getCodes(CodesValuesService.ANALYSE_KEY);
 
@@ -102,6 +103,9 @@ public class RendererController {
       .findFirst().orElseThrow(() -> new RuntimeException("Can't find clinical impression for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
     final var probandObservations = observations.stream()
       .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
+      .toList();
+    final var probandFamilyHistories = familyHistories.stream()
+      .filter(s -> analysis.getSubject().getReference().equals(s.getPatient().getReference()))
       .toList();
 
     final Map<String, Object> context = new HashMap<>();
@@ -118,6 +122,7 @@ public class RendererController {
     context.put("probandPerson", probandPerson);
     context.put("probandImpression", probandImpression);
     context.put("probandObservations", probandObservations);
+    context.put("probandFamilyHistories", probandFamilyHistories);
 
     // don't know how thread-safe is Pebble renderer, let's instance a new mapper instead of having a singleton
     context.put("mapper", new TemplateMapper(id, logOnceService, messagesService, templateService, codesValuesService, analysisCodes, locale));

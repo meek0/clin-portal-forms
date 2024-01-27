@@ -26,12 +26,12 @@
     </div>
     <div class="panel-body bottom-border">
         <table>
+            {% for exam in mapper.mapToExams(probandObservations) %}
              <tr colspan="2">
-                {% for exam in mapper.mapToExams(probandObservations) %}
                 <td class="col-left">{{ exam.name }}</td>
                 <td>{{ exam.comment }}</td>
-                {% endfor %}
             </tr>
+            {% endfor %}
             {% set inves = mapper.mapToSign(probandObservations, "INVES", "") %}
             {% if inves|length > 0 %}
             <tr colspan="2">
@@ -45,7 +45,7 @@
         <table>
              <tr>
                 <td class="col-left">{{ i18n("messages", "clinical_family_history") }} : </td>
-                <td></td>
+                <td>{{ mapper.mapToFamilyHistory(probandFamilyHistories) }}</td>
             </tr>
             <tr>
                <td>{{ i18n("messages", "clinical_inbreeding") }} : </td>

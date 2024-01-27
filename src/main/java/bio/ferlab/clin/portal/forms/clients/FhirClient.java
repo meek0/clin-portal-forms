@@ -240,10 +240,12 @@ public class FhirClient {
         .setMethod(Bundle.HTTPVerb.GET);
     }
 
-    for (var clinicalImpressionRef : analysis.getSupportingInfo()) {
-      bundle.addEntry().getRequest()
-        .setUrl(String.format("ClinicalImpression?_id=%s&_include=ClinicalImpression:investigation", FhirUtils.extractId(clinicalImpressionRef)))
-        .setMethod(Bundle.HTTPVerb.GET);
+    for (var ref : analysis.getSupportingInfo()) {
+      if (ref.getReference().startsWith("ClinicalImpression")) {
+        bundle.addEntry().getRequest()
+          .setUrl(String.format("ClinicalImpression?_id=%s&_include=ClinicalImpression:investigation", FhirUtils.extractId(ref)))
+          .setMethod(Bundle.HTTPVerb.GET);
+      }
     }
 
     return this.getGenericClient().transaction().withBundle(bundle).execute();
