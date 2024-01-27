@@ -29,7 +29,7 @@ public class CodesValuesService {
   public static final String HP_BY_TYPE_SUFFIX = "-hp";
   public static final String OBS_BY_TYPE_SUFFIX = "-observation";
   public static final String MULTI_VALUES_SUFFIX = "-multi-values";
-  
+
   private final FhirClient fhirClient;
   private final FhirConfiguration fhirConfiguration;
   private final LogOnceService logOnceService;
@@ -43,7 +43,52 @@ public class CodesValuesService {
   public ValueSet getValues(String key) {
     return (ValueSet) this.buildCodesAndValues().get(key);
   }
-  
+
+  public Object getHPOByCode(String code) {
+    CodeSystem allHPOs = getCodes(CodesValuesService.HP_KEY);
+    final List<ValueSet> hpByTypes = fhirConfiguration.getTypesWithDefault().stream()
+      .map(t -> getValues(t + CodesValuesService.HP_BY_TYPE_SUFFIX)).toList();
+    for(ValueSet hpByType: hpByTypes) {
+      for(var concept : hpByType.getCompose().getIncludeFirstRep().getConcept()) {
+        if (concept.getCode().equals(code)) {
+          return concept;
+        }
+      }
+    }
+    if (allHPOs != null) {
+      for (var concept : allHPOs.getConcept()) {
+        if (concept.getCode().equals(code)) {
+          return concept;
+        }
+      }
+    }
+    return null;
+  }
+
+  public CodeSystem.ConceptDefinitionComponent getObservationByCode(String code) {
+    var allObs = getCodes(CodesValuesService.OBSERVATION_KEY);
+    if (allObs != null) {
+      for (var concept : allObs.getConcept()) {
+        if (concept.getCode().equals(code)) {
+          return concept;
+        }
+      }
+    }
+    return null;
+  }
+
+  public CodeSystem.ConceptDefinitionComponent getEthnicityByCode(String code) {
+    var allObs = getCodes(CodesValuesService.ETHNICITY_KEY);
+    if (allObs != null) {
+      for (var concept : allObs.getConcept()) {
+        if (concept.getCode().equals(code)) {
+          return concept;
+        }
+      }
+    }
+    return null;
+  }
+
   private Map<String, IBaseResource> buildCodesAndValues() {
     final Bundle bundle = this.fhirClient.fetchCodesAndValues();
     Map<String, IBaseResource> codesAndValues = new HashMap<>();

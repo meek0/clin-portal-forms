@@ -178,16 +178,21 @@ public class TemplateMapper {
         var signCode = sign.getValue();
         var signAge = mapToI18nAgeAtOnset(sign);
         if (signCode instanceof CodeableConcept v) {
-          String signStr = v.getCodingFirstRep().getCode();
+          var hpoCode = v.getCodingFirstRep().getCode();
+          var hpoName = mapToI18nHPOName(hpoCode); //arrangerClient.getHPONameByPrefix(hpoCode);
+          String signStr = "";
+          if (StringUtils.isNotBlank(hpoName)) {
+            signStr += StringUtils.capitalize(hpoName);
+          }
+          signStr += " ("+hpoCode+")";
           if (StringUtils.isNotBlank(signAge)) {
             signStr += " - " + signAge;
           }
           signs.add(signStr);
         } else if (signCode instanceof StringType v) {
-          signs.add(v.getValue());
+          signs.add(v.asStringValue());
         } else if (signCode instanceof BooleanType v) {
           signs.add(v.asStringValue());
-
         }
       }
     } catch (Exception e) {
@@ -201,15 +206,53 @@ public class TemplateMapper {
     return signs.isEmpty() ? EMPTY : signs.get(0);
   }
 
-  public List<String> mapToExams(List<Observation> obs) {
-    var exams = new ArrayList<String>();
+  public String mapToEthnicity(List<Observation> obs) {
+    var code = mapToSign(obs, "ETHN", "").replace("(","").replace(")", "").trim();
+    var eth = codesValuesService.getEthnicityByCode(code);
+    if (eth != null) {
+      return FhirToConfigMapper.getDisplayForLang(eth, getLang());
+    } else {
+      return code;
+    }
+  }
+
+  public List<Exam> mapToExams(List<Observation> obs) {
+    var exams = new ArrayList<Exam>();
     try {
-      var values = obs.stream()
+      var filtered = obs.stream()
         .filter(o -> o.getCategoryFirstRep().getCodingFirstRep().getCode().equals("procedure")).toList();
-      for (var value: values) {
-        var code = value.getCode().getCodingFirstRep().getCode();
-        var interpretation = value.getInterpretationFirstRep().getCodingFirstRep().getCode();
-        exams.add(code + " " + interpretation);
+      for (var exam: filtered) {
+        var code = exam.getCode().getCodingFirstRep().getCode();
+        var name = codesValuesService.getObservationByCode(code);
+
+        String examName = name != null ? FhirToConfigMapper.getDisplayForLang(name, getLang()) : code;
+        String examComment = EMPTY;
+
+        var interpretation = exam.getInterpretationFirstRep().getCodingFirstRep().getCode();
+        if (StringUtils.isNotBlank(interpretation)) {
+          examComment += i18n("interpretation_"+interpretation);
+        }
+
+        var value = exam.getValue();
+        if (value instanceof CodeableConcept v) {
+          var allHPOs = new ArrayList<>();
+          for(var coding: v.getCoding()) {
+            var hpoCode = coding.getCode();
+            var hpoName = mapToI18nHPOName(hpoCode);
+            if (StringUtils.isNotBlank(hpoName)) {
+              allHPOs.add(hpoName);
+            }
+          }
+          if (!allHPOs.isEmpty()) {
+            examComment += " : " + StringUtils.join(allHPOs, ", ");
+          }
+        } else if (value instanceof StringType v) {
+          examComment += " : "+v.asStringValue();
+        }
+        if ("A".equals(interpretation)) {
+          examComment += " UI/L";
+        }
+        exams.add(new Exam(examName, examComment));
       }
     } catch (Exception e) {
       this.handleError(e);
@@ -217,12 +260,25 @@ public class TemplateMapper {
     return exams;
   }
 
+  public record Exam(String name, String comment){}
+
   private String mapToI18nAgeAtOnset(Observation o) {
     ValueSet allAges = codesValuesService.getValues(CodesValuesService.AGE_KEY);
     return FhirUtils.findExtension(o, AGE_AT_ONSET_EXT).map(e -> ((Coding) e).getCode())
       .flatMap(code -> allAges.getCompose().getIncludeFirstRep().getConcept().stream().filter(c -> c.getCode().equals(code)).findFirst())
       .map(code -> FhirToConfigMapper.getDisplayForLang(code, getLang()))
       .orElse(EMPTY);
+  }
+
+  private String mapToI18nHPOName(String hpoCode) {
+    var hpo = codesValuesService.getHPOByCode(hpoCode);
+    var name = EMPTY;
+    if (hpo instanceof  ValueSet.ConceptReferenceComponent c) {
+      name = FhirToConfigMapper.getDisplayForLang(c, getLang());
+    } else if (hpo instanceof  CodeSystem.ConceptDefinitionComponent c) {
+      name = FhirToConfigMapper.getDisplayForLang(c, getLang());
+    }
+    return name;
   }
 
   private String i18n(String key) {

@@ -3,6 +3,7 @@ package bio.ferlab.clin.portal.forms.utils;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -14,13 +15,13 @@ import static bio.ferlab.clin.portal.forms.utils.FhirConst.TOKEN_ATTR_REALM_ACCE
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.USER_ROLES_CLIN_PREFIX;
 
 public class JwtUtils {
-  
+
   private JwtUtils() {}
-  
+
   public static final String BEARER_PREFIX = "Bearer ";
   public static final String FHIR_PRACTITIONER_ID = "fhir_practitioner_id";
   public static final String AUTHORIZED_PARTY = "azp";
-  
+
   public static String getProperty(String token, String attr) {
     DecodedJWT jwt = JWT.decode(removeBearerPrefix(token));
     return getProperty(jwt, attr);
@@ -48,9 +49,18 @@ public class JwtUtils {
   private static class RealmAccess {
     public List<String> roles = new ArrayList();
   }
-  
+
   public static String removeBearerPrefix(String token) {
     return token.replace(BEARER_PREFIX, "");
   }
-  
+
+  // Neutralization of CRLF Sequences in HTTP Headers
+  public static String sanitizeAuth(String auth) {
+    if (!StringUtils.isBlank(auth) && !auth.startsWith(JwtUtils.BEARER_PREFIX)) {
+      throw new RuntimeException("Token forwarded is invalid: " + StringUtils.abbreviate(auth, 20));
+    }
+    return auth;
+  }
+
+
 }

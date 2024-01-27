@@ -27,19 +27,25 @@
     <div class="panel-body bottom-border">
         <table>
              <tr colspan="2">
-                <td>
-                 {% for exam in mapper.mapToExams(probandObservations) %}
-                    {{ exam }}<br/>
+                {% for exam in mapper.mapToExams(probandObservations) %}
+                <td class="col-left">{{ exam.name }}</td>
+                <td>{{ exam.comment }}</td>
                 {% endfor %}
-                </td>
             </tr>
+            {% set inves = mapper.mapToSign(probandObservations, "INVES", "") %}
+            {% if inves|length > 0 %}
+            <tr colspan="2">
+                <td>{{ i18n("messages", "clinical_investigation") }} : </td>
+                <td>{{ inves }}</td>
+            </tr>
+            {% endif %}
         </table>
     </div>
      <div class="panel-body">
         <table>
              <tr>
                 <td class="col-left">{{ i18n("messages", "clinical_family_history") }} : </td>
-                <td><b></b></td>
+                <td></td>
             </tr>
             <tr>
                <td>{{ i18n("messages", "clinical_inbreeding") }} : </td>
@@ -47,7 +53,7 @@
             </tr>
             <tr>
                 <td>{{ i18n("messages", "clinical_ethnicity") }} : </td>
-                <td>{{ mapper.mapToSign(probandObservations, "ETHN", "") }}</td>
+                <td>{{ mapper.mapToEthnicity(probandObservations) }}</td>
             </tr>
             <tr>
                 <td>{{ i18n("messages", "clinical_hypothesis") }} : </td>
