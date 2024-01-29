@@ -8,16 +8,20 @@ import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.awt.image.BufferedImage;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_EN;
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_FR;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.AGE_AT_ONSET_EXT;
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.ANALYSIS_REQUEST_CODE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class TemplateMapperTest {
@@ -28,6 +32,173 @@ class TemplateMapperTest {
   final CodesValuesService codesValuesService = Mockito.mock(CodesValuesService.class);
   final CodeSystem codeSystem = new CodeSystem();
   final TemplateMapper mapper = new TemplateMapper("id", logOnceService, messagesService, templateService, codesValuesService, codeSystem, Locale.FRENCH);
+
+  @Test
+  void mapToBarcodeBase64() {
+    when(templateService.generateBarcodeImage(any())).thenReturn(new BufferedImage(100,100, BufferedImage.TYPE_INT_RGB));
+    when(templateService.convertToBase64(any())).thenReturn("dataBase64Image");
+    assertEquals("dataBase64Image", mapper.mapToBarcodeBase64("1234"));
+  }
+
+  @Test
+  void mapToComment() {
+    var sr = new ServiceRequest();
+    sr.getNoteFirstRep().setText("comment");
+    assertEquals("comment", mapper.mapToComment(sr));
+  }
+
+  @Test
+  void mapToSigns() {
+    var o1 = new Observation();
+    o1.getCode().getCodingFirstRep().setCode("PHEN");
+    o1.getInterpretationFirstRep().getCodingFirstRep().setCode("POS");
+    o1.setValue(new CodeableConcept());
+    o1.getValueCodeableConcept().getCodingFirstRep().setCode("SIGN1");
+
+    var o2 = new Observation();
+    o2.getCode().getCodingFirstRep().setCode("PHEN");
+    o2.getInterpretationFirstRep().getCodingFirstRep().setCode("POS");
+    o2.setValue(new CodeableConcept());
+    o2.getValueCodeableConcept().getCodingFirstRep().setCode("SIGN2");
+
+    var o3 = new Observation();
+    o3.getCode().getCodingFirstRep().setCode("PHEN");
+    o3.getInterpretationFirstRep().getCodingFirstRep().setCode("POS");
+    o3.setValue(new CodeableConcept());
+    o3.getValueCodeableConcept().getCodingFirstRep().setCode("SIGN3");
+    o3.addExtension(AGE_AT_ONSET_EXT, new Coding().setCode("age_code3"));
+    var allAges = new ValueSet();
+    allAges.getCompose().getIncludeFirstRep().addConcept().setCode("age_code3").getDesignationFirstRep().setLanguage("fr").setValue("age FR");
+    when(codesValuesService.getValues(eq(CodesValuesService.AGE_KEY))).thenReturn(allAges);
+
+    var o4 = new Observation();
+    o4.getCode().getCodingFirstRep().setCode("PHEN");
+    o4.getInterpretationFirstRep().getCodingFirstRep().setCode("NEG");
+    o4.setValue(new CodeableConcept());
+    o4.getValueCodeableConcept().getCodingFirstRep().setCode("SIGN4");
+
+    var o1Concept = new ValueSet.ConceptReferenceComponent();
+    o1Concept.setCode("SIGN1").getDesignationFirstRep().setLanguage("fr").setValue("sign 1 FR");
+    when(codesValuesService.getHPOByCode(eq("SIGN1"))).thenReturn(o1Concept);
+    var o2Concept = new CodeSystem.ConceptDefinitionComponent();
+    o2Concept.setCode("SIGN2").getDesignationFirstRep().setLanguage("fr").setValue("sign 2 FR");
+    when(codesValuesService.getHPOByCode(eq("SIGN2"))).thenReturn(o2Concept);
+    when(codesValuesService.getHPOByCode(eq("SIGN3"))).thenReturn(null);
+
+    var all = List.of(o1,o2,o3);
+
+    assertEquals(List.of("Sign 1 FR (SIGN1)", "Sign 2 FR (SIGN2)", "(SIGN3) - age FR"), mapper.mapToSigns(all, "PHEN", "POS"));
+  }
+
+  @Test
+  void mapToSign() {
+    var o1 = new Observation();
+    o1.getCode().getCodingFirstRep().setCode("stringType");
+    o1.setValue(new StringType("foo"));
+
+    var o2 = new Observation();
+    o2.getCode().getCodingFirstRep().setCode("booleanType");
+    o2.setValue(new BooleanType("true"));
+
+    when(messagesService.get(eq("true"), any())).thenReturn("bar FR");
+
+    var all = List.of(o1, o2);
+
+    assertEquals("foo", mapper.mapToSign(all, "stringType", ""));
+    assertEquals("bar FR", mapper.mapToSign(all, "booleanType", ""));
+    assertEquals("", mapper.mapToSign(all, "missing", ""));
+  }
+
+  @Test
+  void mapToEthnicity() {
+    var o1 = new Observation();
+    o1.getCode().getCodingFirstRep().setCode("NOT_ETH");
+
+    var o2 = new Observation();
+    o2.getCode().getCodingFirstRep().setCode("ETHN");
+    o2.setValue(new CodeableConcept());
+    o2.getValueCodeableConcept().getCodingFirstRep().setCode("ETH_VALUE");
+
+    var ethCode = new CodeSystem.ConceptDefinitionComponent();
+    ethCode.setCode("ETH_VALUE").getDesignationFirstRep().setLanguage("fr").setValue("eth FR");
+    when(codesValuesService.getValueByKeyCode(eq(CodesValuesService.ETHNICITY_KEY), any())).thenReturn(ethCode);
+
+    var all = List.of(o1, o2);
+
+    assertEquals("eth FR", mapper.mapToEthnicity(all));
+    verify(codesValuesService).getValueByKeyCode(eq(CodesValuesService.ETHNICITY_KEY), eq("ETH_VALUE"));
+  }
+
+  @Test
+  void mapToEthnicity_no_display() {
+    var o2 = new Observation();
+    o2.getCode().getCodingFirstRep().setCode("ETHN");
+    o2.setValue(new CodeableConcept());
+    o2.getValueCodeableConcept().getCodingFirstRep().setCode("ETH_VALUE");
+
+    when(codesValuesService.getValueByKeyCode(eq(CodesValuesService.ETHNICITY_KEY), any())).thenReturn(null);
+
+    var all = List.of(o2);
+
+    assertEquals("ETH_VALUE", mapper.mapToEthnicity(all));
+  }
+
+  @Test
+  void mapToExams() {
+    var o1 = new Observation();
+    o1.getCategoryFirstRep().getCodingFirstRep().setCode("procedure");
+    o1.getCode().getCodingFirstRep().setCode("code1");
+    o1.getInterpretationFirstRep().getCodingFirstRep().setCode("A");
+
+    var code1 = new CodeSystem.ConceptDefinitionComponent();
+    code1.setCode("code1").getDesignationFirstRep().setLanguage("fr").setValue("code1 FR");
+    when(codesValuesService.getValueByKeyCode(eq(CodesValuesService.OBSERVATION_KEY), eq("code1"))).thenReturn(code1);
+    when(messagesService.get(eq("interpretation_A"), eq("fr"))).thenReturn("Abnormal");
+
+    var o1Values = new CodeableConcept();
+    o1Values.addCoding().setCode("o1_code1");
+    var o1value1Concept = new ValueSet.ConceptReferenceComponent();
+    o1value1Concept.setCode("o1_code1").getDesignationFirstRep().setLanguage("fr").setValue("o1 value1 FR");
+    when(codesValuesService.getHPOByCode(eq("o1_code1"))).thenReturn(o1value1Concept);
+    o1.setValue(o1Values);
+
+    var o2 = new Observation();
+    o2.getCode().getCodingFirstRep().setCode("code2");
+    o2.getCategoryFirstRep().getCodingFirstRep().setCode("procedure");
+    var o2Values = new StringType("o2value");
+    o2.setValue(o2Values);
+
+    var o3 = new Observation();
+    o3.getCategoryFirstRep().getCodingFirstRep().setCode("procedure");
+
+    var o4 = new Observation();
+    o4.getCategoryFirstRep().getCodingFirstRep().setCode("not_procedure");
+
+    var all = List.of(o1,o2,o3);
+
+    assertEquals("[Exam[name=code1 FR, comment=Abnormal : o1 value1 FR UI/L], Exam[name=code2, comment= : o2value], Exam[name=, comment=]]", mapper.mapToExams(all).toString());
+  }
+
+  @Test
+  void mapToFamilyHistory() {
+    var fm1 = new FamilyMemberHistory();
+    fm1.getNoteFirstRep().setText("fm1 text");
+    fm1.getRelationship().getCodingFirstRep().setCode("fm1_code");
+    var code1 = new CodeSystem.ConceptDefinitionComponent();
+    code1.setCode("code1").getDesignationFirstRep().setLanguage("fr").setValue("code1 FR");
+    when(codesValuesService.getValueByKeyCode(eq(CodesValuesService.PARENTAL_KEY), eq("fm1_code"))).thenReturn(code1);
+
+    var fm2 = new FamilyMemberHistory();
+    fm2.getNoteFirstRep().setText("fm2 text");
+    fm2.getRelationship().getCodingFirstRep().setCode("fm2_code");
+    when(codesValuesService.getValueByKeyCode(eq(CodesValuesService.PARENTAL_KEY), eq("fm2_code"))).thenReturn(null);
+
+    var fm3 = new FamilyMemberHistory();
+
+    var all = List.of(fm1, fm2, fm3);
+
+    assertEquals("fm1 text (code1 FR), fm2 text (fm2_code)", mapper.mapToFamilyHistory(all));
+  }
 
   @Test
   void mapToAddress() {

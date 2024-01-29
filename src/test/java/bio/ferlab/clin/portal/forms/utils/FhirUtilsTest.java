@@ -81,7 +81,7 @@ class FhirUtilsTest {
   }
 
   @Test
-  void findExtension() {
+  void findExtension_ServiceRequest() {
     var sr = new ServiceRequest();
     sr.addExtension("url1", new Reference("ref1"));
     sr.addExtension("url2", new Reference("ref2"));
@@ -91,6 +91,19 @@ class FhirUtilsTest {
     assertTrue(FhirUtils.findExtension(sr, null).isEmpty());
     assertTrue(FhirUtils.findExtension((ServiceRequest) null, "url1").isEmpty());
     assertTrue(FhirUtils.findExtension(sr, "url0").isEmpty());
+  }
+
+  @Test
+  void findExtension_Observation() {
+    var obs = new Observation();
+    obs.addExtension("url1", new Reference("ref1"));
+    obs.addExtension("url2", new Reference("ref2"));
+    assertEquals("ref1", ((Reference) FhirUtils.findExtension(obs, "url1").get()).getReference());
+    assertEquals("ref2", ((Reference) FhirUtils.findExtension(obs, "url2").get()).getReference());
+    assertTrue(FhirUtils.findExtension(obs, "url3").isEmpty());
+    assertTrue(FhirUtils.findExtension(obs, null).isEmpty());
+    assertTrue(FhirUtils.findExtension((Observation) null, "url1").isEmpty());
+    assertTrue(FhirUtils.findExtension(obs, "url0").isEmpty());
   }
 
   @Test

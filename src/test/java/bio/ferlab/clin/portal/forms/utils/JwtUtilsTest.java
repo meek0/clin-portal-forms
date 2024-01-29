@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class JwtUtilsTest {
 
   private final Algorithm algorithm = Algorithm.HMAC256("secret");
-  
+
   @Test
   void getProperty() {
     String token = JWT.create()
@@ -50,4 +50,5 @@ class JwtUtilsTest {
     assertEquals("clin-1", roles.get(0));
     assertEquals("clin_2", roles.get(1));
   }
+
 }

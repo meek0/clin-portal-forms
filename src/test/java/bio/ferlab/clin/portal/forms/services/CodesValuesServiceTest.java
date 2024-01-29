@@ -13,31 +13,42 @@ import org.mockito.Mockito;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
 class CodesValuesServiceTest {
-  
+
   private final FhirContext fhirContext = FhirContext.forR4();
   private final FhirClient fhirClient = Mockito.mock(FhirClient.class);
   private final FhirConfiguration fhirConfiguration = Mockito.mock(FhirConfiguration.class);
   private final LogOnceService logOnceService = Mockito.mock(LogOnceService.class);
   private final CodesValuesService service =new CodesValuesService(fhirClient, fhirConfiguration, logOnceService);
-  
+
   @BeforeEach
   void beforeEach() {
     final Bundle bundle = new Bundle();
+
+    var hp = new CodeSystem();
+    hp.addConcept().setCode("code0");
+
     bundle.addEntry().setResource(new CodeSystem());
-    bundle.addEntry().setResource(new CodeSystem());
+    bundle.addEntry().setResource(hp);
     bundle.addEntry().setResource(new CodeSystem());
     bundle.addEntry().setResource(new CodeSystem());
     bundle.addEntry().setResource(new CodeSystem());
     bundle.addEntry().setResource(new ValueSet());
+
+    var type1 = new ValueSet();
+    type1.getCompose().getIncludeFirstRep().addConcept().setCode("code1");
+    bundle.addEntry().setResource(type1);
+    bundle.addEntry().setResource(new ValueSet());
+
     when(fhirClient.getContext()).thenReturn(fhirContext);
     when(fhirClient.fetchCodesAndValues()).thenReturn(bundle);
-    when(fhirConfiguration.getTypesWithDefault()).thenReturn(List.of());
+    when(fhirConfiguration.getTypesWithDefault()).thenReturn(List.of("type1"));
     when(fhirConfiguration.getMultiValuesObservationCodes()).thenReturn(List.of());
   }
-  
+
   @Test
   void getCodes() {
     final CodeSystem res = this.service.getCodes(CodesValuesService.ANALYSE_KEY);
@@ -50,5 +61,12 @@ class CodesValuesServiceTest {
     assertNotNull(res);
   }
 
+  @Test
+  void getHPOByCode() {
+    assertNull(service.getHPOByCode(null));
+    assertNull(service.getHPOByCode("foo"));
+    assertNotNull(service.getHPOByCode("code1"));
+    assertNotNull(service.getHPOByCode("code0"));
+  }
 
 }

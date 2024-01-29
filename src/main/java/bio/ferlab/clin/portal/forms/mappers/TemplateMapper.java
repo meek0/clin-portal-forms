@@ -188,7 +188,7 @@ public class TemplateMapper {
           if (StringUtils.isNotBlank(signAge)) {
             signStr += " - " + signAge;
           }
-          signs.add(signStr);
+          signs.add(signStr.trim());
         } else if (signCode instanceof StringType v) {
           signs.add(v.asStringValue());
         } else if (signCode instanceof BooleanType v) {
@@ -225,7 +225,7 @@ public class TemplateMapper {
         var code = exam.getCode().getCodingFirstRep().getCode();
         var name = codesValuesService.getValueByKeyCode(CodesValuesService.OBSERVATION_KEY, code);
 
-        String examName = name != null ? FhirToConfigMapper.getDisplayForLang(name, getLang()) : code;
+        String examName = name != null ? FhirToConfigMapper.getDisplayForLang(name, getLang()) : code != null ? code: EMPTY;
         String examComment = EMPTY;
 
         var interpretation = exam.getInterpretationFirstRep().getCodingFirstRep().getCode();
@@ -269,13 +269,15 @@ public class TemplateMapper {
         String str = history.getNoteFirstRep().getText();
         var code = history.getRelationship().getCodingFirstRep().getCode();
         var value = codesValuesService.getValueByKeyCode(CodesValuesService.PARENTAL_KEY, code);
-        if (value != null) {
-          var name = FhirToConfigMapper.getDisplayForLang(value, getLang());
-          str+= " ("+name+")";
-        } else {
-          str+= " ("+code+")";
+        if (code != null) {
+          if (value != null) {
+            var name = FhirToConfigMapper.getDisplayForLang(value, getLang());
+            str += " (" + name + ")";
+          } else {
+            str += " (" + code + ")";
+          }
         }
-        all.add(str);
+        all.add(str.trim());
       }
     } catch (Exception e) {
       this.handleError(e);
@@ -294,9 +296,9 @@ public class TemplateMapper {
   private String mapToI18nHPOName(String hpoCode) {
     var hpo = codesValuesService.getHPOByCode(hpoCode);
     var name = EMPTY;
-    if (hpo instanceof  ValueSet.ConceptReferenceComponent c) {
+    if (hpo instanceof ValueSet.ConceptReferenceComponent c) {
       name = FhirToConfigMapper.getDisplayForLang(c, getLang());
-    } else if (hpo instanceof  CodeSystem.ConceptDefinitionComponent c) {
+    } else if (hpo instanceof CodeSystem.ConceptDefinitionComponent c) {
       name = FhirToConfigMapper.getDisplayForLang(c, getLang());
     }
     return name;
