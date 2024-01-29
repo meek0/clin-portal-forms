@@ -1,6 +1,10 @@
 <table>
     <tr>
+        {% if withVersion %}
         <td style="width: 50%">{{ i18n("messages", "footer_version")}} {{ version }} &nbsp; {{ i18n("messages", "footer_date")}} : {{ now | date("yyyy-MM-dd") }}</td>
+        {% else %}
+        <td style="width: 50%"></td>
+        {% endif %}
         <td style="width: 50%" class="right">{{ i18n("messages", "footer_page", [page, total])}}</td>
     </tr>
 </table>

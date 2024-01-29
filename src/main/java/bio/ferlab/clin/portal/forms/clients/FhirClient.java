@@ -28,11 +28,11 @@ import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 @Getter
 @Slf4j
 public class FhirClient {
-  
+
   private final FhirContext context;
   private final IGenericClient genericClient;
   private final FhirConfiguration fhirConfiguration;
-  
+
   public FhirClient(FhirConfiguration configuration, FhirAuthInterceptor fhirAuthInterceptor) {
     context = FhirContext.forR4();
 
@@ -112,7 +112,7 @@ public class FhirClient {
       .count(Integer.MAX_VALUE)
       .returnBundle(Bundle.class).execute();
   }
-  
+
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findPractitionerRoleByPractitionerId(String practitionerId) {
     log.debug("Fetch practitioner roles by practitioner id: {}", practitionerId);
@@ -135,7 +135,7 @@ public class FhirClient {
     log.debug("Fetch additional prescription data practitionerId: {} patient: {}", practitionerId, patientId);
     final Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.BATCH);
-    
+
     bundle.addEntry().getRequest()
         .setUrl("Practitioner/" + practitionerId)
         .setMethod(Bundle.HTTPVerb.GET);
@@ -156,13 +156,13 @@ public class FhirClient {
     log.debug("Fetch service request by patient ids: {}", patientIds);
     final Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.BATCH);
-    
+
     patientIds.forEach(id -> {
       bundle.addEntry().getRequest()
           .setUrl("ServiceRequest?patient=" + id)
           .setMethod(Bundle.HTTPVerb.GET);
     });
-    
+
     return this.getGenericClient().transaction().withBundle(bundle).execute();
   }
 
@@ -240,6 +240,14 @@ public class FhirClient {
         .setMethod(Bundle.HTTPVerb.GET);
     }
 
+    for (var ref : analysis.getSupportingInfo()) {
+      if (ref.getReference().startsWith("ClinicalImpression")) {
+        bundle.addEntry().getRequest()
+          .setUrl(String.format("ClinicalImpression?_id=%s&_include=ClinicalImpression:investigation", FhirUtils.extractId(ref)))
+          .setMethod(Bundle.HTTPVerb.GET);
+      }
+    }
+
     return this.getGenericClient().transaction().withBundle(bundle).execute();
   }
 
@@ -288,16 +296,16 @@ public class FhirClient {
           .setUrl("ValueSet/" + byType + ABNORMALITIES_SUFFIX)
           .setMethod(Bundle.HTTPVerb.GET);
     }
-    
+
     return this.getGenericClient().transaction().withBundle(bundle).execute();
   }
 
   public String toJson(IBaseResource resource) {
     return getContext().newJsonParser().setPrettyPrint(true).encodeResourceToString(resource);
   }
-  
+
   public void logDebug(IBaseResource resource) {
     log.debug("JSON of {}\n{}", FhirUtils.formatResource(resource), toJson(resource));
   }
-  
+
 }

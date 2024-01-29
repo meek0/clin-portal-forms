@@ -1,7 +1,9 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
+import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LogOnceService;
 import bio.ferlab.clin.portal.forms.services.MessagesService;
+import bio.ferlab.clin.portal.forms.services.TemplateService;
 import bio.ferlab.clin.portal.forms.utils.DateUtils;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import lombok.RequiredArgsConstructor;
@@ -9,10 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_EN;
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_FR;
@@ -21,14 +20,20 @@ import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 @Slf4j
 @RequiredArgsConstructor
 public class TemplateMapper {
-  
+
   public static final String EMPTY = "";
 
   private final String id;
   private final LogOnceService logOnceService;
   private final MessagesService messagesService;
+  private final TemplateService templateService;
+  private final CodesValuesService codesValuesService;
   private final CodeSystem analysisCodes;
   private final Locale locale;
+
+  public String mapToBarcodeBase64(String value) {
+    return templateService.convertToBase64(templateService.generateBarcodeImage(value));
+  }
 
   public String mapToAddress(Organization organization) {
     try {
@@ -152,6 +157,151 @@ public class TemplateMapper {
     } catch (Exception e) {
       return this.handleError(e);
     }
+  }
+
+  public String mapToComment(ServiceRequest serviceRequest) {
+    try {
+      return serviceRequest.getNoteFirstRep().getText();
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
+  public List<String> mapToSigns(List<Observation> obs, String code, String interpretation) {
+    var signs = new ArrayList<String>();
+    try {
+      var filtered = obs.stream()
+        .filter(o -> o.getCode().getCodingFirstRep().getCode().equals(code))
+        .filter(o -> StringUtils.isBlank(interpretation) || o.getInterpretationFirstRep().getCodingFirstRep().getCode().equals(interpretation))
+        .toList();
+      for (var sign: filtered) {
+        var signCode = sign.getValue();
+        var signAge = mapToI18nAgeAtOnset(sign);
+        if (signCode instanceof CodeableConcept v) {
+          var hpoCode = v.getCodingFirstRep().getCode();
+          var hpoName = mapToI18nHPOName(hpoCode); //arrangerClient.getHPONameByPrefix(hpoCode);
+          String signStr = "";
+          if (StringUtils.isNotBlank(hpoName)) {
+            signStr += StringUtils.capitalize(hpoName);
+          }
+          signStr += " ("+hpoCode+")";
+          if (StringUtils.isNotBlank(signAge)) {
+            signStr += " - " + signAge;
+          }
+          signs.add(signStr.trim());
+        } else if (signCode instanceof StringType v) {
+          signs.add(v.asStringValue());
+        } else if (signCode instanceof BooleanType v) {
+          signs.add(i18n(v.asStringValue()));
+        }
+      }
+    } catch (Exception e) {
+      this.handleError(e);
+    }
+    return signs;
+  }
+
+  public String mapToSign(List<Observation> obs, String code, String interpretation) {
+    var signs = mapToSigns(obs, code, interpretation);
+    return signs.isEmpty() ? EMPTY : signs.get(0);
+  }
+
+  public String mapToEthnicity(List<Observation> obs) {
+    var code = mapToSign(obs, "ETHN", "").replace("(","").replace(")", "").trim();
+    var eth = codesValuesService.getValueByKeyCode(CodesValuesService.ETHNICITY_KEY, code);
+    if (eth != null) {
+      return FhirToConfigMapper.getDisplayForLang(eth, getLang());
+    } else {
+      return code;
+    }
+  }
+
+  public List<Exam> mapToExams(List<Observation> obs) {
+    var exams = new ArrayList<Exam>();
+    try {
+      var filtered = obs.stream()
+        .filter(o -> o.getCategoryFirstRep().getCodingFirstRep().getCode().equals("procedure")).toList();
+      for (var exam: filtered) {
+        var code = exam.getCode().getCodingFirstRep().getCode();
+        var name = codesValuesService.getValueByKeyCode(CodesValuesService.OBSERVATION_KEY, code);
+
+        String examName = name != null ? FhirToConfigMapper.getDisplayForLang(name, getLang()) : code != null ? code: EMPTY;
+        String examComment = EMPTY;
+
+        var interpretation = exam.getInterpretationFirstRep().getCodingFirstRep().getCode();
+        if (StringUtils.isNotBlank(interpretation)) {
+          examComment += i18n("interpretation_"+interpretation);
+        }
+
+        var value = exam.getValue();
+        if (value instanceof CodeableConcept v) {
+          var allHPOs = new ArrayList<>();
+          for(var coding: v.getCoding()) {
+            var hpoCode = coding.getCode();
+            var hpoName = mapToI18nHPOName(hpoCode);
+            if (StringUtils.isNotBlank(hpoName)) {
+              allHPOs.add(hpoName);
+            }
+          }
+          if (!allHPOs.isEmpty()) {
+            examComment += " : " + StringUtils.join(allHPOs, ", ");
+          }
+        } else if (value instanceof StringType v) {
+          examComment += " : "+v.asStringValue();
+        }
+        if ("A".equals(interpretation)) {
+          examComment += " UI/L";
+        }
+        exams.add(new Exam(examName, examComment));
+      }
+    } catch (Exception e) {
+      this.handleError(e);
+    }
+    return exams;
+  }
+
+  public record Exam(String name, String comment){}
+
+  public String mapToFamilyHistory(List<FamilyMemberHistory> histories) {
+    var all = new ArrayList<String>();
+    try {
+      for(var history: histories) {
+        String str = history.getNoteFirstRep().getText();
+        var code = history.getRelationship().getCodingFirstRep().getCode();
+        var value = codesValuesService.getValueByKeyCode(CodesValuesService.PARENTAL_KEY, code);
+        if (code != null) {
+          if (value != null) {
+            var name = FhirToConfigMapper.getDisplayForLang(value, getLang());
+            str += " (" + name + ")";
+          } else {
+            str += " (" + code + ")";
+          }
+        }
+        all.add(str.trim());
+      }
+    } catch (Exception e) {
+      this.handleError(e);
+    }
+    return StringUtils.join(all, ", ");
+  }
+
+  private String mapToI18nAgeAtOnset(Observation o) {
+    ValueSet allAges = codesValuesService.getValues(CodesValuesService.AGE_KEY);
+    return FhirUtils.findExtension(o, AGE_AT_ONSET_EXT).map(e -> ((Coding) e).getCode())
+      .flatMap(code -> allAges.getCompose().getIncludeFirstRep().getConcept().stream().filter(c -> c.getCode().equals(code)).findFirst())
+      .map(code -> FhirToConfigMapper.getDisplayForLang(code, getLang()))
+      .orElse(EMPTY);
+  }
+
+  private String mapToI18nHPOName(String hpoCode) {
+    var hpo = codesValuesService.getHPOByCode(hpoCode);
+    var name = EMPTY;
+    if (hpo instanceof ValueSet.ConceptReferenceComponent c) {
+      name = FhirToConfigMapper.getDisplayForLang(c, getLang());
+    } else if (hpo instanceof CodeSystem.ConceptDefinitionComponent c) {
+      name = FhirToConfigMapper.getDisplayForLang(c, getLang());
+    }
+    return name;
   }
 
   private String i18n(String key) {

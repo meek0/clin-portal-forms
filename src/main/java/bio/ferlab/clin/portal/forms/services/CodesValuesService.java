@@ -29,7 +29,7 @@ public class CodesValuesService {
   public static final String HP_BY_TYPE_SUFFIX = "-hp";
   public static final String OBS_BY_TYPE_SUFFIX = "-observation";
   public static final String MULTI_VALUES_SUFFIX = "-multi-values";
-  
+
   private final FhirClient fhirClient;
   private final FhirConfiguration fhirConfiguration;
   private final LogOnceService logOnceService;
@@ -43,7 +43,32 @@ public class CodesValuesService {
   public ValueSet getValues(String key) {
     return (ValueSet) this.buildCodesAndValues().get(key);
   }
-  
+
+  public Object getHPOByCode(String code) {
+    final List<ValueSet> hpByTypes = fhirConfiguration.getTypesWithDefault().stream()
+      .map(t -> getValues(t + CodesValuesService.HP_BY_TYPE_SUFFIX)).toList();
+    for(ValueSet hpByType: hpByTypes) {
+      for(var concept : hpByType.getCompose().getIncludeFirstRep().getConcept()) {
+        if (concept.getCode().equals(code)) {
+          return concept;
+        }
+      }
+    }
+    return getValueByKeyCode(HP_KEY, code);
+  }
+
+  public CodeSystem.ConceptDefinitionComponent getValueByKeyCode(String key, String code) {
+    var all = getCodes(key);
+    if (all != null) {
+      for (var concept : all.getConcept()) {
+        if (concept.getCode().equals(code)) {
+          return concept;
+        }
+      }
+    }
+    return null;
+  }
+
   private Map<String, IBaseResource> buildCodesAndValues() {
     final Bundle bundle = this.fhirClient.fetchCodesAndValues();
     Map<String, IBaseResource> codesAndValues = new HashMap<>();

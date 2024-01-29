@@ -6,7 +6,6 @@ import ca.uhn.fhir.rest.client.api.IHttpRequest;
 import ca.uhn.fhir.rest.client.api.IHttpResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 
@@ -21,15 +20,7 @@ public class FhirAuthInterceptor implements IClientInterceptor {
   @Override
   public void interceptRequest(IHttpRequest fhirRequest) {
     // FHIR will validate the token's authorizations
-    fhirRequest.addHeader(HttpHeaders.AUTHORIZATION, sanitizeAuth(request.getHeader(HttpHeaders.AUTHORIZATION)));
-  }
-
-  // Neutralization of CRLF Sequences in HTTP Headers
-  private String sanitizeAuth(String auth) {
-    if (!StringUtils.isBlank(auth) && !auth.startsWith(JwtUtils.BEARER_PREFIX)) {
-      throw new RuntimeException("Token forwarded to FHIR is invalid: " + StringUtils.abbreviate(auth, 20));
-    }
-    return auth;
+    fhirRequest.addHeader(HttpHeaders.AUTHORIZATION, JwtUtils.sanitizeAuth(request.getHeader(HttpHeaders.AUTHORIZATION)));
   }
 
   @Override

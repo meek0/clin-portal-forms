@@ -33,7 +33,7 @@ class FhirAuthInterceptorTest {
     RuntimeException exception = assertThrows(RuntimeException.class, () -> {
       fhirAuthInterceptor.interceptRequest(request);
     });
-    assertEquals("Token forwarded to FHIR is invalid: foo", exception.getMessage());
+    assertEquals("Token forwarded is invalid: foo", exception.getMessage());
   }
 
   // dont ask me why ... mockito doesnt like to mock interface

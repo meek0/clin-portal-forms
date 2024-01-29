@@ -14,6 +14,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,17 +34,17 @@ public class ErrorController {
     log.error("", e); // hide from the user + log the reason
     return new ResponseEntity<>("failed to connect to fhir", HttpStatus.BAD_REQUEST);
   }
-  
+
   @ExceptionHandler(HttpMessageNotReadableException.class)
   public ResponseEntity<String> handleException(HttpMessageNotReadableException e) {
     return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
   }
-  
+
   @ExceptionHandler(ResponseStatusException.class)
   public ResponseEntity<String> handleException(ResponseStatusException e) {
     return new ResponseEntity<>(e.getReason(), e.getStatusCode());
   }
-  
+
   @ExceptionHandler(ForbiddenOperationException.class)
   public ResponseEntity<String> handleException(ForbiddenOperationException e) {
     // FHIR could complain about invalid auth
@@ -60,7 +61,7 @@ public class ErrorController {
   public ResponseEntity<String> handleException(MissingServletRequestParameterException e) {
     return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
   }
-  
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<List<String>> handleException(MethodArgumentNotValidException ex) {
     List<String> errors = new ArrayList<>();
@@ -71,5 +72,10 @@ public class ErrorController {
       errors.add(error.getObjectName() + ": " + error.getDefaultMessage());
     }
     return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+  }
+
+  @ExceptionHandler(NoResourceFoundException.class)
+  public ResponseEntity<String> handle(NoResourceFoundException e) {
+    return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
   }
 }

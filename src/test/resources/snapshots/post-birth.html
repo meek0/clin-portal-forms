@@ -1,390 +1,566 @@
 <!DOCTYPE html PUBLIC "-//OPENHTMLTOPDF//DOC XHTML Character Entities Only 1.0//EN" "">
 <html lang="fr">
 <head>
-    <meta charset="utf-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'/>
-    <title>sequencingId</title>
-    <style>
-        /* header */
-        .header {
-        line-height: 25px;
-        margin-bottom: 5px;
-        }
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'/>
+  <title>analysisId</title>
+  <style>
+    /* header */
+    .header {
+    line-height: 25px;
+    margin-bottom: 5px;
+    }
 
-        .title {
-        font-size: 160%;
-        letter-spacing: 0.02rem;
-        }
+    .title {
+    font-size: 160%;
+    letter-spacing: 0.02rem;
+    }
 
-        /* table + panel */
+    /* table + panel */
 
-        table {
-        width: 100%;
-        border-spacing: 0;
-        font-size: inherit;
-        border-collapse: collapse;
-        }
+    table {
+    width: 100%;
+    border-spacing: 0;
+    font-size: inherit;
+    border-collapse: collapse;
+    }
 
-        table tr {
-        height: 20px;
-        vertical-align: top;
-        }
+    table tr {
+    height: 20px;
+    vertical-align: top;
+    }
 
-        table td {
-        vertical-align: top;
-        }
+    table td {
+    vertical-align: top;
+    }
 
-        table td.right {
-        text-align: right;
-        }
+    table td.col-left {
+    width: 21%;
+    }
 
-        .fixed-height tr {
-        height: inherit;
-        }
+    table td.right {
+    text-align: right;
+    }
 
-        .fixed-height {
-        height: 125px;
-        }
+    table tr.separator {
+    background-color: #dee4ed;
+    height: 2px;
+    }
 
-        .underscored {
-        border-bottom: 1px solid #364a63;
-        display: inline-block;
-        }
+    table.collapsable tr {
+    height: inherit;
+    }
 
-        .panel {
-        border: 1px solid #dee4ed;
-        border-radius:5px;
-        page-break-inside: avoid;
-        margin-bottom: 10px;
-        }
+    .fixed-height {
+    height: 125px;
+    }
 
-        .panel-left {
-        margin-right: 5px;
-        }
+    .underscored {
+    border-bottom: 1px solid #364a63;
+    display: inline-block;
+    }
 
-        .panel-right {
-        margin-left: 5px;
-        }
+    .panel {
+    border: 1px solid #dee4ed;
+    border-radius:5px;
+    page-break-inside: avoid;
+    margin-bottom: 10px;
+    }
 
-        .panel-body {
-        font-size: 100%;
-        padding: 7px;
-        }
+    .panel-left {
+    margin-right: 5px;
+    }
 
-        .panel-header {
-        padding: 4px 7px;
-        background-color: #dee4ed;
-        text-transform: uppercase;
-        }
+    .panel-right {
+    margin-left: 5px;
+    }
 
-        .patient-card {
-        border: 2px solid #dee4ed;
-        border-radius: 5px;
-        text-align: center;
-        vertical-align: middle;
-        width: auto;
-        margin-left: 7px;
-        color: #dee4ed;
-        line-height: 16; /* a bit tricky but it's to center the text inside the div, replaces height prop */
-        }
+    .panel-body {
+    font-size: 100%;
+    padding: 7px;
+    }
 
-        .type {
-        border: 1px solid #364a63;
-        padding: 1px;
-        }
+    .bottom-border {
+    border-bottom: 1px solid #dee4ed;
+    }
 
-        .box {
-        border: 1px solid #364a63;
-        border-radius: 2px;
-        margin-right: 5px;
-        display: inline-block;
-        padding: 6px;
-        vertical-align: baseline;
-        margin-bottom: -2px;
-        }
+    .panel-header {
+    padding: 4px 7px;
+    background-color: #dee4ed;
+    text-transform: uppercase;
+    }
 
-        .hidden {
-        visibility: hidden;
-        }
+    .patient-card {
+    border: 2px solid #dee4ed;
+    border-radius: 5px;
+    text-align: center;
+    vertical-align: middle;
+    width: auto;
+    margin-left: 7px;
+    color: #dee4ed;
+    line-height: 16; /* a bit tricky but it's to center the text inside the div, replaces height prop */
+    }
 
-        .barcode {
-        text-align: center;
-        vertical-align: middle;
-        line-height: 12px;
-        color: black;
-        }
+    .type {
+    border: 1px solid #364a63;
+    padding: 1px;
+    }
 
-        .block {
-        margin-bottom: 10px;
+    .box {
+    border: 1px solid #364a63;
+    border-radius: 2px;
+    margin-right: 5px;
+    display: inline-block;
+    padding: 6px;
+    vertical-align: baseline;
+    margin-bottom: -2px;
+    }
 
-        }
+    .hidden {
+    visibility: hidden;
+    }
 
-        /* A4 HTML and PDF styles */
+    .barcode {
+    text-align: center;
+    vertical-align: middle;
+    line-height: 12px;
+    color: black;
+    }
 
-        body {
-        font-family: 'Roboto', sans-serif;
-        color: #364a63;
-        background: #585c68;
-        font-size: 9pt;
-        line-height: 20px;
-        letter-spacing: 0.02rem;
-        margin: 0;
-        padding: 0;
-        }
+    .block {
+    margin-bottom: 10px;
 
-        p {
-        margin: 0;
-        margin-bottom: 7px;
-        }
+    }
 
-        #content {
-        background-color: white;
-        margin: 50px auto;
-        width: 210mm;
-        height: 297mm;
-        padding: 10mm;
-        }
+    /* A4 HTML and PDF styles */
 
-        /* used by flying saucer or browser printer */
+    body {
+    font-family: 'Roboto', sans-serif;
+    color: #364a63;
+    background: #585c68;
+    font-size: 9pt;
+    line-height: 20px;
+    letter-spacing: 0.02rem;
+    margin: 0;
+    padding: 0;
+    }
 
-        @page {
-        size: A4;
-        margin: 10mm;
-        }
+    p {
+    margin: 0;
+    margin-bottom: 7px;
+    }
 
-        @media print {
-        body {
-        background: white;
-        font-size: 8pt;
-        line-height: 13pt;
-        }
+    .page {
+    background-color: white;
+    margin: 50px auto;
+    width: 210mm;
+    /* height: 297mm;*/
+    padding: 10mm;
+    }
 
-        .fixed-height {
-        height: 110px;
-        }
+    /* used by flying saucer or browser printer */
 
-        #content {
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        }
+    @page {
+    size: A4;
+    margin: 10mm;
+    }
 
-        .box {
-        padding: 5px;
-        }
-        }
+    @media print {
+    body {
+    background: white;
+    font-size: 8pt;
+    line-height: 13pt;
+    }
 
-    </style> </head>
+    .fixed-height {
+    height: 110px;
+    }
+
+    .pagebreak { page-break-before: always; }
+
+    .page {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
+    }
+
+    .box {
+    padding: 5px;
+    }
+    }
+
+  </style>
+</head>
 <body>
-<div id="content">
-    <div class="header">
-        <table>
-            <tr>
-                <td class="title"><b>Réseau québécois de diagnostic moléculaire</b> - Requête postnatale</td>
-                <td class="barcode" rowspan="2"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAAyAQAAAADzGu3IAAAAKElEQVR4XmP4//+f5IPK9sbnz+TnVbDJN86o//+fYVRwVHBUcGQLAgCGT2IVAA2zUgAAAABJRU5ErkJggg=="/><br/>sequencingId</td>
-            </tr>
-            <tr>
-                <td>Numéro de requête : <b>sequencingId</b> &nbsp;&nbsp;&nbsp; Créée le (aaaa-mm-jj) : <b></b></td>
-            </tr>
-        </table>
-    </div>    <div class="panel">
+<div class="page">
+  <div class="header">
+    <table>
+      <tr>
+        <td class="title"><b>Réseau québécois de diagnostic moléculaire</b> - Prescription</td>
+        <td class="barcode" rowspan="2"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAAAyAQAAAADzGu3IAAAAKElEQVR4XmP4F32r8nXmsz0TFm6f1nbu9U2O5SL/GUYFRwVHBUe2IAADCojzn7pHuwAAAABJRU5ErkJggg=="/><br/>analysisId</td>
+      </tr>
+      <tr>
+        <td>Numéro de prescription : <b>analysisId</b> &nbsp;&nbsp;&nbsp; Créée le (aaaa-mm-jj) : <b></b></td>
+      </tr>
+    </table>
+  </div>
+  <div class="panel">
     <div class="panel-header"><b>Patient</b></div>
     <div class="panel-body">
-        <table>
-            <tr>
-                <td style="width: 20%">Nom Prénom : </td>
-                <td style="width: 30%"><b></b></td>
-                <td style="width: 50%" rowspan="9"><div class="patient-card">Carte du patient</div></td>
-            </tr>
-            <tr>
-                <td>Sexe : </td>
-                <td><b></b></td>
-            </tr>
-            <tr>
-                <td>DDN (aaaa-mm-jj) : </td>
-                <td><b></b></td>
-            </tr>
-            <tr>
-                <td>RAMQ : </td>
-                <td><b></b></td>
-            </tr>
-            <tr>
-                <td>Dossier : </td>
-                <td><b></b></td>
-            </tr>
-            <tr>
-                <td>Type de patient : </td>
-                <td><b class="type">Cas-index</b></td>
-            </tr>
-            <tr>
-                <td></td>
-            </tr>
-            <tr>
-                <td></td>
-            </tr>
-            <tr>
-                <td></td>
-            </tr>
-        </table>
-    </div>
-</div>    <table>
-    <tr>
-        <td style="width: 50%"><div class="panel panel-left">
-            <div class="panel-header"><b>Prescription</b></div>
-            <div class="panel-body fixed-height">
-                <table>
-                    <tr>
-                        <td style="width: 20%">Numéro de prescription : </td>
-                        <td style="width: 30%"><b>analysisId</b></td>
-                    </tr>
-                    <tr>
-                        <td>Créée le (aaaa-mm-jj) : </td>
-                        <td><b></b></td>
-                    </tr>
-                    <tr>
-                        <td>Analyse demandée : </td>
-                        <td rowspan="2"><b></b></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>Panel en réflexe : </td>
-                        <td rowspan="2"><b></b></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                    </tr>
-                </table>
-            </div>
-        </div></td>
-        <td style="width: 50%"><div class="panel panel-right">
-            <div class="panel-header"><b>Médecin prescripteur</b></div>
-            <div class="panel-body fixed-height">
-                <table>
-                    <tr>
-                        <td><b> </b></td>
-                    </tr>
-                    <tr>
-                        <td><b></b></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                    </tr>
-                </table>
-            </div>
-        </div></td>
-    </tr>
-</table>
-
-    <div class="panel">
-        <div class="panel-header"><b>À remplir par le centre / médecin qui effectuera le prélèvement</b></div>
-        <div class="panel-body">
-            <div class="block">
-                <div><b>Échantillons</b></div>
-                <div>
-                    <div class="box "></div>
-                    Nouveau prélèvement     &nbsp;&nbsp;&nbsp;
-                    <div class="box "></div>
-                    ADN déjà disponible au laboratoire. Numéro(s) d&#39;échantillon(s) (obligatoire) :
-                    <div style="width: 15%" class="underscored"></div>
-                </div>
-            </div>
-
-            <div class="block">
-                <div><b>Nature des échantillons : <span class="type">Postnatal</span></b></div>
-                <div>
-                    <div class="box "></div>
-                    Sang : 1ml EDTA (néonatal)        &nbsp;&nbsp;&nbsp;
-                    Nombre de tubes :
-                    <div style="width: 10%" class="underscored"></div>
-                </div>
-                <div>
-                    <div class="box "></div>
-                    Sang : 2ml EDTA        &nbsp;&nbsp;&nbsp;
-                    Nombre de tubes :
-                    <div style="width: 10%" class="underscored"></div>
-                </div>
-                <div>
-                    <div class="box "></div>
-                    Sang : 5ml EDTA        &nbsp;&nbsp;&nbsp;
-                    Nombre de tubes :
-                    <div style="width: 10%" class="underscored"></div>
-                </div>
-                <div>
-                    <div class="box "></div>
-                    Autre type d&#39;échantillon :      <div style="width: 25%" class="underscored"></div>
-                </div>
-                <div>
-                    Commentaire :      <div style="width: 75%" class="underscored"></div>
-                </div>
-            </div>
-
-            <div class="block">
-                <div><b>Consentement du patient</b></div>
-                <div>
-                    <div class="box "></div>
-                    Je confirme que le patient ou son tuteur légal a signé le formulaire de consentement pour cette demande d’analyse                </div>
-                <div>
-                    <div class="box hidden"></div>
-                    <i>Note : aucune analyse ne sera effectuée avant la réception du formluaire de consentement dùment signé</i>
-                </div>
-            </div>
-            <div>
-                Signature du médecin prescripteur :      <div style="width: 25%" class="underscored"></div>
-            </div>
-        </div>
-    </div>    <div class="panel">
-    <div class="panel-header"><b>À remplir par le centre de prélèvement</b></div>
-    <div class="panel-body">
-        <div>
-            Centre de prélèvement :      <div style="width: 75%" class="underscored"></div>
-        </div>
-        <div>
-            Prélèvement fait par :      <div style="width: 75%" class="underscored"></div>
-        </div>
-        <div>
-            Date du prélèvement (aaaa-mm-jj) :      <div style="width: 20%" class="underscored"></div>
-            Heure du prélèvement (hh:mm) :      <div style="width: 20%" class="underscored"></div>
-        </div>
-    </div>
-</div>
-    <div class="panel">
-        <div class="panel-header"><b>Laboratoire de diagnostic moléculaire assigné à cette requête</b></div>
-        <div class="panel-body">
-            <table>
-                <tr>
-                    <td><b></b></td>
-                </tr>
-                <tr>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td>Téléphone : </td>
-                </tr>
-                <tr>
-                    <td>Fax : </td>
-                </tr>
-            </table>
-        </div>
-    </div>
-    <table>
+      <table>
         <tr>
-            <td style="width: 50%">Version 1.0 &nbsp; Date : 0000-00-00</td>
-            <td style="width: 50%" class="right">Page 1 de 1</td>
+          <td class="col-left">Nom Prénom : </td>
+          <td style="width: 29%"><b></b></td>
+          <td style="width: 50%" rowspan="9"><div class="patient-card">Carte du patient</div></td>
         </tr>
-    </table>  </div>
+        <tr>
+          <td>Sexe : </td>
+          <td><b></b></td>
+        </tr>
+        <tr>
+          <td>DDN (aaaa-mm-jj) : </td>
+          <td><b></b></td>
+        </tr>
+        <tr>
+          <td>RAMQ : </td>
+          <td><b></b></td>
+        </tr>
+        <tr>
+          <td>Dossier : </td>
+          <td><b></b></td>
+        </tr>
+        <tr>
+          <td>Type de patient : </td>
+          <td><b class="type">Cas-index</b></td>
+        </tr>
+        <tr>
+          <td></td>
+        </tr>
+        <tr>
+          <td></td>
+        </tr>
+        <tr>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><b>Analyse d&#39;Exome</b></div>
+    <div class="panel-body bottom-border">
+      <table>
+        <tr>
+          <td class="col-left">Analyse demandée : </td>
+          <td><b></b></td>
+        </tr>
+        <tr>
+          <td>Panel en réflexe : </td>
+          <td><b></b></td>
+        </tr>
+      </table>
+    </div>
+    <div class="panel-body bottom-border">
+      <table class="collapsable">
+        <tr>
+          <td class="col-left">Médecin prescripteur : </td>
+          <td><b> </b></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td><b></b></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+    <div class="panel-body">
+      <table>
+        <tr>
+          <td class="col-left">Commentaire : </td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><b>Information clinique</b></div>
+    <div class="panel-body bottom-border">
+      <table>
+        <tr>
+          <td class="col-left">Signes observés : </td>
+          <td>
+          </td>
+        </tr>
+        <tr>
+          <td>Signes non observés : </td>
+          <td>
+          </td>
+        </tr>
+        <tr>
+          <td>Remarque : </td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+    <div class="panel-body bottom-border">
+      <table>
+      </table>
+    </div>
+    <div class="panel-body">
+      <table>
+        <tr>
+          <td class="col-left">Historique familiale : </td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Présence de consanguinité : </td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Ethnicité : </td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Hypothèse diagnostique : </td>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <table>
+    <tr>
+      <td style="width: 50%"></td>
+      <td style="width: 50%" class="right">Page 1 de 1</td>
+    </tr>
+  </table>
+</div>
+<div class="pagebreak"> </div>
+<div class="page">
+  <div class="header">
+    <table>
+      <tr>
+        <td class="title"><b>Réseau québécois de diagnostic moléculaire</b> - Requête postnatale</td>
+        <td class="barcode" rowspan="2"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALEAAAAyAQAAAAA7dgceAAAALUlEQVR4XmP4me+cuXfhhiv3qu7NPm2bs+fd3gnrCv0bGEbFR8VHxUfFB5k4AILCwl9UKoAxAAAAAElFTkSuQmCC"/><br/>sequencingId</td>
+      </tr>
+      <tr>
+        <td>Numéro de requête : <b>sequencingId</b> &nbsp;&nbsp;&nbsp; Créée le (aaaa-mm-jj) : <b></b></td>
+      </tr>
+    </table>
+  </div>
+  <div class="panel">
+    <div class="panel-header"><b>Patient</b></div>
+    <div class="panel-body">
+      <table>
+        <tr>
+          <td class="col-left">Nom Prénom : </td>
+          <td style="width: 29%"><b></b></td>
+          <td style="width: 50%" rowspan="9"><div class="patient-card">Carte du patient</div></td>
+        </tr>
+        <tr>
+          <td>Sexe : </td>
+          <td><b></b></td>
+        </tr>
+        <tr>
+          <td>DDN (aaaa-mm-jj) : </td>
+          <td><b></b></td>
+        </tr>
+        <tr>
+          <td>RAMQ : </td>
+          <td><b></b></td>
+        </tr>
+        <tr>
+          <td>Dossier : </td>
+          <td><b></b></td>
+        </tr>
+        <tr>
+          <td>Type de patient : </td>
+          <td><b class="type">Cas-index</b></td>
+        </tr>
+        <tr>
+          <td></td>
+        </tr>
+        <tr>
+          <td></td>
+        </tr>
+        <tr>
+          <td></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <table>
+    <tr>
+      <td style="width: 50%"><div class="panel panel-left">
+        <div class="panel-header"><b>Prescription</b></div>
+        <div class="panel-body fixed-height">
+          <table>
+            <tr>
+              <td class="col-left">Numéro de prescription : </td>
+              <td style="width: 29%"><b>analysisId</b></td>
+            </tr>
+            <tr>
+              <td>Créée le (aaaa-mm-jj) : </td>
+              <td><b></b></td>
+            </tr>
+            <tr>
+              <td>Analyse demandée : </td>
+              <td rowspan="2"><b></b></td>
+            </tr>
+            <tr>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Panel en réflexe : </td>
+              <td rowspan="2"><b></b></td>
+            </tr>
+            <tr>
+              <td></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      </td>
+      <td style="width: 50%"><div class="panel panel-right">
+        <div class="panel-header"><b>Médecin prescripteur</b></div>
+        <div class="panel-body fixed-height">
+          <table class="collapsable">
+            <tr>
+              <td><b> </b></td>
+            </tr>
+            <tr>
+              <td><b></b></td>
+            </tr>
+            <tr>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+            </tr>
+            <tr>
+              <td></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="panel">
+    <div class="panel-header"><b>À remplir par le centre / médecin qui effectuera le prélèvement</b></div>
+    <div class="panel-body">
+      <div class="block">
+        <div><b>Échantillons</b></div>
+        <div>
+          <div class="box "></div>
+          Nouveau prélèvement     &nbsp;&nbsp;&nbsp;
+          <div class="box "></div>
+          ADN déjà disponible au laboratoire. Numéro(s) d&#39;échantillon(s) (obligatoire) :
+          <div style="width: 15%" class="underscored"></div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div><b>Nature des échantillons : <span class="type">Postnatal</span></b></div>
+        <div>
+          <div class="box "></div>
+          Sang : 1ml EDTA (néonatal)        &nbsp;&nbsp;&nbsp;
+          Nombre de tubes :
+          <div style="width: 10%" class="underscored"></div>
+        </div>
+        <div>
+          <div class="box "></div>
+          Sang : 2ml EDTA        &nbsp;&nbsp;&nbsp;
+          Nombre de tubes :
+          <div style="width: 10%" class="underscored"></div>
+        </div>
+        <div>
+          <div class="box "></div>
+          Sang : 5ml EDTA        &nbsp;&nbsp;&nbsp;
+          Nombre de tubes :
+          <div style="width: 10%" class="underscored"></div>
+        </div>
+        <div>
+          <div class="box "></div>
+          Autre type d&#39;échantillon :      <div style="width: 25%" class="underscored"></div>
+        </div>
+        <div>
+          Commentaire :      <div style="width: 75%" class="underscored"></div>
+        </div>
+      </div>
+
+      <div class="block">
+        <div><b>Consentement du patient</b></div>
+        <div>
+          <div class="box "></div>
+          Je confirme que le patient ou son tuteur légal a signé le formulaire de consentement pour cette demande d’analyse                </div>
+        <div>
+          <div class="box hidden"></div>
+          <i>Note : aucune analyse ne sera effectuée avant la réception du formluaire de consentement dùment signé</i>
+        </div>
+      </div>
+      <div>
+        Signature du médecin prescripteur :      <div style="width: 25%" class="underscored"></div>
+      </div>
+    </div>
+  </div>    <div class="panel">
+  <div class="panel-header"><b>À remplir par le centre de prélèvement</b></div>
+  <div class="panel-body">
+    <div>
+      Centre de prélèvement :      <div style="width: 75%" class="underscored"></div>
+    </div>
+    <div>
+      Prélèvement fait par :      <div style="width: 75%" class="underscored"></div>
+    </div>
+    <div>
+      Date du prélèvement (aaaa-mm-jj) :      <div style="width: 20%" class="underscored"></div>
+      Heure du prélèvement (hh:mm) :      <div style="width: 20%" class="underscored"></div>
+    </div>
+  </div>
+</div>
+  <div class="panel">
+    <div class="panel-header"><b>Laboratoire de diagnostic moléculaire assigné à cette requête</b></div>
+    <div class="panel-body">
+      <table>
+        <tr>
+          <td><b></b></td>
+        </tr>
+        <tr>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Téléphone : </td>
+        </tr>
+        <tr>
+          <td>Fax : </td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <table>
+    <tr>
+      <td style="width: 50%">Version 1.0 &nbsp; Date : 0000-00-00</td>
+      <td style="width: 50%" class="right">Page 1 de 1</td>
+    </tr>
+  </table>
+</div>
 </body>
 </html>

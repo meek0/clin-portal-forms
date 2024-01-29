@@ -1,11 +1,14 @@
+{% set id = serviceRequest.getIdElement().getIdPart() %}
+{% set authoredOn = mapper.formatDate(serviceRequest.authoredOn) %}
+{% set idBarcodeBase64 = mapper.mapToBarcodeBase64(id) %}
 <div class="header">
   <table>
     <tr>
-      <td class="title"><b>{{ i18n("messages", "header_title_1")}}</b> - {{ i18n("messages", "header_title_2")}}</td>
-       <td class="barcode" rowspan="2"><img src="data:image/png;base64,{{ idBarcodeBase64 }}"/><br/>{{ sequencingId }}</td>
+      <td class="title"><b>{{ i18n("messages", "header_title")}}</b> - {{ i18n("messages", "header_title_" + type)}}</td>
+       <td class="barcode" rowspan="2"><img src="data:image/png;base64,{{ idBarcodeBase64 }}"/><br/>{{ id }}</td>
     </tr>
     <tr>
-      <td>{{ i18n("messages","request_number") }} : <b>{{sequencingId}}</b> &nbsp;&nbsp;&nbsp; {{ i18n("messages","created") }} : <b>{{mapper.formatDate(analysis.authoredOn)}}</b></td>
+      <td>{{ i18n("messages","header_number_" + type) }} : <b>{{id}}</b> &nbsp;&nbsp;&nbsp; {{ i18n("messages","created") }} : <b>{{authoredOn}}</b></td>
     </tr>
   </table>
 </div>

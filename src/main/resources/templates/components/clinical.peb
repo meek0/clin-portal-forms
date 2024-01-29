@@ -1,0 +1,64 @@
+<div class="panel">
+    <div class="panel-header"><b>{{ i18n("messages", "clinical_title") }}</b></div>
+    <div class="panel-body bottom-border">
+        <table>
+             <tr>
+                <td class="col-left">{{ i18n("messages", "clinical_observed") }} : </td>
+                <td>
+                {% for sign in mapper.mapToSigns(probandObservations, "PHEN", "POS") %}
+                    {{ sign }}<br/>
+                {% endfor %}
+                </td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "clinical_not_observed") }} : </td>
+                <td>
+                {% for sign in mapper.mapToSigns(probandObservations, "PHEN", "NEG") %}
+                    {{ sign }}<br/>
+                {% endfor %}
+                </td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "clinical_comment") }} : </td>
+                <td>{{ mapper.mapToSign(probandObservations, "OBSG", "") }}</td>
+            </tr>
+        </table>
+    </div>
+    <div class="panel-body bottom-border">
+        <table>
+            {% for exam in mapper.mapToExams(probandObservations) %}
+             <tr colspan="2">
+                <td class="col-left">{{ exam.name }}</td>
+                <td>{{ exam.comment }}</td>
+            </tr>
+            {% endfor %}
+            {% set inves = mapper.mapToSign(probandObservations, "INVES", "") %}
+            {% if inves|length > 0 %}
+            <tr colspan="2">
+                <td>{{ i18n("messages", "clinical_investigation") }} : </td>
+                <td>{{ inves }}</td>
+            </tr>
+            {% endif %}
+        </table>
+    </div>
+     <div class="panel-body">
+        <table>
+             <tr>
+                <td class="col-left">{{ i18n("messages", "clinical_family_history") }} : </td>
+                <td>{{ mapper.mapToFamilyHistory(probandFamilyHistories) }}</td>
+            </tr>
+            <tr>
+               <td>{{ i18n("messages", "clinical_inbreeding") }} : </td>
+               <td>{{ mapper.mapToSign(probandObservations, "CONS", "") }}</td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "clinical_ethnicity") }} : </td>
+                <td>{{ mapper.mapToEthnicity(probandObservations) }}</td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "clinical_hypothesis") }} : </td>
+                <td>{{ mapper.mapToSign(probandObservations, "INDIC", "") }}</td>
+            </tr>
+        </table>
+    </div>
+</div>

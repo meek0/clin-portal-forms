@@ -1,10 +1,18 @@
 {% extends "layouts/base" %}
 
-{% block title %}{{ sequencingId }}{% endblock %}
+{% block title %}{{ analysis.getIdElement().getIdPart() }}{% endblock %}
 
-{% block content %}
-    {% include "components/header" %}
-    {% include "components/patient" %}
+{% block page1 %}
+    {% include "components/header" with {"type": "analysis", "serviceRequest": analysis} %}
+    {% include "components/patient" with {"patient" : probandPatient, "person": probandPerson} %}
+    {% include "components/analysis" %}
+    {% include "components/clinical" %}
+    {% include "components/footer" with {"withVersion": false, "page": "1", "total": "1"} %}
+{% endblock %}
+
+{% block page2 %}
+    {% include "components/header" with {"type": "sequencing", "serviceRequest": probandSequencing} %}
+    {% include "components/patient" with {"patient" : probandPatient, "person": probandPerson} %}
     <table>
         <tr>
             <td style="width: 50%">{% include "components/prescription" %}</td>
@@ -13,5 +21,5 @@
     </table>
     {% include "components/samples" %}
     {% include "components/performer" %}
-    {% include "components/footer" with {"page": "1", "total": "1"} %}
+    {% include "components/footer" with {"withVersion": true, "page": "1", "total": "1"} %}
 {% endblock %}
