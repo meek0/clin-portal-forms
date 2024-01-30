@@ -10,6 +10,7 @@ import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -33,6 +34,7 @@ public class CodesValuesService {
   private final FhirClient fhirClient;
   private final FhirConfiguration fhirConfiguration;
   private final LogOnceService logOnceService;
+  private final ApplicationContext applicationContext;
 
   @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true, keyGenerator = "customKeyGenerator")
   public CodeSystem getCodes(String key) {
@@ -46,7 +48,7 @@ public class CodesValuesService {
 
   public Object getHPOByCode(String code) {
     final List<ValueSet> hpByTypes = fhirConfiguration.getTypesWithDefault().stream()
-      .map(t -> getValues(t + CodesValuesService.HP_BY_TYPE_SUFFIX)).toList();
+      .map(t -> getSelf().getValues(t + CodesValuesService.HP_BY_TYPE_SUFFIX)).toList();
     for(ValueSet hpByType: hpByTypes) {
       for(var concept : hpByType.getCompose().getIncludeFirstRep().getConcept()) {
         if (concept.getCode().equals(code)) {
@@ -58,7 +60,7 @@ public class CodesValuesService {
   }
 
   public CodeSystem.ConceptDefinitionComponent getValueByKeyCode(String key, String code) {
-    var all = getCodes(key);
+    var all = getSelf().getCodes(key);
     if (all != null) {
       for (var concept : all.getConcept()) {
         if (concept.getCode().equals(code)) {
@@ -116,6 +118,13 @@ public class CodesValuesService {
         }
       }
     }
+  }
+
+  // use to internally trigger @Cacheable annotations when called from inside this class
+  // otherwise spring-boot ignore them and we don't want that for perf purpose.
+  // https://stackoverflow.com/questions/62871107/spring-cachable-method-within-the-same-class-self-invocation-proxy-issue-w
+  private CodesValuesService getSelf() {
+    return applicationContext.getBean(CodesValuesService.class);
   }
 
 }
