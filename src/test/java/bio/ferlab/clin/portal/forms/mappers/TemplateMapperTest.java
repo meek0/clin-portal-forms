@@ -15,14 +15,12 @@ import java.util.Locale;
 
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_EN;
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_FR;
-import static bio.ferlab.clin.portal.forms.utils.FhirConst.AGE_AT_ONSET_EXT;
-import static bio.ferlab.clin.portal.forms.utils.FhirConst.ANALYSIS_REQUEST_CODE;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class TemplateMapperTest {
 
@@ -339,4 +337,59 @@ class TemplateMapperTest {
     role.addCode(new CodeableConcept().addCoding(new Coding().setCode("405277009")));
     assertEquals("(role)", mapper.mapToRole(role));
   }
+
+  @Test
+  void mapToMissingReason() {
+    var o0 = new Observation();
+
+    var o1 = new Observation();
+    o1.getCategoryFirstRep().getCodingFirstRep().setCode("social-history");
+    o1.getValueCodeableConcept().getCodingFirstRep().setSystem(SYSTEM_MISSING_PARENT);
+    o1.getNoteFirstRep().setText("foo");
+
+    var all = List.of(o0, o1);
+
+    assertEquals("", mapper.mapToMissingReason(null));
+    assertEquals("foo", mapper.mapToMissingReason(all));
+  }
+
+  @Test
+  void mapToAffected() {
+    var o0 = new Observation();
+
+    var o1 = new Observation();
+    o1.getCode().getCodingFirstRep().setCode("DSTA");
+    o1.getInterpretationFirstRep().getCodingFirstRep().setCode("POS");
+    o1.setValue(new CodeableConcept());
+    o1.getValueCodeableConcept().getCodingFirstRep().setCode("SIGN1");
+
+    var o2 = new Observation();
+    o2.getCode().getCodingFirstRep().setCode("DSTA");
+    o2.getInterpretationFirstRep().getCodingFirstRep().setCode("NEG");
+    o2.setValue(new CodeableConcept());
+    o2.getValueCodeableConcept().getCodingFirstRep().setCode("SIGN2");
+
+    when(messagesService.get(eq("clinical_status_affected"), eq("fr"))).thenReturn("aff");
+    when(messagesService.get(eq("clinical_status_not_affected"), eq("fr"))).thenReturn("not_aff");
+
+    assertEquals("", mapper.mapToAffected(null));
+    assertEquals("", mapper.mapToAffected(List.of(o0)));
+    assertEquals("aff", mapper.mapToAffected(List.of(o1)));
+    assertEquals("not_aff", mapper.mapToAffected(List.of(o2)));
+  }
+
+  @Test
+  void mapToRelation() {
+
+    assertEquals("", mapper.mapToRelation(null));
+    assertEquals("MTH", mapper.mapToRelation("MTH"));
+
+    var value = new ValueSet.ConceptReferenceComponent();
+    value.getDesignationFirstRep().setLanguage("fr").setValue("Mother_fr");
+    when(codesValuesService.getValueSetByKeyCode(any(), any())).thenReturn(value);
+
+    assertEquals("Mother_fr", mapper.mapToRelation("MTH"));
+    verify(codesValuesService, times(2)).getValueSetByKeyCode(eq(CodesValuesService.RELATION_KEY), eq("MTH"));
+  }
+
 }

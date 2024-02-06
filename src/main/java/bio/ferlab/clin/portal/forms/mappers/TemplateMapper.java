@@ -170,8 +170,8 @@ public class TemplateMapper {
   public String mapToMissingReason(List<Observation> obs) {
     try {
       var reason = obs.stream()
-        .filter(o -> o.getCategoryFirstRep().getCodingFirstRep().getCode().equals("social-history"))
-        .filter(o -> o.getValueCodeableConcept().getCodingFirstRep().getSystem().equals(SYSTEM_MISSING_PARENT))
+        .filter(o -> "social-history".equals(o.getCategoryFirstRep().getCodingFirstRep().getCode()))
+        .filter(o -> SYSTEM_MISSING_PARENT.equals(o.getValueCodeableConcept().getCodingFirstRep().getSystem()))
         .findFirst();
       return reason.map(o -> o.getNoteFirstRep().getText())
         .filter(StringUtils::isNotBlank).orElse(EMPTY);
@@ -184,8 +184,8 @@ public class TemplateMapper {
     var signs = new ArrayList<String>();
     try {
       var filtered = obs.stream()
-        .filter(o -> o.getCode().getCodingFirstRep().getCode().equals(code))
-        .filter(o -> StringUtils.isBlank(interpretation) || o.getInterpretationFirstRep().getCodingFirstRep().getCode().equals(interpretation))
+        .filter(o -> code.equals(o.getCode().getCodingFirstRep().getCode()))
+        .filter(o -> StringUtils.isBlank(interpretation) || interpretation.equals(o.getInterpretationFirstRep().getCodingFirstRep().getCode()))
         .toList();
       for (var sign: filtered) {
         var signCode = sign.getValue();
@@ -243,7 +243,7 @@ public class TemplateMapper {
     var exams = new ArrayList<Exam>();
     try {
       var filtered = obs.stream()
-        .filter(o -> o.getCategoryFirstRep().getCodingFirstRep().getCode().equals("procedure")).toList();
+        .filter(o -> "procedure".equals(o.getCategoryFirstRep().getCodingFirstRep().getCode())).toList();
       for (var exam: filtered) {
         var code = exam.getCode().getCodingFirstRep().getCode();
         var name = codesValuesService.getCodeSystemByKeyCode(CodesValuesService.OBSERVATION_KEY, code);
@@ -313,7 +313,7 @@ public class TemplateMapper {
     if (relationValue != null) {
       return FhirToConfigMapper.getDisplayForLang(relationValue, getLang());
     } else {
-      return relation;
+      return StringUtils.isBlank(relation) ? EMPTY : relation;
     }
   }
 
