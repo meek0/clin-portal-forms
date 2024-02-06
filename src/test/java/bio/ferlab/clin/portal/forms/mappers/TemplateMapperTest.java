@@ -121,12 +121,12 @@ class TemplateMapperTest {
 
     var ethCode = new CodeSystem.ConceptDefinitionComponent();
     ethCode.setCode("ETH_VALUE").getDesignationFirstRep().setLanguage("fr").setValue("eth FR");
-    when(codesValuesService.getValueByKeyCode(eq(CodesValuesService.ETHNICITY_KEY), any())).thenReturn(ethCode);
+    when(codesValuesService.getCodeSystemByKeyCode(eq(CodesValuesService.ETHNICITY_KEY), any())).thenReturn(ethCode);
 
     var all = List.of(o1, o2);
 
     assertEquals("eth FR", mapper.mapToEthnicity(all));
-    verify(codesValuesService).getValueByKeyCode(eq(CodesValuesService.ETHNICITY_KEY), eq("ETH_VALUE"));
+    verify(codesValuesService).getCodeSystemByKeyCode(eq(CodesValuesService.ETHNICITY_KEY), eq("ETH_VALUE"));
   }
 
   @Test
@@ -136,7 +136,7 @@ class TemplateMapperTest {
     o2.setValue(new CodeableConcept());
     o2.getValueCodeableConcept().getCodingFirstRep().setCode("ETH_VALUE");
 
-    when(codesValuesService.getValueByKeyCode(eq(CodesValuesService.ETHNICITY_KEY), any())).thenReturn(null);
+    when(codesValuesService.getCodeSystemByKeyCode(eq(CodesValuesService.ETHNICITY_KEY), any())).thenReturn(null);
 
     var all = List.of(o2);
 
@@ -152,7 +152,7 @@ class TemplateMapperTest {
 
     var code1 = new CodeSystem.ConceptDefinitionComponent();
     code1.setCode("code1").getDesignationFirstRep().setLanguage("fr").setValue("code1 FR");
-    when(codesValuesService.getValueByKeyCode(eq(CodesValuesService.OBSERVATION_KEY), eq("code1"))).thenReturn(code1);
+    when(codesValuesService.getCodeSystemByKeyCode(eq(CodesValuesService.OBSERVATION_KEY), eq("code1"))).thenReturn(code1);
     when(messagesService.get(eq("interpretation_A"), eq("fr"))).thenReturn("Abnormal");
 
     var o1Values = new CodeableConcept();
@@ -165,6 +165,7 @@ class TemplateMapperTest {
     var o2 = new Observation();
     o2.getCode().getCodingFirstRep().setCode("code2");
     o2.getCategoryFirstRep().getCodingFirstRep().setCode("procedure");
+    o2.addInterpretation(new CodeableConcept(new Coding().setCode("A")));
     var o2Values = new StringType("o2value");
     o2.setValue(o2Values);
 
@@ -176,7 +177,7 @@ class TemplateMapperTest {
 
     var all = List.of(o1,o2,o3);
 
-    assertEquals("[Exam[name=code1 FR, comment=Abnormal : o1 value1 FR UI/L], Exam[name=code2, comment= : o2value], Exam[name=, comment=]]", mapper.mapToExams(all).toString());
+    assertEquals("[Exam[name=code1 FR, comment=Abnormal : o1 value1 FR], Exam[name=code2, comment=Abnormal : o2value UI/L], Exam[name=, comment=]]", mapper.mapToExams(all).toString());
   }
 
   @Test
@@ -186,12 +187,12 @@ class TemplateMapperTest {
     fm1.getRelationship().getCodingFirstRep().setCode("fm1_code");
     var code1 = new CodeSystem.ConceptDefinitionComponent();
     code1.setCode("code1").getDesignationFirstRep().setLanguage("fr").setValue("code1 FR");
-    when(codesValuesService.getValueByKeyCode(eq(CodesValuesService.PARENTAL_KEY), eq("fm1_code"))).thenReturn(code1);
+    when(codesValuesService.getCodeSystemByKeyCode(eq(CodesValuesService.PARENTAL_KEY), eq("fm1_code"))).thenReturn(code1);
 
     var fm2 = new FamilyMemberHistory();
     fm2.getNoteFirstRep().setText("fm2 text");
     fm2.getRelationship().getCodingFirstRep().setCode("fm2_code");
-    when(codesValuesService.getValueByKeyCode(eq(CodesValuesService.PARENTAL_KEY), eq("fm2_code"))).thenReturn(null);
+    when(codesValuesService.getCodeSystemByKeyCode(eq(CodesValuesService.PARENTAL_KEY), eq("fm2_code"))).thenReturn(null);
 
     var fm3 = new FamilyMemberHistory();
 

@@ -1,64 +1,96 @@
-<div class="panel">
-    <div class="panel-header"><b>{{ i18n("messages", "clinical_title") }}</b></div>
-    <div class="panel-body bottom-border">
-        <table>
-             <tr>
-                <td class="col-left">{{ i18n("messages", "clinical_observed") }} : </td>
-                <td>
-                {% for sign in mapper.mapToSigns(probandObservations, "PHEN", "POS") %}
-                    {{ sign }}<br/>
-                {% endfor %}
-                </td>
-            </tr>
-            <tr>
-                <td>{{ i18n("messages", "clinical_not_observed") }} : </td>
-                <td>
-                {% for sign in mapper.mapToSigns(probandObservations, "PHEN", "NEG") %}
-                    {{ sign }}<br/>
-                {% endfor %}
-                </td>
-            </tr>
-            <tr>
-                <td>{{ i18n("messages", "clinical_comment") }} : </td>
-                <td>{{ mapper.mapToSign(probandObservations, "OBSG", "") }}</td>
-            </tr>
-        </table>
-    </div>
-    <div class="panel-body bottom-border">
-        <table>
-            {% for exam in mapper.mapToExams(probandObservations) %}
-            <tr colspan="2">
-                <td class="col-left">{{ exam.name }} : </td>
-                <td>{{ exam.comment }}</td>
-            </tr>
+{% set affected = mapper.mapToAffected(obs) %}
+{% set observed = mapper.mapToSigns(obs, "PHEN", "POS") %}
+{% set not_observed = mapper.mapToSigns(obs, "PHEN", "NEG") %}
+{% set observation =  mapper.mapToSign(obs, "OBSG", "") %}
+{% if (showAffected and affected is not empty) or observed is not empty or not_observed is not empty or observation is not empty or missingReason is not empty%}
+<div class="panel-body bottom-border">
+    <table>
+        {% if showAffected and affected is not empty %}
+         <tr>
+            <td class="col-left">{{ i18n("messages", "clinical_affected") }} : </td>
+            <td>{{ affected }}</td>
+        </tr>
+        {% endif %}
+        {% if observed is not empty %}
+         <tr>
+            <td class="col-left">{{ i18n("messages", "clinical_observed") }} : </td>
+            <td>
+            {% for sign in observed %}
+                {{ sign }}<br/>
             {% endfor %}
-            {% set inves = mapper.mapToSign(probandObservations, "INVES", "") %}
-            {% if inves|length > 0 %}
-            <tr colspan="2">
-                <td>{{ i18n("messages", "clinical_investigation") }} : </td>
-                <td>{{ inves }}</td>
-            </tr>
-            {% endif %}
-        </table>
-    </div>
-     <div class="panel-body">
-        <table>
-             <tr>
-                <td class="col-left">{{ i18n("messages", "clinical_family_history") }} : </td>
-                <td>{{ mapper.mapToFamilyHistory(probandFamilyHistories) }}</td>
-            </tr>
-            <tr>
-               <td>{{ i18n("messages", "clinical_inbreeding") }} : </td>
-               <td>{{ mapper.mapToSign(probandObservations, "CONS", "") }}</td>
-            </tr>
-            <tr>
-                <td>{{ i18n("messages", "clinical_ethnicity") }} : </td>
-                <td>{{ mapper.mapToEthnicity(probandObservations) }}</td>
-            </tr>
-            <tr>
-                <td>{{ i18n("messages", "clinical_hypothesis") }} : </td>
-                <td>{{ mapper.mapToSign(probandObservations, "INDIC", "") }}</td>
-            </tr>
-        </table>
-    </div>
+            </td>
+        </tr>
+        {% endif %}
+        {% if not_observed is not empty %}
+        <tr>
+            <td class="col-left">{{ i18n("messages", "clinical_not_observed") }} : </td>
+            <td>
+            {% for sign in not_observed %}
+                {{ sign }}<br/>
+            {% endfor %}
+            </td>
+        </tr>
+        {% endif %}
+        {% if observation is not empty %}
+        <tr>
+            <td class="col-left">{{ i18n("messages", "clinical_comment") }} : </td>
+            <td>{{ observation }}</td>
+        </tr>
+        {% endif %}
+    </table>
 </div>
+{% endif %}
+{% set exams = mapper.mapToExams(obs) %}
+{% set inves = mapper.mapToSign(obs, "INVES", "") %}
+{% if exams is not empty or inves is not empty %}
+<div class="panel-body bottom-border">
+    <table>
+        {% for exam in exams %}
+        <tr colspan="2">
+            <td class="col-left">{{ exam.name }} : </td>
+            <td>{{ exam.comment }}</td>
+        </tr>
+        {% endfor %}
+        {% if inves is not empty %}
+        <tr colspan="2">
+            <td class="col-left">{{ i18n("messages", "clinical_investigation") }} : </td>
+            <td>{{ inves }}</td>
+        </tr>
+        {% endif %}
+    </table>
+</div>
+{% endif %}
+{% set history =  mapper.mapToFamilyHistory(familyHistories) %}
+{% set inbreeding =  mapper.mapToSign(obs, "CONS", "") %}
+{% set ethnicity =  mapper.mapToEthnicity(obs) %}
+{% set hypothesis =  mapper.mapToSign(obs, "INDIC", "") %}
+{% if history is not empty or inbreeding is not empty or ethnicity is not empty or hypothesis is not empty %}
+ <div class="panel-body">
+    <table>
+        {% if history is not empty %}
+         <tr>
+            <td class="col-left">{{ i18n("messages", "clinical_family_history") }} : </td>
+            <td>{{ history }}</td>
+        </tr>
+        {% endif %}
+        {% if inbreeding is not empty %}
+        <tr>
+           <td class="col-left">{{ i18n("messages", "clinical_inbreeding") }} : </td>
+           <td>{{ inbreeding }}</td>
+        </tr>
+        {% endif %}
+        {% if ethnicity is not empty %}
+        <tr>
+            <td class="col-left">{{ i18n("messages", "clinical_ethnicity") }} : </td>
+            <td>{{ ethnicity }}</td>
+        </tr>
+        {% endif %}
+        {% if hypothesis is not empty %}
+        <tr>
+            <td class="col-left">{{ i18n("messages", "clinical_hypothesis") }} : </td>
+            <td>{{ hypothesis }}</td>
+        </tr>
+        {% endif %}
+    </table>
+</div>
+{% endif %}

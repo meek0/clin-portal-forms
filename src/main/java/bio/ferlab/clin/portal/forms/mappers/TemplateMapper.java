@@ -167,6 +167,19 @@ public class TemplateMapper {
     }
   }
 
+  public String mapToMissingReason(List<Observation> obs) {
+    try {
+      var reason = obs.stream()
+        .filter(o -> o.getCategoryFirstRep().getCodingFirstRep().getCode().equals("social-history"))
+        .filter(o -> o.getValueCodeableConcept().getCodingFirstRep().getSystem().equals(SYSTEM_MISSING_PARENT))
+        .findFirst();
+      return reason.map(o -> o.getNoteFirstRep().getText())
+        .filter(StringUtils::isNotBlank).orElse(EMPTY);
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
   public List<String> mapToSigns(List<Observation> obs, String code, String interpretation) {
     var signs = new ArrayList<String>();
     try {
@@ -203,12 +216,22 @@ public class TemplateMapper {
 
   public String mapToSign(List<Observation> obs, String code, String interpretation) {
     var signs = mapToSigns(obs, code, interpretation);
-    return signs.isEmpty() ? EMPTY : signs.get(0);
+    return signs.isEmpty() ? EMPTY : StringUtils.isNotBlank(signs.get(0)) ? signs.get(0): EMPTY;
+  }
+
+  public String mapToAffected(List<Observation> obs) {
+    var isAffected = mapToSign(obs, "DSTA", "POS");
+    var notAffected = mapToSign(obs, "DSTA", "NEG");
+    if (StringUtils.isNotBlank(isAffected))
+      return i18n("clinical_status_affected");
+    if (StringUtils.isNotBlank(notAffected))
+      return i18n("clinical_status_not_affected");
+    return EMPTY;
   }
 
   public String mapToEthnicity(List<Observation> obs) {
     var code = mapToSign(obs, "ETHN", "").replace("(","").replace(")", "").trim();
-    var eth = codesValuesService.getValueByKeyCode(CodesValuesService.ETHNICITY_KEY, code);
+    var eth = codesValuesService.getCodeSystemByKeyCode(CodesValuesService.ETHNICITY_KEY, code);
     if (eth != null) {
       return FhirToConfigMapper.getDisplayForLang(eth, getLang());
     } else {
@@ -223,7 +246,7 @@ public class TemplateMapper {
         .filter(o -> o.getCategoryFirstRep().getCodingFirstRep().getCode().equals("procedure")).toList();
       for (var exam: filtered) {
         var code = exam.getCode().getCodingFirstRep().getCode();
-        var name = codesValuesService.getValueByKeyCode(CodesValuesService.OBSERVATION_KEY, code);
+        var name = codesValuesService.getCodeSystemByKeyCode(CodesValuesService.OBSERVATION_KEY, code);
 
         String examName = name != null ? FhirToConfigMapper.getDisplayForLang(name, getLang()) : code != null ? code: EMPTY;
         String examComment = EMPTY;
@@ -268,7 +291,7 @@ public class TemplateMapper {
       for(var history: histories) {
         String str = history.getNoteFirstRep().getText();
         var code = history.getRelationship().getCodingFirstRep().getCode();
-        var value = codesValuesService.getValueByKeyCode(CodesValuesService.PARENTAL_KEY, code);
+        var value = codesValuesService.getCodeSystemByKeyCode(CodesValuesService.PARENTAL_KEY, code);
         if (code != null) {
           if (value != null) {
             var name = FhirToConfigMapper.getDisplayForLang(value, getLang());
@@ -283,6 +306,15 @@ public class TemplateMapper {
       this.handleError(e);
     }
     return StringUtils.join(all, ", ");
+  }
+
+  public String mapToRelation(String relation) {
+    var relationValue = codesValuesService.getValueSetByKeyCode(CodesValuesService.RELATION_KEY, relation);
+    if (relationValue != null) {
+      return FhirToConfigMapper.getDisplayForLang(relationValue, getLang());
+    } else {
+      return relation;
+    }
   }
 
   private String mapToI18nAgeAtOnset(Observation o) {

@@ -96,6 +96,7 @@ class ConfigControllerTest {
     bundle.addEntry().setResource(new CodeSystem());
     bundle.addEntry().setResource(new CodeSystem());
     bundle.addEntry().setResource(new ValueSet());
+    bundle.addEntry().setResource(new ValueSet());
 
     ValueSet hpMMG = new ValueSet();
     hpMMG.setName("mmg-default-hpo");

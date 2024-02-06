@@ -6,7 +6,8 @@
     {% include "components/header" with {"type": "analysis", "serviceRequest": analysis} %}
     {% include "components/patient" with {"patient" : probandPatient, "person": probandPerson} %}
     {% include "components/analysis" %}
-    {% include "components/clinical" %}
+    {% include "components/clinical_proband" %}
+    {% include "components/clinical_family" %}
     {% include "components/footer" with {"withVersion": false, "page": "1", "total": "1"} %}
 {% endblock %}
 

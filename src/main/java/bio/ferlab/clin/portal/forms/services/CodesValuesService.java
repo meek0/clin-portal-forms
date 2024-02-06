@@ -13,13 +13,14 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class CodesValuesService {
-
-  private final List<String> missingCodes = new ArrayList<>();
 
   public static final String ANALYSE_KEY = "analyse";
   public static final String HP_KEY = "hp";
@@ -27,6 +28,7 @@ public class CodesValuesService {
   public static final String ETHNICITY_KEY = "ethnicity";
   public static final String OBSERVATION_KEY = "observation";
   public static final String AGE_KEY = "age";
+  public static final String RELATION_KEY = "relation";
   public static final String HP_BY_TYPE_SUFFIX = "-hp";
   public static final String OBS_BY_TYPE_SUFFIX = "-observation";
   public static final String MULTI_VALUES_SUFFIX = "-multi-values";
@@ -65,13 +67,25 @@ public class CodesValuesService {
         }
       }
     }
-    return getValueByKeyCode(HP_KEY, code);
+    return getCodeSystemByKeyCode(HP_KEY, code);
   }
 
-  public CodeSystem.ConceptDefinitionComponent getValueByKeyCode(String key, String code) {
+  public CodeSystem.ConceptDefinitionComponent getCodeSystemByKeyCode(String key, String code) {
     var all = getSelf().getCodes(key);
     if (all != null) {
       for (var concept : all.getConcept()) {
+        if (concept.getCode().equals(code)) {
+          return concept;
+        }
+      }
+    }
+    return null;
+  }
+
+  public ValueSet.ConceptReferenceComponent getValueSetByKeyCode(String key, String code) {
+    var all = getSelf().getValues(key);
+    if (all != null) {
+      for (var concept : all.getCompose().getIncludeFirstRep().getConcept()) {
         if (concept.getCode().equals(code)) {
           return concept;
         }
@@ -92,6 +106,7 @@ public class CodesValuesService {
     CodeSystem ethnicity = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
     CodeSystem observation = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
     ValueSet age = bundleExtractor.getNextResourcesOfType(ValueSet.class);
+    ValueSet relation = bundleExtractor.getNextResourcesOfType(ValueSet.class);
 
     codesAndValues.put(ANALYSE_KEY, analyseCode);
     codesAndValues.put(HP_KEY, hp);
@@ -99,6 +114,7 @@ public class CodesValuesService {
     codesAndValues.put(ETHNICITY_KEY, ethnicity);
     codesAndValues.put(OBSERVATION_KEY, observation);
     codesAndValues.put(AGE_KEY, age);
+    codesAndValues.put(RELATION_KEY, relation);
 
     for (String byType : fhirConfiguration.getTypesWithDefault()) {
       ValueSet hpByType = bundleExtractor.getNextResourcesOfType(ValueSet.class);

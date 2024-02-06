@@ -1,0 +1,4 @@
+<div class="panel">
+    <div class="panel-header"><b>{{ i18n("messages", "clinical_title") }}</b></div>
+     {% include "components/clinical" with {"obs": probandObservations, "familyHistories": probandFamilyHistories}%}
+</div>
