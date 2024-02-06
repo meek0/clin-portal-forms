@@ -15,7 +15,8 @@ spring:
   resources:
     cache:
       cachecontrol:
-        max-age: 36000
+        no-cache: false
+        max-age: 0
         must-revalidate: true
   jackson:
     property-naming-strategy: SNAKE_CASE

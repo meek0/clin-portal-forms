@@ -27,8 +27,8 @@
     <div class="panel-body bottom-border">
         <table>
             {% for exam in mapper.mapToExams(probandObservations) %}
-             <tr colspan="2">
-                <td class="col-left">{{ exam.name }}</td>
+            <tr colspan="2">
+                <td class="col-left">{{ exam.name }} : </td>
                 <td>{{ exam.comment }}</td>
             </tr>
             {% endfor %}

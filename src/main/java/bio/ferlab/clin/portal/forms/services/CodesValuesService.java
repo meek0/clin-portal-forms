@@ -56,6 +56,15 @@ public class CodesValuesService {
         }
       }
     }
+    final List<ValueSet> multiValuesByTypes = fhirConfiguration.getMultiValuesObservationCodes().stream()
+      .map(t -> getSelf().getValues(t + CodesValuesService.MULTI_VALUES_SUFFIX)).toList();
+    for(ValueSet hpByType: multiValuesByTypes) {
+      for(var concept : hpByType.getCompose().getIncludeFirstRep().getConcept()) {
+        if (concept.getCode().equals(code)) {
+          return concept;
+        }
+      }
+    }
     return getValueByKeyCode(HP_KEY, code);
   }
 

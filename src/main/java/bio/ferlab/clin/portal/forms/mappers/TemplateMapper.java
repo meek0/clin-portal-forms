@@ -248,9 +248,9 @@ public class TemplateMapper {
           }
         } else if (value instanceof StringType v) {
           examComment += " : "+v.asStringValue();
-        }
-        if ("A".equals(interpretation)) {
-          examComment += " UI/L";
+          if ("A".equals(interpretation)) {
+            examComment += " UI/L";
+          }
         }
         exams.add(new Exam(examName, examComment));
       }
