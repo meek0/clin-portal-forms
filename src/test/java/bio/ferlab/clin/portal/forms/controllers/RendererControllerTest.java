@@ -3,10 +3,7 @@ package bio.ferlab.clin.portal.forms.controllers;
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import ca.uhn.fhir.context.FhirContext;
 import org.apache.commons.io.IOUtils;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.ClinicalImpression;
-import org.hl7.fhir.r4.model.Reference;
-import org.hl7.fhir.r4.model.ServiceRequest;
+import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,6 +99,11 @@ class RendererControllerTest {
 
     final var detailsBundle = new Bundle();
 
+    final var patient = new Patient();
+    patient.setId("p1");
+    final var person = new Person();
+    person.getLinkFirstRep().getTarget().setReference("Patient/p1");
+
     final var sequencing = new ServiceRequest();
     sequencing.setId("sequencingId");
     sequencing.getMeta().addProfile(SEQUENCING_SERVICE_REQUEST);
@@ -110,13 +112,15 @@ class RendererControllerTest {
     final var clinical = new ClinicalImpression();
     clinical.setSubject(new Reference("Patient/p1"));
 
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(patient));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(person));
     detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(sequencing));
     detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(clinical));
 
     final var codesAndValuesBundle = new Bundle();
 
     when(fhirClient.findServiceRequestWithDepsById(any())).thenReturn(mainBundle);
-    when(fhirClient.fetchPrescriptionDetails(any(), any())).thenReturn(detailsBundle);
+    when(fhirClient.fetchPrescriptionDetails(any(), any(), any())).thenReturn(detailsBundle);
     when(fhirClient.fetchCodesAndValues()).thenReturn(codesAndValuesBundle);
   }
 

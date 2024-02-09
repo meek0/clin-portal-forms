@@ -1,0 +1,38 @@
+{% for familyMember in probandFamilyMembers %}
+    <div class="panel">
+        <div class="panel-header"><b>{{ mapper.mapToRelation(familyMember.relation) }}</b></div>
+        <div class="panel-body bottom-border">
+            <table>
+                 {% if familyMember.missingReason is not empty %}
+                 <tr>
+                    <td class="col-left">{{ i18n("messages", "clinical_missing_reason") }} : </td>
+                    <td>{{ familyMember.missingReason }}</td>
+                </tr>
+                {% else %}
+                {% set familyMemberPerson = familyMember.person %}
+                <tr>
+                    <td class="col-left">{{ i18n("messages", "patient_names") }} : </td>
+                    <td style="width: 79%">{{ mapper.mapToName(familyMemberPerson) }}</td>
+                </tr>
+                <tr>
+                    <td>{{ i18n("messages", "patient_gender") }} : </td>
+                    <td>{{ mapper.mapToGender(familyMemberPerson) }}</td>
+                </tr>
+                <tr>
+                    <td>{{ i18n("messages", "patient_birthdate") }} : </td>
+                    <td>{{ mapper.formatDate(familyMemberPerson.birthDate) }}</td>
+                </tr>
+                <tr>
+                    <td>{{ i18n("messages", "patient_ramq") }} : </td>
+                    <td>{{ mapper.mapToRAMQ(familyMemberPerson) }}</td>
+                </tr>
+                <tr>
+                    <td>{{ i18n("messages", "patient_mrn") }} : </td>
+                    <td>{{ mapper.mapToMRN(familyMemberPerson) }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+        {% include "components/clinical" with {"showAffected": true, "obs": familyMember.observations, "familyHistories": familyMember.familyHistories}%}
+    </div>
+{% endfor %}

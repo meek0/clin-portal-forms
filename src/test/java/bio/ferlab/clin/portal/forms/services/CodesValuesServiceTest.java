@@ -43,6 +43,7 @@ class CodesValuesServiceTest {
     bundle.addEntry().setResource(new CodeSystem());
     bundle.addEntry().setResource(new CodeSystem());
     bundle.addEntry().setResource(new ValueSet());
+    bundle.addEntry().setResource(new ValueSet());
 
     var type1 = new ValueSet();
     type1.getCompose().getIncludeFirstRep().addConcept().setCode("code1");

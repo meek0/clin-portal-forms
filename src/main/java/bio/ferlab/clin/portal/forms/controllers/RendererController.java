@@ -7,6 +7,7 @@ import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.DateUtils;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
@@ -21,10 +22,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
@@ -81,12 +79,20 @@ public class RendererController {
     // Assignation feature will attach several PractitionerRole insider performer BUT we want the one from requester
     final var practitionerRole = mainBundleExtractor.getFirstResourcesById(PractitionerRole.class, FhirUtils.extractId(analysis.getRequester()));
 
-    final var detailsBundle = fhirClient.fetchPrescriptionDetails(analysis, practitionerRole);
+    // DUO/TRIO ...
+    var familyMembers = new TreeMap<String, Reference>();
+    for(var member: analysis.getExtensionsByUrl(FAMILY_MEMBER)) {
+      var parentPatientRef = ((Reference) member.getExtensionByUrl("parent").getValue());
+      var parentRelation = ((CodeableConcept) member.getExtensionByUrl("parent-relationship").getValue()).getCodingFirstRep().getCode();
+      familyMembers.put(parentRelation, parentPatientRef);
+    }
+
+    final var detailsBundle = fhirClient.fetchPrescriptionDetails(analysis, practitionerRole, familyMembers);
     final var detailsBundleExtractor = new BundleExtractor(fhirClient.getContext(), detailsBundle);
     final var sequencings = detailsBundleExtractor.getAllResourcesOfType(ServiceRequest.class).stream()
       .filter(s -> s.getMeta().hasProfile(SEQUENCING_SERVICE_REQUEST)).toList();
-    final var probandPatient = detailsBundleExtractor.getFirstResourcesOfType(Patient.class);
-    final var probandPerson = detailsBundleExtractor.getFirstResourcesOfType(Person.class);
+    final var patients = detailsBundleExtractor.getAllResourcesOfType(Patient.class);
+    final var persons = detailsBundleExtractor.getAllResourcesOfType(Person.class);
     final var practitioner = detailsBundleExtractor.getFirstResourcesOfType(Practitioner.class);
     final var organization = detailsBundleExtractor.getFirstResourcesOfType(Organization.class);
     final var impressions = detailsBundleExtractor.getAllResourcesOfType(ClinicalImpression.class);
@@ -95,6 +101,12 @@ public class RendererController {
 
     final var analysisCodes = codesValuesService.getCodes(CodesValuesService.ANALYSE_KEY);
 
+    final var probandPatient = patients.stream()
+      .filter(s -> s.getIdElement().getIdPart().equals(FhirUtils.extractId(analysis.getSubject())))
+      .findFirst().orElseThrow(() -> new RuntimeException("Can't find patient for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
+    final var probandPerson = persons.stream()
+      .filter(s -> s.getLink().stream().anyMatch(l -> l.getTarget().getReference().equals(analysis.getSubject().getReference())))
+      .findFirst().orElseThrow(() -> new RuntimeException("Can't find person for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
     final var probandSequencing = sequencings.stream()
       .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
       .findFirst().orElseThrow(() -> new RuntimeException("Can't find sequencing for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
@@ -107,6 +119,43 @@ public class RendererController {
     final var probandFamilyHistories = familyHistories.stream()
       .filter(s -> analysis.getSubject().getReference().equals(s.getPatient().getReference()))
       .toList();
+
+    // extract family infos
+    var probandFamily = new ArrayList<FamilyMember>();
+    for(var relation : familyMembers.keySet()) {
+      var ref = familyMembers.get(relation);
+      final var patient = patients.stream()
+        .filter(s -> s.getIdElement().getIdPart().equals(FhirUtils.extractId(ref)))
+        .findFirst().orElseThrow(() -> new RuntimeException("Can't find patient ("+relation+") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
+      final var person = persons.stream()
+        .filter(s -> s.getLink().stream().anyMatch(l -> l.getTarget().getReference().equals(ref.getReference())))
+        .findFirst().orElseThrow(() -> new RuntimeException("Can't find person ("+relation+") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
+      var sequencing = sequencings.stream()
+        .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
+        .findFirst().orElseThrow(() -> new RuntimeException("Can't find sequencing ("+relation+") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
+      final var impression = impressions.stream()
+        .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
+        .findFirst().orElseThrow(() -> new RuntimeException("Can't find clinical impression ("+relation+") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
+      final var obs = observations.stream()
+        .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
+        .toList();
+      final var histories = familyHistories.stream()
+        .filter(s -> ref.getReference().equals(s.getPatient().getReference()))
+        .toList();
+      probandFamily.add(new FamilyMember(null, ref, relation, patient, person, sequencing, impression, obs, histories));
+    }
+
+    var missingReasons = probandObservations.stream()
+      .filter(o -> o.getCategoryFirstRep().getCodingFirstRep().getCode().equals("social-history"))
+      .filter(o -> o.getValueCodeableConcept().getCodingFirstRep().getSystem().equals(SYSTEM_MISSING_PARENT))
+      .toList();
+    for(var missingReason : missingReasons) {
+      var reason = missingReason.getNoteFirstRep().getText();
+      var relation = StringUtils.substring(missingReason.getCode().getCodingFirstRep().getCode(), 1);
+      if (StringUtils.isNoneBlank(reason, reason)) {
+        probandFamily.add(new FamilyMember(reason, null, relation, null, null, null, null, null, null));
+      }
+    }
 
     final Map<String, Object> context = new HashMap<>();
 
@@ -123,6 +172,8 @@ public class RendererController {
     context.put("probandImpression", probandImpression);
     context.put("probandObservations", probandObservations);
     context.put("probandFamilyHistories", probandFamilyHistories);
+
+    context.put("probandFamilyMembers", probandFamily);
 
     // don't know how thread-safe is Pebble renderer, let's instance a new mapper instead of having a singleton
     context.put("mapper", new TemplateMapper(id, logOnceService, messagesService, templateService, codesValuesService, analysisCodes, locale));
@@ -159,4 +210,6 @@ public class RendererController {
       .contentType(MediaType.APPLICATION_PDF)
       .body(resource);
   }
+
+  public record FamilyMember(String missingReason, Reference ref, String relation, Patient patient, Person person, ServiceRequest sequencing, ClinicalImpression clinicalImpression, List<Observation> observations, List<FamilyMemberHistory> familyHistories){}
 }

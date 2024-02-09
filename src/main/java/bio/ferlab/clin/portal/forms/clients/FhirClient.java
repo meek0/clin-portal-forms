@@ -21,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.TreeMap;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
@@ -207,7 +208,7 @@ public class FhirClient {
   }
 
   @Cacheable(value = CacheConfiguration.CACHE_FHIR, sync = true, keyGenerator = "customKeyGenerator")
-  public Bundle fetchPrescriptionDetails(ServiceRequest analysis, PractitionerRole practitionerRole) {
+  public Bundle fetchPrescriptionDetails(ServiceRequest analysis, PractitionerRole practitionerRole, TreeMap<String, Reference> familyMembers) {
     log.debug("Fetch prescription details for id: {}", analysis.getIdElement().getIdPart());
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.BATCH);
@@ -248,6 +249,15 @@ public class FhirClient {
       }
     }
 
+    for(var familyMember : familyMembers.values()) {
+      bundle.addEntry().getRequest()
+        .setUrl(String.format("Patient/%s", FhirUtils.extractId(familyMember)))
+        .setMethod(Bundle.HTTPVerb.GET);
+      bundle.addEntry().getRequest()
+        .setUrl(String.format("Person?link=%s", familyMember.getReference()))
+        .setMethod(Bundle.HTTPVerb.GET);
+    }
+
     return this.getGenericClient().transaction().withBundle(bundle).execute();
   }
 
@@ -281,6 +291,10 @@ public class FhirClient {
     bundle.addEntry().getRequest()
         .setUrl("ValueSet/age-at-onset")
         .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+      .setUrl("ValueSet/fmh-relationship")
+      .setMethod(Bundle.HTTPVerb.GET);
 
     for(String byType: fhirConfiguration.getTypesWithDefault()) {
       bundle.addEntry().getRequest()
