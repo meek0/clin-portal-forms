@@ -10,6 +10,7 @@
                 </tr>
                 {% else %}
                 {% set familyMemberPerson = familyMember.person %}
+                {% set familyMemberPatient = familyMember.patient %}
                 <tr>
                     <td class="col-left">{{ i18n("messages", "patient_names") }} : </td>
                     <td style="width: 79%">{{ mapper.mapToName(familyMemberPerson) }}</td>
@@ -28,7 +29,7 @@
                 </tr>
                 <tr>
                     <td>{{ i18n("messages", "patient_mrn") }} : </td>
-                    <td>{{ mapper.mapToMRN(familyMemberPerson) }}</td>
+                    <td>{{ mapper.mapToMRN(familyMemberPatient) }}</td>
                 </tr>
                 {% endif %}
             </table>
