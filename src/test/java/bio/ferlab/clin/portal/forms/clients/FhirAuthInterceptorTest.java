@@ -15,7 +15,7 @@ import static org.mockito.Mockito.when;
 
 class FhirAuthInterceptorTest {
 
-  final HttpServletRequest httpServletRequest = Mockito.mock(HttpServletRequest.class);
+  final HttpServletRequest httpServletRequest = Mockito.mock(MockHttpServletRequest.class);
   final FhirAuthInterceptor fhirAuthInterceptor = new FhirAuthInterceptor(httpServletRequest);
 
   @Test
@@ -38,4 +38,5 @@ class FhirAuthInterceptorTest {
 
   // dont ask me why ... mockito doesnt like to mock interface
   private static abstract class MockIHttpRequest implements IHttpRequest {}
+  private static abstract class MockHttpServletRequest implements HttpServletRequest {}
 }

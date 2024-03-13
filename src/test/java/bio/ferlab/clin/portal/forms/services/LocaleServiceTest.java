@@ -13,16 +13,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 
 class LocaleServiceTest {
-  
-  final HttpServletRequest request = Mockito.mock(HttpServletRequest.class);
+
+  final HttpServletRequest request = Mockito.mock(MockHttpServletRequest.class);
   final FhirConfiguration configuration = Mockito.mock(FhirConfiguration.class);
   final LocaleService service = new LocaleService(request, configuration);
-  
+
   @BeforeEach
   void setup() {
     when(configuration.getSupportedLangs()).thenReturn(List.of("fr", "en"));
   }
-  
+
   @Test
   void getCurrentLocale_default() {
     when(request.getParameter("lang")).thenReturn(null);
@@ -52,5 +52,7 @@ class LocaleServiceTest {
     when(request.getParameter("lang")).thenReturn("fr-CA");
     assertEquals(Locale.CANADA_FRENCH, service.getCurrentLocale());
   }
+
+  private static abstract class MockHttpServletRequest implements HttpServletRequest {}
 
 }
