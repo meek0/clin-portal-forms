@@ -1,6 +1,7 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
 import bio.ferlab.clin.portal.forms.models.config.Extra;
+import bio.ferlab.clin.portal.forms.models.config.Extra.ExtraBuilder;
 import bio.ferlab.clin.portal.forms.models.config.ExtraType;
 import bio.ferlab.clin.portal.forms.models.config.ValueName;
 import bio.ferlab.clin.portal.forms.models.config.ValueNameExtra;
@@ -14,6 +15,7 @@ import org.hl7.fhir.r4.model.ValueSet;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -61,33 +63,36 @@ public class FhirToConfigMapper {
         .map(c -> ValueName.builder().name(getDisplayForLang(c, lang)).value(c.getCode()).build()).toList();
   }
 
-  public List<ValueNameExtra> mapToParaclinicalExams(CodeSystem observation, String lang, List<ValueSet> multiValues) {
+  public List<ValueNameExtra> mapToParaclinicalExams(CodeSystem observation, String lang, List<ValueSet> multiValues, Map<String, String> withUnit, List<String> withRequired) {
     return observation.getConcept().stream()
         .map(c -> ValueNameExtra.builder()
             .name(getDisplayForLang(c, lang))
             .value(c.getCode())
-            .extra(buildExtra(c.getCode(), lang, multiValues))
+            .extra(buildExtra(c.getCode(), lang, multiValues,  withUnit, withRequired))
             .build().formatWithTooltip())
         .toList();
   }
 
-  public List<ValueNameExtra> mapToParaclinicalExams(ValueSet observation, String lang, List<ValueSet> multiValues) {
+  public List<ValueNameExtra> mapToParaclinicalExams(ValueSet observation, String lang, List<ValueSet> multiValues, Map<String, String> withUnit, List<String> withRequired) {
     return observation.getCompose().getIncludeFirstRep().getConcept().stream()
         .map(c -> ValueNameExtra.builder()
             .name(getDisplayForLang(c, lang))
             .value(c.getCode())
-            .extra(buildExtra(c.getCode(), lang, multiValues))
+            .extra(buildExtra(c.getCode(), lang, multiValues, withUnit, withRequired))
             .build().formatWithTooltip())
         .toList();
   }
 
-  private Extra buildExtra(String code, String lang, List<ValueSet> multiValues) {
+  private Extra buildExtra(String code, String lang, List<ValueSet> multiValues, Map<String, String> withUnit, List<String> withRequired) {
     Optional<ValueSet> byCode = multiValues.stream().filter(vs -> (code + FhirConst.ABNORMALITIES_SUFFIX).equalsIgnoreCase(vs.getName())).findFirst();
+    ExtraBuilder extraBuilder = Extra.builder().label(getLabel(code, lang)).unit(withUnit.get(code)).required(withRequired.contains(code));
     if(byCode.isPresent()) {
-      return Extra.builder().label(getLabel(code, lang)).type(ExtraType.multi_select).options(extractValuesByLang(byCode.get(), lang)).build();
+      extraBuilder.type(ExtraType.multi_select).options(extractValuesByLang(byCode.get(), lang));
     } else {
-      return Extra.builder().label(getLabel(code, lang)).type(ExtraType.string).build();
+      extraBuilder.type(ExtraType.string);
     }
+
+    return extraBuilder.build();
   }
 
   private String getLabel(String code, String lang) {

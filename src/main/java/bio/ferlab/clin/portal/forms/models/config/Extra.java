@@ -15,5 +15,7 @@ import java.util.List;
 public class Extra {
   private ExtraType type;
   private String label;
+  private String unit;
+  private boolean required;
   private List<ValueName> options = new ArrayList<>();
 }

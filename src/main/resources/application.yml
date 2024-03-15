@@ -48,6 +48,18 @@ fhir:
   multi-values-observation-codes: # will load <code>-abnormalities
     - bmus
     - emg
+    - cgh
+  with-unit:
+    MMG:
+      CKIN: UI/L
+  with-required:
+    MMG:
+      - CKIN
+    MITN:
+      - EMG
+      - CGH
+    RGDI:
+      - CGH
 cache:
   eviction: 3600 # 1h
   short-eviction: 60 # sec

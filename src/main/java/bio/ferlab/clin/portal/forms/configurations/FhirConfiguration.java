@@ -13,7 +13,7 @@ import java.util.Map;
 @ConfigurationProperties("fhir")
 @Data
 public class FhirConfiguration {
-  
+
   private String url;
   private int timeout;
   private int poolSize;
@@ -22,5 +22,7 @@ public class FhirConfiguration {
   private List<String> typesWithDefault = new ArrayList<>();
   private Map<String, String> sameTypes = new HashMap<>();
   private List<String> multiValuesObservationCodes = new ArrayList<>();
-  
+  private Map<String, Map<String, String>> withUnit = new HashMap<>();
+  private Map<String, List<String>> withRequired = new HashMap<>();
+
 }
