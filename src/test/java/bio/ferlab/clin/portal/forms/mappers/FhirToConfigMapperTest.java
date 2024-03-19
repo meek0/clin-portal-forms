@@ -13,7 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -128,8 +130,8 @@ class FhirToConfigMapperTest {
     var multiValue = new ValueSet().setName("1-abnormalities");
     multiValue.getCompose().getIncludeFirstRep().getConceptFirstRep().setCode("code1").getDesignation().add(new ValueSet.ConceptReferenceDesignationComponent().setLanguage("fr").setValue("fr1"));
 
-    var result = mapper.mapToParaclinicalExams(codeSystem, "fr", List.of(multiValue));
-    assertEquals("ValueNameExtra(name=display0, value=0, tooltip=null, extra=Extra(type=string, label=label, options=null)) ValueNameExtra(name=fr1, value=1, tooltip=null, extra=Extra(type=multi_select, label=label, options=[ValueName(name=fr1, value=code1)])) ValueNameExtra(name=display2, value=2, tooltip=Tooltip2, extra=Extra(type=string, label=label, options=null))", StringUtils.join(result, " "));
+    var result = mapper.mapToParaclinicalExams(codeSystem, "fr", List.of(multiValue), new HashMap<>(), new ArrayList<>());
+    assertEquals("ValueNameExtra(name=display0, value=0, tooltip=null, extra=Extra(type=string, label=label, unit=null, required=false, options=null)) ValueNameExtra(name=fr1, value=1, tooltip=null, extra=Extra(type=multi_select, label=label, unit=null, required=false, options=[ValueName(name=fr1, value=code1)])) ValueNameExtra(name=display2, value=2, tooltip=Tooltip2, extra=Extra(type=string, label=label, unit=null, required=false, options=null))", StringUtils.join(result, " "));
   }
 
   @Test
@@ -149,8 +151,54 @@ class FhirToConfigMapperTest {
     var multiValue = new ValueSet().setName("0-abnormalities");
     multiValue.getCompose().getIncludeFirstRep().getConceptFirstRep().setCode("code0").getDesignation().add(new ValueSet.ConceptReferenceDesignationComponent().setLanguage("fr").setValue("fr0"));
 
-    var result = mapper.mapToParaclinicalExams(valueSet, "fr", List.of(multiValue));
-    assertEquals("ValueNameExtra(name=fr0, value=0, tooltip=null, extra=Extra(type=multi_select, label=label, options=[ValueName(name=fr0, value=code0)])) ValueNameExtra(name=display1, value=1, tooltip=null, extra=Extra(type=string, label=label, options=null)) ValueNameExtra(name=display2, value=2, tooltip=Tooltip2, extra=Extra(type=string, label=label, options=null))", StringUtils.join(result, " "));
+    var result = mapper.mapToParaclinicalExams(valueSet, "fr", List.of(multiValue), new HashMap<>(), new ArrayList<>());
+    assertEquals("ValueNameExtra(name=fr0, value=0, tooltip=null, extra=Extra(type=multi_select, label=label, unit=null, required=false, options=[ValueName(name=fr0, value=code0)])) ValueNameExtra(name=display1, value=1, tooltip=null, extra=Extra(type=string, label=label, unit=null, required=false, options=null)) ValueNameExtra(name=display2, value=2, tooltip=Tooltip2, extra=Extra(type=string, label=label, unit=null, required=false, options=null))", StringUtils.join(result, " "));
 
   }
+
+  @Test
+  void mapToParaclinicalExams_withRequired() {
+    final ValueSet valueSet = new ValueSet();
+    Stream.iterate(0, n -> n +1).limit(3).forEach(n -> {
+      var concept = new ValueSet.ConceptReferenceComponent().setDisplay("display"+n).setCode(n.toString());
+      if (n.equals(0)) {  // add 1 translation
+        concept.getDesignation().add(new ValueSet.ConceptReferenceDesignationComponent().setLanguage("fr").setValue("fr" + n));
+      }
+      if (n.equals(2)) {  // add a tooltip with spaces
+        concept.setDisplay(concept.getDisplay()+ "( Tooltip"+n+") ");
+      }
+      valueSet.getCompose().getIncludeFirstRep().addConcept(concept);
+    });
+
+    var multiValue = new ValueSet().setName("0-abnormalities");
+    multiValue.getCompose().getIncludeFirstRep().getConceptFirstRep().setCode("code0").getDesignation().add(new ValueSet.ConceptReferenceDesignationComponent().setLanguage("fr").setValue("fr0"));
+
+    List<String> required = List.of("1");
+
+    var result = mapper.mapToParaclinicalExams(valueSet, "fr", List.of(multiValue), new HashMap<>(), required);
+    assertEquals("ValueNameExtra(name=fr0, value=0, tooltip=null, extra=Extra(type=multi_select, label=label, unit=null, required=false, options=[ValueName(name=fr0, value=code0)])) ValueNameExtra(name=display1, value=1, tooltip=null, extra=Extra(type=string, label=label, unit=null, required=true, options=null)) ValueNameExtra(name=display2, value=2, tooltip=Tooltip2, extra=Extra(type=string, label=label, unit=null, required=false, options=null))", StringUtils.join(result, " "));
+  }
+
+  @Test
+  void mapToParaclinicalExams_withUnit() {
+    final ValueSet valueSet = new ValueSet();
+    Stream.iterate(0, n -> n +1).limit(3).forEach(n -> {
+      var concept = new ValueSet.ConceptReferenceComponent().setDisplay("display"+n).setCode(n.toString());
+      if (n.equals(0)) {  // add 1 translation
+        concept.getDesignation().add(new ValueSet.ConceptReferenceDesignationComponent().setLanguage("fr").setValue("fr" + n));
+      }
+      if (n.equals(2)) {  // add a tooltip with spaces
+        concept.setDisplay(concept.getDisplay()+ "( Tooltip"+n+") ");
+      }
+      valueSet.getCompose().getIncludeFirstRep().addConcept(concept);
+    });
+
+    var multiValue = new ValueSet().setName("0-abnormalities");
+    multiValue.getCompose().getIncludeFirstRep().getConceptFirstRep().setCode("code0").getDesignation().add(new ValueSet.ConceptReferenceDesignationComponent().setLanguage("fr").setValue("fr0"));
+
+    Map<String, String> unit = Map.of("0", "mL");
+    var result = mapper.mapToParaclinicalExams(valueSet, "fr", List.of(multiValue), unit, new ArrayList<>());
+    assertEquals("ValueNameExtra(name=fr0, value=0, tooltip=null, extra=Extra(type=multi_select, label=label, unit=mL, required=false, options=[ValueName(name=fr0, value=code0)])) ValueNameExtra(name=display1, value=1, tooltip=null, extra=Extra(type=string, label=label, unit=null, required=false, options=null)) ValueNameExtra(name=display2, value=2, tooltip=Tooltip2, extra=Extra(type=string, label=label, unit=null, required=false, options=null))", StringUtils.join(result, " "));
+  }
+
 }
