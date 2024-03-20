@@ -43,12 +43,12 @@ public class AutocompleteBuilder {
         // all the fields we want to match
         if (Utils.isIndexOfAnyIgnoreCase(
             prefix,
-            p.getIdElement().getIdPart(),
-            name.getNameAsSingleString())) {  // contains firstName and given names
+            name.getNameAsSingleString(),
+            p.getIdentifierFirstRep().getValue())) {  // contains firstName and given names
           for (PractitionerRole r : roles) {
             if (pRef.equals(r.getPractitioner().getReference())) {
               final Supervisor s = new Supervisor();
-              s.setName(name.getNameAsSingleString());
+              s.setName(name.getFamily().toUpperCase() + " " + name.getGivenAsSingleString());
               s.setId(r.getIdElement().getIdPart());
               s.setLicense(p.getIdentifierFirstRep().getValue());
               supervisors.add(s);
