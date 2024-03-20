@@ -16,6 +16,7 @@ import org.hl7.fhir.r4.model.PractitionerRole;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class AutocompleteBuilder {
@@ -43,12 +44,12 @@ public class AutocompleteBuilder {
         // all the fields we want to match
         if (Utils.isIndexOfAnyIgnoreCase(
             prefix,
-            p.getIdElement().getIdPart(),
-            name.getNameAsSingleString())) {  // contains firstName and given names
+            name.getNameAsSingleString(), // contains firstName and given names
+            p.getIdentifierFirstRep().getValue())) {
           for (PractitionerRole r : roles) {
             if (pRef.equals(r.getPractitioner().getReference())) {
               final Supervisor s = new Supervisor();
-              s.setName(name.getNameAsSingleString());
+              s.setName(getSupervisorFullName(name));
               s.setId(r.getIdElement().getIdPart());
               s.setLicense(p.getIdentifierFirstRep().getValue());
               supervisors.add(s);
@@ -68,5 +69,14 @@ public class AutocompleteBuilder {
   @AllArgsConstructor
   public static class Result {
     private final List<Supervisor> supervisors;
+  }
+
+  private String getSupervisorFullName(HumanName name) {
+    final String givenName = name.getGivenAsSingleString();
+    final String familyName = Optional.ofNullable(name.getFamily()).orElse("").toUpperCase();
+
+    final String result = familyName.length() > 0 ? familyName + " " + givenName : givenName;
+
+    return result.trim();
   }
 }

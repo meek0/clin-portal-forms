@@ -15,7 +15,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 class AutocompleteBuilderTest {
-  
+
   final FhirContext fhirContext = FhirContext.forR4();
   final FhirClient fhirClient = Mockito.mock(FhirClient.class);
 
@@ -23,14 +23,14 @@ class AutocompleteBuilderTest {
   void beforeEach() {
     when(fhirClient.getContext()).thenReturn(fhirContext);
   }
-  
+
   @Test
   void supervisor_should_find_one_match() {
-    
+
     when(fhirClient.findPractitionerAndRoleByEp(any())).thenReturn(prepareTestBundle());
-    
+
     AutocompleteBuilder.Result result = new AutocompleteBuilder(fhirClient, "ep")
-        .withSupervisor("p1")
+        .withSupervisor("31")
         .build();
 
     assertEquals(1, result.getSupervisors().size());
@@ -43,7 +43,7 @@ class AutocompleteBuilderTest {
     when(fhirClient.findPractitionerAndRoleByEp(any())).thenReturn(prepareTestBundle());
 
     AutocompleteBuilder.Result result = new AutocompleteBuilder(fhirClient, "ep")
-        .withSupervisor("p")
+        .withSupervisor("123")
         .build();
 
     assertEquals(3, result.getSupervisors().size());
@@ -75,19 +75,22 @@ class AutocompleteBuilderTest {
 
     assertEquals(1, result.getSupervisors().size());
     assertEquals("r1", result.getSupervisors().get(0).getId());
-    assertEquals("name", result.getSupervisors().get(0).getName());
+    assertEquals("NAME", result.getSupervisors().get(0).getName());
   }
-  
+
   private Bundle prepareTestBundle() {
     final Practitioner p1 = new Practitioner();
     p1.setId("p1");
     p1.getNameFirstRep().setFamily("name");
+    p1.getIdentifierFirstRep().setValue("1231");
 
     final Practitioner p2 = new Practitioner();
     p2.setId("p2");
+    p2.getIdentifierFirstRep().setValue("1232");
 
     final Practitioner p3 = new Practitioner();
     p3.setId("p3");
+    p3.getIdentifierFirstRep().setValue("1233");
 
     final PractitionerRole r1 = new PractitionerRole();
     r1.setId("r1");
@@ -114,8 +117,8 @@ class AutocompleteBuilderTest {
     bundle.addEntry().setResource(r1);
     bundle.addEntry().setResource(r2);
     bundle.addEntry().setResource(r3);
-    
+
     return bundle;
   }
-  
+
 }
