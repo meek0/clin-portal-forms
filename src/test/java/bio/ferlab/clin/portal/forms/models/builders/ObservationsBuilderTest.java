@@ -30,7 +30,7 @@ class ObservationsBuilderTest {
     final ClinicalSigns clinicalSigns = new ClinicalSigns();
     clinicalSigns.setSigns(signs);
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-      new ObservationsBuilder(null, null, null, null, clinicalSigns, new ParaclinicalExams()).validate();
+      new ObservationsBuilder(null, null, null, null, clinicalSigns, new ParaclinicalExams()).validate(null);
     });
     assertEquals("age_code can't be empty for clinical_signs[2].is_observed = true", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
@@ -40,12 +40,16 @@ class ObservationsBuilderTest {
   void validate_empty_values() {
     final List<Exams> exams = random.objects(Exams.class, 5).collect(Collectors.toList());
     exams.get(3).setInterpretation(Exams.Interpretation.abnormal);
+    exams.get(3).setCode("cd3");
     exams.get(3).setValue(null);
     exams.get(3).setValues(null);
+
+    final List<String> examsWithRequired = List.of("cd3");
+
     final ParaclinicalExams paraclinicalExams = new ParaclinicalExams();
     paraclinicalExams.setExams(exams);
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-      new ObservationsBuilder(null, null, null, null, new ClinicalSigns(), paraclinicalExams).validate();
+      new ObservationsBuilder(null, null, null, null, new ClinicalSigns(), paraclinicalExams).validate(examsWithRequired);
     });
     assertEquals("value and values can't be both empty for paraclinical_exams[3].interpretation = abnormal", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
