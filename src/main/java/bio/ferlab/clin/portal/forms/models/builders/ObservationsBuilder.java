@@ -21,7 +21,7 @@ public class ObservationsBuilder {
   public enum Affected {
     POS, NEG, IND
   }
-  
+
   private final SubmitToFhirMapper mapper;
   private final String panelCode;
   private final Patient patient;
@@ -32,7 +32,7 @@ public class ObservationsBuilder {
   private Parent mother;
   private Parent father;
   private Affected affected = Affected.POS;
-  
+
   public ObservationsBuilder withFoetus(Observation o) {
     this.foetusObservation = o;
     return this;
@@ -54,8 +54,8 @@ public class ObservationsBuilder {
     }
     return this;
   }
-  
-  public ObservationsBuilder validate() {
+
+  public ObservationsBuilder validate(List<String> examsWithRequired) {
     if (signs != null) {
       for (int i = 0; i < signs.getSigns().size(); i++) {
         final Signs cs = signs.getSigns().get(i);
@@ -67,14 +67,14 @@ public class ObservationsBuilder {
     if (exams != null) {
       for (int i = 0; i < exams.getExams().size(); i++) {
         final Exams ex = exams.getExams().get(i);
-        if (Exams.Interpretation.abnormal.equals(ex.getInterpretation()) && ex.getValue() == null && CollectionUtils.isEmpty(ex.getValues())) {
+        if (examsWithRequired != null && examsWithRequired.contains(ex.getCode()) && Exams.Interpretation.abnormal.equals(ex.getInterpretation()) && ex.getValue() == null && CollectionUtils.isEmpty(ex.getValues())) {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("value and values can't be both empty for paraclinical_exams[%s].interpretation = abnormal", i));
         }
       }
     }
     return this;
   }
-  
+
   public Result build() {
     List<org.hl7.fhir.r4.model.Observation> obs = new ArrayList<>();
     if (patient != null) {
@@ -85,7 +85,7 @@ public class ObservationsBuilder {
     }
     return new Result(obs);
   }
-  
+
   @AllArgsConstructor
   @Getter
   public static class Result {
