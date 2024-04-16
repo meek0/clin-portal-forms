@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class SequencingBuilderTest {
-  
+
   @Test
   void build() {
     final Patient patient = new Patient();
@@ -24,7 +24,7 @@ class SequencingBuilderTest {
     role.setId("role");
     final SequencingBuilder.Result result = new SequencingBuilder(new SubmitToFhirMapper(), "code", patient, analysis, role).build();
     final ServiceRequest sr = result.getSequencing();
-    
+
     assertNotNull(sr.getId());
     assertEquals(SEQUENCING_SERVICE_REQUEST, sr.getMeta().getProfile().get(0).getValue());
     assertEquals(ServiceRequest.ServiceRequestIntent.ORDER, sr.getIntent());
@@ -66,7 +66,7 @@ class SequencingBuilderTest {
     assertEquals("http://fhir.cqgc.ferlab.bio/CodeSystem/sequencing-request-code", sr.getCode().getCoding().get(1).getSystem());
     assertEquals(FhirUtils.formatResource(role), sr.getRequester().getReference());
     assertNotNull(sr.getAuthoredOn());
-    assertEquals("Prenatal", sr.getCategoryFirstRep().getText());
+    assertEquals("Prenatal", sr.getCategoryFirstRep().getCodingFirstRep().getCode());
     assertEquals("Patient/foetus", sr.getSubject().getReference());
     assertEquals(ServiceRequest.ServiceRequestPriority.ASAP, sr.getPriority());
   }
