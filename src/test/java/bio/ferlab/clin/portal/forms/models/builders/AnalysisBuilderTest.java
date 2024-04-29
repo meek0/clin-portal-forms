@@ -15,27 +15,27 @@ class AnalysisBuilderTest {
   void build() {
     final Patient patient = new Patient();
     patient.setId("foo");
-    
+
     final ClinicalImpression clinicalImpression = new ClinicalImpression();
     clinicalImpression.setId("foo");
 
     final ClinicalImpression clinicalImpressionMother = new ClinicalImpression();
     clinicalImpressionMother.setId("foo");
     clinicalImpressionMother.setSubject(new Reference("Patient/mother"));
-    
+
     final Practitioner practitioner = new Practitioner();
     practitioner.setId("foo");
-    
+
     final PractitionerRole role = new PractitionerRole();
     role.setId("foo");
     role.setPractitioner(FhirUtils.toReference(practitioner));
-    
+
     final PractitionerRole supervisor = new PractitionerRole();
     supervisor.setId("foo");
 
     final Patient foetus = new Patient();
     foetus.setDeceased(new BooleanType(true));
-    
+
     final AnalysisBuilder.Result result = new AnalysisBuilder(new SubmitToFhirMapper(), "code", patient, clinicalImpression, role, supervisor, "")
       .withFoetus(foetus)
       .withReflex("reflex")
@@ -59,7 +59,7 @@ class AnalysisBuilderTest {
     assertNotNull(note.getTime());
     assertEquals("--", note.getText());
     assertEquals(FhirUtils.formatResource(practitioner), ((Reference)note.getAuthor()).getReference());
-    assertEquals("Prenatal", sr.getCategoryFirstRep().getText());
+    assertEquals("Prenatal", sr.getCategoryFirstRep().getCodingFirstRep().getCode());
     assertEquals(ServiceRequest.ServiceRequestPriority.ROUTINE, sr.getPriority());
 
     final Extension motherRootExt = sr.getExtensionByUrl(FAMILY_MEMBER);

@@ -77,7 +77,7 @@ public class SubmitToFhirMapper {
     final ServiceRequest serviceRequest = new ServiceRequest();
     serviceRequest.setId(UUID.randomUUID().toString());
     if (foetus != null) {
-      serviceRequest.addCategory().setText(PRENATAL);
+      serviceRequest.addCategory().addCoding().setCode(PRENATAL);
       mapDeceased(serviceRequest, foetus);
     }
     serviceRequest.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
@@ -107,7 +107,7 @@ public class SubmitToFhirMapper {
     serviceRequest.getMeta().addProfile(SEQUENCING_SERVICE_REQUEST);
     serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
     if (foetus != null) {
-      serviceRequest.addCategory().setText(PRENATAL);
+      serviceRequest.addCategory().addCoding().setCode(PRENATAL);
       serviceRequest.setSubject(FhirUtils.toReference(foetus));
       mapDeceased(serviceRequest, foetus);
     } else {
