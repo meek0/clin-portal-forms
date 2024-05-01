@@ -36,6 +36,7 @@ class SequencingBuilderTest {
     assertEquals("75020", sr.getCode().getCoding().get(1).getCode());
     assertEquals("http://fhir.cqgc.ferlab.bio/CodeSystem/sequencing-request-code", sr.getCode().getCoding().get(1).getSystem());
     assertEquals(FhirUtils.formatResource(role), sr.getRequester().getReference());
+    assertEquals(ServiceRequest.ServiceRequestPriority.ROUTINE, sr.getPriority());
     assertNotNull(sr.getAuthoredOn());
   }
 

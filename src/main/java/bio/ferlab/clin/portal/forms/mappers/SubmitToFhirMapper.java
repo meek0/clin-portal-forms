@@ -79,6 +79,8 @@ public class SubmitToFhirMapper {
     if (foetus != null) {
       serviceRequest.addCategory().addCoding().setCode(PRENATAL);
       mapDeceased(serviceRequest, foetus);
+    } else {
+      serviceRequest.setPriority(ServiceRequest.ServiceRequestPriority.ROUTINE);
     }
     serviceRequest.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
     serviceRequest.setIntent(ServiceRequest.ServiceRequestIntent.ORDER);
@@ -111,6 +113,7 @@ public class SubmitToFhirMapper {
       serviceRequest.setSubject(FhirUtils.toReference(foetus));
       mapDeceased(serviceRequest, foetus);
     } else {
+      serviceRequest.setPriority(ServiceRequest.ServiceRequestPriority.ROUTINE);
       serviceRequest.setSubject(FhirUtils.toReference(patient));
     }
     serviceRequest.setStatus(ServiceRequest.ServiceRequestStatus.ONHOLD);
