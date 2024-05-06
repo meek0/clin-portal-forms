@@ -22,6 +22,7 @@ public class ClinicalSigns {
   public ClinicalSigns(Parent parent) {
     if (parent != null) {
       this.signs = parent.getSigns();
+      this.comment = parent.getComment();
     }
   }
 
