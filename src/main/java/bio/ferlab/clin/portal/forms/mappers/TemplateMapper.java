@@ -5,12 +5,15 @@ import bio.ferlab.clin.portal.forms.services.LogOnceService;
 import bio.ferlab.clin.portal.forms.services.MessagesService;
 import bio.ferlab.clin.portal.forms.services.TemplateService;
 import bio.ferlab.clin.portal.forms.utils.DateUtils;
+import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_EN;
@@ -47,6 +50,14 @@ public class TemplateMapper {
   public String mapToGender(Person person) {
     try {
       return i18n(person.getGender().toCode());
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
+  public String mapToFetusGender(Patient patient) {
+    try {
+      return i18n(patient.getGender().toCode());
     } catch (Exception e) {
       return this.handleError(e);
     }
@@ -175,6 +186,20 @@ public class TemplateMapper {
         .findFirst();
       return reason.map(o -> o.getNoteFirstRep().getText())
         .filter(StringUtils::isNotBlank).orElse(EMPTY);
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
+  public String mapToGestetionalAge(List<Observation> obs) {
+    try {
+      final var gestationalAgeObs = obs.stream().filter(o -> List.of(FhirConst.CODE_DDM, FhirConst.CODE_DPA).indexOf(o.getCode().getCodingFirstRep().getCode()) > -1).findFirst().orElse(null);
+
+      if (gestationalAgeObs != null) {
+        return String.format(i18n("patient_gestational_age_weeks"), calculateGestationalAge(gestationalAgeObs.getCode().getCodingFirstRep().getCode(), gestationalAgeObs.getValueDateTimeType().dateTimeValue().dateTimeValue().getValue()));
+      } else {
+        return i18n("patient_fetus_deceased");
+      }
     } catch (Exception e) {
       return this.handleError(e);
     }
@@ -369,5 +394,12 @@ public class TemplateMapper {
 
   private Optional<String> getIdentifier(List<Identifier> identifiers, String code) {
     return identifiers.stream().filter(i -> i.getType().getCoding().stream().anyMatch(c -> code.equals(c.getCode()))).findFirst().map(Identifier::getValue);
+  }
+
+  private String calculateGestationalAge(String type, Date value) {
+    final var today = LocalDate.now();
+
+    final var date = DateUtils.toLocalDate(value);
+    return FhirConst.CODE_DDM.equals(type) ? "DDM " + ChronoUnit.WEEKS.between(date, today) : "DPA " + (40 * 7 - ChronoUnit.WEEKS.between(today, date));
   }
 }

@@ -261,6 +261,18 @@ public class FhirClient {
     return this.getGenericClient().transaction().withBundle(bundle).execute();
   }
 
+  public Bundle fetchFetusSequencingDetails(ServiceRequest sequencing) {
+    log.debug("Fetch sequencing details for id: {}", sequencing.getIdElement().getIdPart());
+    Bundle bundle = new Bundle();
+    bundle.setType(Bundle.BundleType.BATCH);
+
+    bundle.addEntry().getRequest()
+      .setUrl(String.format("Patient/%s", FhirUtils.extractId(sequencing.getSubject())))
+      .setMethod(Bundle.HTTPVerb.GET);
+
+    return this.getGenericClient().transaction().withBundle(bundle).execute();
+  }
+
   @Cacheable(value = CacheConfiguration.CACHE_CODES_VALUES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle fetchCodesAndValues() {
     log.info("Fetch codes and values from FHIR");

@@ -1,0 +1,48 @@
+<div class="panel">
+    <div class="panel-header"><b>{{ i18n("messages", "patient_title")}}</b></div>
+    <div class="panel-body">
+        <table>
+            <tr>
+                <td class="col-left">{{ i18n("messages", "patient_names") }} : </td>
+                <td style="width: 29%"><b>{{ mapper.mapToName(person) }}</b></td>
+                <td style="width: 50%" rowspan="9"><div class="patient-card">{{ i18n("messages", "patient_card") }}</div></td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "patient_gender") }} : </td>
+                <td><b>{{ mapper.mapToGender(person) }}</b></td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "patient_birthdate") }} : </td>
+                <td><b>{{ mapper.formatDate(person.birthDate) }}</b></td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "patient_ramq") }} : </td>
+                <td><b>{{ mapper.mapToRAMQ(person) }}</b></td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "patient_mrn") }} : </td>
+                <td><b>{{ mapper.mapToMRN(patient) }}</b></td>
+            </tr>
+        </table>
+    </div>
+    <div class="panel-body">
+        <table>
+            <tr>
+                <td>{{ i18n("messages", "patient_type") }} : </td>
+                <td style="width: 29%"><b class="type">{{ i18n("messages", "patient_fetus") }}</b></td>
+                <td style="width: 50%" rowspan="9"></td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "patient_gender") }} : </td>
+                <td><b>{{ mapper.mapToFetusGender(fetus) }}</b></td>
+            </tr>
+            <tr>
+                <td>{{ i18n("messages", "patient_gestational_age") }}: </td>
+                <td><b>{{ mapper.mapToGestetionalAge(probandObservations) }}</b></td>
+            </tr>
+            <tr>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+</div>

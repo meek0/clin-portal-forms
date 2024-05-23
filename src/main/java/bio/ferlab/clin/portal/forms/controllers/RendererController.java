@@ -71,10 +71,6 @@ public class RendererController {
     if (!analysis.getMeta().hasProfile(ANALYSIS_SERVICE_REQUEST)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Prescription isn't an analysis: " + id);
     }
-    // foetus not supported
-    if (analysis.hasCategory() && PRENATAL.equalsIgnoreCase(analysis.getCategoryFirstRep().getText())) {
-      throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "Prescription for foetus isn't implemented: " + id);
-    }
     final var performer = mainBundleExtractor.getFirstResourcesOfType(Organization.class);
     // Assignation feature will attach several PractitionerRole insider performer BUT we want the one from requester
     final var practitionerRole = mainBundleExtractor.getFirstResourcesById(PractitionerRole.class, FhirUtils.extractId(analysis.getRequester()));
@@ -107,9 +103,7 @@ public class RendererController {
     final var probandPerson = persons.stream()
       .filter(s -> s.getLink().stream().anyMatch(l -> l.getTarget().getReference().equals(analysis.getSubject().getReference())))
       .findFirst().orElseThrow(() -> new RuntimeException("Can't find person for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
-    final var probandSequencing = sequencings.stream()
-      .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
-      .findFirst().orElseThrow(() -> new RuntimeException("Can't find sequencing for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
+
     final var probandImpression = impressions.stream()
       .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
       .findFirst().orElseThrow(() -> new RuntimeException("Can't find clinical impression for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
@@ -146,8 +140,8 @@ public class RendererController {
     }
 
     var missingReasons = probandObservations.stream()
-      .filter(o -> o.getCategoryFirstRep().getCodingFirstRep().getCode().equals("social-history"))
-      .filter(o -> o.getValueCodeableConcept().getCodingFirstRep().getSystem().equals(SYSTEM_MISSING_PARENT))
+      .filter(o -> "social-history".equals(o.getCategoryFirstRep().getCodingFirstRep().getCode()))
+      .filter(o -> SYSTEM_MISSING_PARENT.equals(o.getValueCodeableConcept().getCodingFirstRep().getSystem()))
       .toList();
     for(var missingReason : missingReasons) {
       var reason = missingReason.getNoteFirstRep().getText();
@@ -166,7 +160,26 @@ public class RendererController {
     context.put("practitioner", practitioner);
     context.put("organization", organization);
 
-    context.put("probandSequencing", probandSequencing);
+    if (!PRENATAL.equalsIgnoreCase(analysis.getCategoryFirstRep().getCodingFirstRep().getCode())) {
+      final var probandSequencing = sequencings.stream()
+        .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
+        .findFirst().orElseThrow(() -> new RuntimeException("Can't find sequencing for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
+
+      context.put("probandSequencing", probandSequencing);
+    } else {
+      final var probandSequencing = sequencings.stream()
+        .filter(s -> FhirUtils.extractId(s.getBasedOnFirstRep().getReference()).equals(analysis.getIdElement().getIdPart())).findFirst().orElse(null);
+
+      if (probandSequencing != null) {
+        final Bundle fetusBundle = fhirClient.fetchFetusSequencingDetails(probandSequencing);
+        final var fetusExtractor = new BundleExtractor(fhirClient.getContext(), fetusBundle);
+        final var fetus = fetusExtractor.getFirstResourcesOfType(Patient.class);
+
+        context.put("probandSequencing", probandSequencing);
+        context.put("fetus", fetus);
+      }
+    }
+
     context.put("probandPatient", probandPatient);
     context.put("probandPerson", probandPerson);
     context.put("probandImpression", probandImpression);
@@ -177,6 +190,7 @@ public class RendererController {
 
     // don't know how thread-safe is Pebble renderer, let's instance a new mapper instead of having a singleton
     context.put("mapper", new TemplateMapper(id, logOnceService, messagesService, templateService, codesValuesService, analysisCodes, locale));
+    context.put("isPrenatalAnalysisCategory", analysis.hasCategory() && PRENATAL.equalsIgnoreCase(analysis.getCategoryFirstRep().getCodingFirstRep().getCode()));
     context.put("now", new Date());
     context.put("version", "1.0");
 

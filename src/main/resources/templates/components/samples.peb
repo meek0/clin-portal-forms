@@ -13,13 +13,19 @@
             </div>
 
             <div class="block">
-                <div><b>{{ i18n("messages", "samples_type")}} : <span class="type">Postnatal</span></b></div>
+                <div><b>{{ i18n("messages", "samples_type")}} : <span class="type">{{ i18n("messages", isPrenatalAnalysisCategory ? "samples_type_prenatal" : "samples_type_postnatal")}}</span></b></div>
+                {% if isPrenatalAnalysisCategory == false %}
                 {{ sample(i18n("messages", "samples_type_1")) }}
                 {{ sample(i18n("messages", "samples_type_2")) }}
                 {{ sample(i18n("messages", "samples_type_5")) }}
+                {% else %}
+                <div>{{box()}} {{ i18n("messages", "samples_type_amniocytes")}} : {{ underscored(25) }} {{ i18n("messages", "samples_type_amniocytes_volume")}} : {{ underscored(25) }} {{box()}} {{ i18n("messages", "samples_type_amniocytes_vilosity")}}</div>
+                <div>{{box()}} {{ i18n("messages", "samples_type_fetal_tissue")}} : {{ underscored(25) }}</div>
+                <div>{{box()}} {{ i18n("messages", "samples_type_dna")}} : {{ underscored(25) }}</div>
+                {% endif %}
                 <div>
                     {{box()}} {{ i18n("messages", "samples_type_other")}} : {{ underscored(25) }}
-                 </div>
+                </div>
                 <div>
                     {{ i18n("messages", "samples_comment")}} : {{ underscored(75) }}
                 </div>
@@ -33,6 +39,11 @@
                 <div>
                     {{box("hidden")}}<i>{{ i18n("messages", "samples_patient_consent_note")}}</i>
                 </div>
+                {% if isPrenatalAnalysisCategory == true %}
+                <div>
+                    {{box("hidden")}}<i>{{ i18n("messages", "samples_patient_consent_note_prenatal")}}</i>
+                </div>
+                {% endif %}
             </div>
             <div>
                 {{ i18n("messages", "samples_prescriber_signature")}} : {{ underscored(25) }}
