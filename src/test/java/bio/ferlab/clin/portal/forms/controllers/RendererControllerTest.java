@@ -55,19 +55,22 @@ class RendererControllerTest {
     assertEquals("Prescription isn't an analysis: 1234", exception.getReason());
   }
 
-  // @Test
-  void foetus() throws IOException {
-    final var mainBundle = new Bundle();
-    final var analysis = new ServiceRequest();
-    analysis.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
-    analysis.addCategory().addCoding().setCode(PRENATAL);
-    mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(analysis));
-    when(fhirClient.findServiceRequestWithDepsById(any())).thenReturn(mainBundle);
-    ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> {
-      controller.render("1234", "html");
-    });
-    assertEquals(501, exception.getStatusCode().value());
-    assertEquals("Prescription for foetus isn't implemented: 1234", exception.getReason());
+  @Test
+  void preBirth_html() throws IOException {
+    this.preparePreBirth();
+    ResponseEntity<String> html = (ResponseEntity<String>) controller.render("5678", "html");
+    assertTrue(html.getBody().contains("Prénatal"));
+    assertTrue(html.getBody().contains("Fœtus décédé"));
+  }
+
+  @Test
+  void preBirth_pdf() throws IOException {
+    this.preparePreBirth();
+    ResponseEntity<ByteArrayResource> pdf = (ResponseEntity<ByteArrayResource>) controller.render("5678", "pdf");
+    assertTrue(pdf.getBody().contentLength() > 0);
+    var contentDisposition = pdf.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION);
+    assertTrue(contentDisposition.startsWith("attachment; filename=5678_"));
+    assertTrue(contentDisposition.endsWith(".pdf"));
   }
 
   @Test
@@ -85,6 +88,54 @@ class RendererControllerTest {
     var contentDisposition = pdf.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION);
     assertTrue(contentDisposition.startsWith("attachment; filename=1234_"));
     assertTrue(contentDisposition.endsWith(".pdf"));
+  }
+
+  private void preparePreBirth() {
+    var mainBundle = new Bundle();
+
+    var analysis = new ServiceRequest();
+    analysis.setId("ServiceRequest/analysisId");
+    analysis.setSubject(new Reference("Patient/p1"));
+    analysis.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
+    analysis.addCategory().addCoding().setCode(PRENATAL);
+
+    mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(analysis));
+
+    final var detailsBundle = new Bundle();
+    final var sequencingDetailsBundle = new Bundle();
+
+    final var patient = new Patient();
+    patient.setId("p1");
+    final var person = new Person();
+    person.getLinkFirstRep().getTarget().setReference("Patient/p1");
+
+    final var fetusPatient = new Patient();
+    fetusPatient.setId("p2");
+
+    final var sequencing = new ServiceRequest();
+    sequencing.setId("ServiceRequest/sequencingId");
+    sequencing.getMeta().addProfile(SEQUENCING_SERVICE_REQUEST);
+    sequencing.setSubject(new Reference("Patient/p2"));
+    sequencing.addCategory().addCoding().setCode(PRENATAL);
+    sequencing.getBasedOn().add(new Reference("ServiceRequest/analysisId"));
+
+    final var clinical = new ClinicalImpression();
+    clinical.setSubject(new Reference("Patient/p1"));
+
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(patient));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(person));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(sequencing));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(clinical));
+
+    sequencingDetailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(fetusPatient));
+
+    final var codesAndValuesBundle = new Bundle();
+
+    when(fhirClient.findServiceRequestWithDepsById(any())).thenReturn(mainBundle);
+    when(fhirClient.fetchPrescriptionDetails(any(), any(), any())).thenReturn(detailsBundle);
+    when(fhirClient.fetchCodesAndValues()).thenReturn(codesAndValuesBundle);
+
+    when(fhirClient.fetchFetusSequencingDetails(any())).thenReturn(sequencingDetailsBundle);
   }
 
   private void preparePostBirth() {
