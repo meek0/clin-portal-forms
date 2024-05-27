@@ -12,8 +12,8 @@
 {% endblock %}
 
 {% block page2 %}
-    {% include "components/header" with {"type": "sequencing", "serviceRequest": probandSequencing} %}
-    {% include "components/patient" with {"patient" : probandPatient, "person": probandPerson} %}
+    {% include "components/header" with {"type": (isPrenatalAnalysisCategory == false ? "sequencing" : "prenatal"), "serviceRequest": probandSequencing} %}
+    {% include isPrenatalAnalysisCategory ? "components/patient_prenatal" : "components/patient" with {"patient" : probandPatient, "person": probandPerson} %}
     <table>
         <tr>
             <td style="width: 50%">{% include "components/prescription" %}</td>
