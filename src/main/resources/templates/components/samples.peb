@@ -19,7 +19,11 @@
                 {{ sample(i18n("messages", "samples_type_2")) }}
                 {{ sample(i18n("messages", "samples_type_5")) }}
                 {% else %}
-                <div>{{box()}} {{ i18n("messages", "samples_type_amniocytes")}} : {{ underscored(25) }} {{ i18n("messages", "samples_type_amniocytes_volume")}} : {{ underscored(25) }} {{box()}} {{ i18n("messages", "samples_type_amniocytes_vilosity")}}</div>
+                <div>
+                    {{box()}} {{ i18n("messages", "samples_type_amniocytes")}} : {{ underscored(25) }} {{spaces()}}
+                    {{ i18n("messages", "samples_type_amniocytes_volume")}} : {{ underscored(25) }} {{spaces()}}
+                    {{box()}} {{ i18n("messages", "samples_type_amniocytes_vilosity")}}
+                </div>
                 <div>{{box()}} {{ i18n("messages", "samples_type_fetal_tissue")}} : {{ underscored(25) }}</div>
                 <div>{{box()}} {{ i18n("messages", "samples_type_dna")}} : {{ underscored(25) }}</div>
                 {% endif %}

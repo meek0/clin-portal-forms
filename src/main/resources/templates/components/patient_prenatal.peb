@@ -38,7 +38,8 @@
             </tr>
             <tr>
                 <td>{{ i18n("messages", "patient_gestational_age") }}: </td>
-                <td><b>{{ mapper.mapToGestetionalAge(probandObservations) }}</b></td>
+                {% set patientGestationalAgeTexts = mapper.mapToGestetionalAge(probandObservations) %}
+                <td><b>{{ patientGestationalAgeTexts[0] }}</b> ({{ patientGestationalAgeTexts[1] }})</td>
             </tr>
             <tr>
                 <td></td>
