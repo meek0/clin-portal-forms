@@ -191,17 +191,18 @@ public class TemplateMapper {
     }
   }
 
-  public String mapToGestetionalAge(List<Observation> obs) {
+  public List<String> mapToGestetionalAge(List<Observation> obs) {
     try {
       final var gestationalAgeObs = obs.stream().filter(o -> List.of(FhirConst.CODE_DDM, FhirConst.CODE_DPA).indexOf(o.getCode().getCodingFirstRep().getCode()) > -1).findFirst().orElse(null);
 
       if (gestationalAgeObs != null) {
-        return String.format(i18n("patient_gestational_age_weeks"), calculateGestationalAge(gestationalAgeObs.getCode().getCodingFirstRep().getCode(), gestationalAgeObs.getValueDateTimeType().dateTimeValue().dateTimeValue().getValue()));
+        return List.of(String.format(i18n("patient_gestational_age_weeks"), calculateGestationalAge(gestationalAgeObs.getCode().getCodingFirstRep().getCode(), gestationalAgeObs.getValueDateTimeType().dateTimeValue().dateTimeValue().getValue())), i18n("patient_gestational_age_weeks_pregnancy"));
       } else {
-        return i18n("patient_fetus_deceased");
+        return List.of(i18n("patient_fetus_deceased"), i18n("patient_fetus_deceased_pregnancy"));
       }
     } catch (Exception e) {
-      return this.handleError(e);
+      this.handleError(e);
+      return new ArrayList<>();
     }
   }
 
