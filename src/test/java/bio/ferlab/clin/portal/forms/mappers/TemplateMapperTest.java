@@ -221,7 +221,7 @@ class TemplateMapperTest {
   void mapToRAMQ() {
     assertEquals("", mapper.mapToRAMQ(null));
     Person person = new Person();
-    assertEquals("", mapper.mapToRAMQ(person));
+    assertEquals("--", mapper.mapToRAMQ(person));
     person.addIdentifier(new Identifier().setValue("abcd12345678").setType(new CodeableConcept().addCoding(new Coding().setCode("JHN"))));
     assertEquals("ABCD 1234 5678", mapper.mapToRAMQ(person));
   }
@@ -230,7 +230,7 @@ class TemplateMapperTest {
   void mapToMRN() {
     assertEquals("", mapper.mapToMRN(null));
     Patient patient = new Patient();
-    assertEquals("", mapper.mapToMRN(patient));
+    assertEquals("--", mapper.mapToMRN(patient));
     patient.addIdentifier(new Identifier().setValue("mrn-foo-1234").setType(new CodeableConcept().addCoding(new Coding().setCode("MR"))));
     assertEquals("FOO-1234", mapper.mapToMRN(patient));
     patient.setManagingOrganization(new Reference("Organization/bar"));
@@ -306,7 +306,7 @@ class TemplateMapperTest {
   void mapToPanelReflex() {
     assertEquals("", mapper.mapToPanelReflex(null));
     ServiceRequest serviceRequest = new ServiceRequest();
-    assertEquals("", mapper.mapToPanelReflex(serviceRequest));
+    assertEquals("--", mapper.mapToPanelReflex(serviceRequest));
     serviceRequest.setOrderDetail(List.of(new CodeableConcept().setText(" reflex")));
     assertEquals("reflex", mapper.mapToPanelReflex(serviceRequest));
     serviceRequest.setOrderDetail(List.of(new CodeableConcept().setText(REFLEX_PANEL_PREFIX_FR + "reflex")));
