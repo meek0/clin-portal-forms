@@ -25,6 +25,7 @@ import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 public class TemplateMapper {
 
   public static final String EMPTY = "";
+  public static final String DASHES = "--";
 
   private final String id;
   private final LogOnceService logOnceService;
@@ -83,7 +84,7 @@ public class TemplateMapper {
 
   public String mapToRAMQ(Person person) {
     try {
-      return getIdentifier(person.getIdentifier(), CODE_RAMQ).map(r -> String.format("%s %s %s", r.substring(0,4), r.substring(4,8), r.substring(8,12)).toUpperCase()).orElse(EMPTY);
+      return getIdentifier(person.getIdentifier(), CODE_RAMQ).map(r -> String.format("%s %s %s", r.substring(0,4), r.substring(4,8), r.substring(8,12)).toUpperCase()).orElse(DASHES);
     } catch (Exception e) {
       return this.handleError(e);
     }
@@ -93,7 +94,16 @@ public class TemplateMapper {
     try {
       var org = Optional.ofNullable(FhirUtils.extractId(patient.getManagingOrganization())).orElse(EMPTY).toUpperCase();
       var mrn = getIdentifier(patient.getIdentifier(), CODE_MRN).map(r -> r.toUpperCase().replace("MRN-", "")).orElse(EMPTY);
-      return StringUtils.isNotBlank(org) ? mrn + " | "+ org : mrn;
+
+      if (StringUtils.isAllBlank(org, mrn)) {
+        return DASHES;
+      } else if (StringUtils.isNotBlank(org) && StringUtils.isBlank(mrn)) {
+        return DASHES;
+      } else if (StringUtils.isBlank(org) && StringUtils.isNotBlank(mrn)) {
+        return mrn;
+      } else {
+        return mrn + " | "+ org;
+      }
     } catch (Exception e) {
       return this.handleError(e);
     }
@@ -164,7 +174,7 @@ public class TemplateMapper {
     try {
       return serviceRequest.hasOrderDetail() ? serviceRequest.getOrderDetailFirstRep().getText()
         .replace(REFLEX_PANEL_PREFIX_FR, "")
-        .replace(REFLEX_PANEL_PREFIX_EN, "").trim() : EMPTY;
+        .replace(REFLEX_PANEL_PREFIX_EN, "").trim() : DASHES;
     } catch (Exception e) {
       return this.handleError(e);
     }
@@ -172,7 +182,8 @@ public class TemplateMapper {
 
   public String mapToComment(ServiceRequest serviceRequest) {
     try {
-      return serviceRequest.getNoteFirstRep().getText();
+      final String comment = serviceRequest.getNoteFirstRep().getText();
+      return StringUtils.isNotBlank(comment) ? serviceRequest.getNoteFirstRep().getText() : DASHES;
     } catch (Exception e) {
       return this.handleError(e);
     }
@@ -185,7 +196,7 @@ public class TemplateMapper {
         .filter(o -> SYSTEM_MISSING_PARENT.equals(o.getValueCodeableConcept().getCodingFirstRep().getSystem()))
         .findFirst();
       return reason.map(o -> o.getNoteFirstRep().getText())
-        .filter(StringUtils::isNotBlank).orElse(EMPTY);
+        .filter(StringUtils::isNotBlank).orElse(DASHES);
     } catch (Exception e) {
       return this.handleError(e);
     }
