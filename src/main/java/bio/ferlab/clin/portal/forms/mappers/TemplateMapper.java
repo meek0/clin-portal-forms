@@ -95,7 +95,7 @@ public class TemplateMapper {
       var org = Optional.ofNullable(FhirUtils.extractId(patient.getManagingOrganization())).orElse(EMPTY).toUpperCase();
       var mrn = getIdentifier(patient.getIdentifier(), CODE_MRN).map(r -> r.toUpperCase().replace("MRN-", "")).orElse(EMPTY);
 
-      if (StringUtils.isBlank(org) && StringUtils.isBlank(mrn)) {
+      if (StringUtils.isAllBlank(org, mrn)) {
         return DASHES;
       } else if (StringUtils.isNotBlank(org) && StringUtils.isBlank(mrn)) {
         return DASHES;
