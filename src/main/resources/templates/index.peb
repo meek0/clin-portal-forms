@@ -24,3 +24,36 @@
     {% include "components/performer" %}
     {% include "components/footer" with {"withVersion": true, "page": "1", "total": "1"} %}
 {% endblock %}
+
+{% if probandFamilyMembers|length > 0 %}
+{% block pageparent1 %}
+    {% include "components/header" with {"type": "sequencing", "serviceRequest": probandFamilyMembers[0].sequencing} %}
+    {% include "components/patient" with {"patient" : probandFamilyMembers[0], "person": probandFamilyMembers[0].person} %}
+    <table>
+        <tr>
+            <td style="width: 50%">{% include "components/prescription" %}</td>
+            <td style="width: 50%">{% include "components/prescriber" %}</td>
+        </tr>
+    </table>
+    {% include "components/samples" with {"isPrenatalAnalysisCategory": false} %}
+    {% include "components/performer" with {"performer": probandFamilyMembers[0].sequencing.performer[0].resource} %}
+    {% include "components/footer" with {"withVersion": true, "page": "1", "total": "1"} %}
+{% endblock %}
+
+{% if probandFamilyMembers|length > 1 %}
+{% block pageparent2 %}
+    {% include "components/header" with {"type": "sequencing", "serviceRequest": probandFamilyMembers[1].sequencing} %}
+    {% include "components/patient" with {"patient" : probandFamilyMembers[1], "person": probandFamilyMembers[1].person} %}
+    <table>
+        <tr>
+            <td style="width: 50%">{% include "components/prescription" %}</td>
+            <td style="width: 50%">{% include "components/prescriber" %}</td>
+        </tr>
+    </table>
+    {% include "components/samples" with {"isPrenatalAnalysisCategory": false} %}
+    {% include "components/performer" with {"performer": probandFamilyMembers[1].sequencing.performer[0].resource} %}
+    {% include "components/footer" with {"withVersion": true, "page": "1", "total": "1"} %}
+{% endblock %}
+{% endif %}
+
+{% endif %}

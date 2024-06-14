@@ -18,5 +18,20 @@
         {% block page2 %}
         {% endblock %}
 		</div>
+    {% if probandFamilyMembers|length > 0 %}
+    <div class="pagebreak"> </div>
+    <div class="page">
+        {% block pageparent1 %}
+        {% endblock %}
+		</div>
+    
+    {% if probandFamilyMembers|length > 1 %}
+    <div class="pagebreak"> </div>
+    <div class="page">
+        {% block pageparent2 %}
+        {% endblock %}
+		</div>
+    {% endif %}
+    {% endif %}
 	</body>
 </html>
