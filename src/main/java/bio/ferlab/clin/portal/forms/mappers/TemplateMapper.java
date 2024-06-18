@@ -98,7 +98,7 @@ public class TemplateMapper {
       if (StringUtils.isAllBlank(org, mrn)) {
         return DASHES;
       } else if (StringUtils.isNotBlank(org) && StringUtils.isBlank(mrn)) {
-        return DASHES;
+        return org;
       } else if (StringUtils.isBlank(org) && StringUtils.isNotBlank(mrn)) {
         return mrn;
       } else {
