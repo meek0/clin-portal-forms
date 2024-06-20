@@ -224,7 +224,7 @@ public class FhirClient {
       .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()
-      .setUrl(String.format("ServiceRequest?based-on=%s&_profile=%s", FhirUtils.formatResource(analysis), SEQUENCING_SERVICE_REQUEST))
+      .setUrl(String.format("ServiceRequest?based-on=%s&_profile=%s&_include=ServiceRequest:performer", FhirUtils.formatResource(analysis), SEQUENCING_SERVICE_REQUEST))
       .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()

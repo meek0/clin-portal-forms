@@ -90,6 +90,25 @@ class RendererControllerTest {
     assertTrue(contentDisposition.endsWith(".pdf"));
   }
 
+  @Test
+  void trio_html() throws IOException {
+    this.prepareTrio();
+    ResponseEntity<String> html = (ResponseEntity<String>) controller.render("2468", "html");
+    assertTrue(html.getBody().contains("sequencingId"));
+    assertTrue(html.getBody().contains("sequencingMotherId"));
+    assertTrue(html.getBody().contains("sequencingFatherId"));
+  }
+
+  @Test
+  void trio_pdf() throws IOException {
+    this.prepareTrio();
+    ResponseEntity<ByteArrayResource> pdf = (ResponseEntity<ByteArrayResource>) controller.render("2468", "pdf");
+    assertTrue(pdf.getBody().contentLength() > 0);
+    var contentDisposition = pdf.getHeaders().getFirst(HttpHeaders.CONTENT_DISPOSITION);
+    assertTrue(contentDisposition.startsWith("attachment; filename=2468_"));
+    assertTrue(contentDisposition.endsWith(".pdf"));
+  }
+
   private void preparePreBirth() {
     var mainBundle = new Bundle();
 
@@ -175,9 +194,98 @@ class RendererControllerTest {
     when(fhirClient.fetchCodesAndValues()).thenReturn(codesAndValuesBundle);
   }
 
+  private void prepareTrio() {
+    var mainBundle = new Bundle();
+
+    var analysis = new ServiceRequest();
+    analysis.setId("analysisId");
+    analysis.setSubject(new Reference("Patient/p1"));
+    analysis.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
+
+    mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(analysis));
+
+    final var detailsBundle = new Bundle();
+
+    final var patient = new Patient();
+    patient.setId("p1");
+    final var person = new Person();
+    person.getLinkFirstRep().getTarget().setReference("Patient/p1");
+
+    final var patientMother = new Patient();
+    patientMother.setId("pm");
+    final var personMother = new Person();
+    personMother.getLinkFirstRep().getTarget().setReference("Patient/pm");
+
+    final var patientFather = new Patient();
+    patientFather.setId("pf");
+    final var personFather = new Person();
+    personFather.getLinkFirstRep().getTarget().setReference("Patient/pf");
+
+    final var sequencing = new ServiceRequest();
+    sequencing.setId("sequencingId");
+    sequencing.getMeta().addProfile(SEQUENCING_SERVICE_REQUEST);
+    sequencing.setSubject(new Reference("Patient/p1"));
+
+    final var sequencingMother = new ServiceRequest();
+    sequencingMother.setId("sequencingMotherId");
+    sequencingMother.getMeta().addProfile(SEQUENCING_SERVICE_REQUEST);
+    sequencingMother.setSubject(new Reference("Patient/pm"));
+    sequencingMother.getBasedOn().add(new Reference(analysis));
+
+    final var sequencingFather = new ServiceRequest();
+    sequencingFather.setId("sequencingFatherId");
+    sequencingFather.getMeta().addProfile(SEQUENCING_SERVICE_REQUEST);
+    sequencingFather.setSubject(new Reference("Patient/pf"));
+    sequencingFather.getBasedOn().add(new Reference(analysis));
+
+    final var clinical = new ClinicalImpression();
+    clinical.setSubject(new Reference("Patient/p1"));
+
+    final var clinicalMother = new ClinicalImpression();
+    clinicalMother.setSubject(new Reference("Patient/pm"));
+
+    final var clinicalFather = new ClinicalImpression();
+    clinicalFather.setSubject(new Reference("Patient/pf"));
+
+    this.addParentToAnalysis(analysis, clinicalMother, FAMILY_MEMBER_MOTHER_CODE);
+    this.addParentToAnalysis(analysis, clinicalFather, FAMILY_MEMBER_FATHER_CODE);
+
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(patient));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(patientMother));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(patientFather));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(person));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(personMother));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(personFather));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(sequencing));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(sequencingMother));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(sequencingFather));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(clinical));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(clinicalMother));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(clinicalFather));
+
+    final var codesAndValuesBundle = new Bundle();
+
+    when(fhirClient.findServiceRequestWithDepsById(any())).thenReturn(mainBundle);
+    when(fhirClient.fetchPrescriptionDetails(any(), any(), any())).thenReturn(detailsBundle);
+    when(fhirClient.fetchCodesAndValues()).thenReturn(codesAndValuesBundle);
+  }
+
   private void assertContent(String snapshotPath, ResponseEntity<String> response) throws IOException {
     var expected = IOUtils.resourceToString(snapshotPath, StandardCharsets.UTF_8, getClass().getClassLoader());
     assertEquals(sanitize(expected), sanitize(response.getBody()));
+  }
+
+  private void addParentToAnalysis(ServiceRequest analysis, ClinicalImpression clinical, String code) {
+    final Extension familyMemberExt = new Extension(FAMILY_MEMBER);
+    final Extension parentExt = new Extension("parent");
+    parentExt.setValue(clinical.getSubject());
+    final Extension parentRelationExt = new Extension("parent-relationship");
+    final CodeableConcept cc = new CodeableConcept();
+    cc.getCodingFirstRep().setSystem(SYSTEM_ROLE).setCode(code);
+    parentRelationExt.setValue(cc);
+    familyMemberExt.addExtension(parentExt);
+    familyMemberExt.addExtension(parentRelationExt);
+    analysis.addExtension(familyMemberExt);
   }
 
   private String sanitize(String file) {
