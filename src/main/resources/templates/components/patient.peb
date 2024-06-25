@@ -25,7 +25,7 @@
             </tr>
             <tr>
                 <td>{{ i18n("messages", "patient_type") }} : </td>
-                <td><b class="type">{{ i18n("messages", "patient_index_case") }}</b></td>
+                <td><b class="type">{{ i18n("messages", relation ? ("patient_" + relation) : "patient_index_case") }}</b></td>
             </tr>
             <tr>
                 <td></td>
