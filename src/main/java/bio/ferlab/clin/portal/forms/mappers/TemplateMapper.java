@@ -1,5 +1,6 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
+import bio.ferlab.clin.portal.forms.controllers.RendererController.FamilyMember;
 import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LogOnceService;
 import bio.ferlab.clin.portal.forms.services.MessagesService;
@@ -259,10 +260,13 @@ public class TemplateMapper {
   public String mapToAffected(List<Observation> obs) {
     var isAffected = mapToSign(obs, "DSTA", "POS");
     var notAffected = mapToSign(obs, "DSTA", "NEG");
+    var unknown = mapToSign(obs, "DSTA", "IND");
     if (StringUtils.isNotBlank(isAffected))
       return i18n("clinical_status_affected");
     if (StringUtils.isNotBlank(notAffected))
       return i18n("clinical_status_not_affected");
+    if (StringUtils.isNotBlank(unknown))
+      return i18n("clinical_status_unknown");
     return EMPTY;
   }
 
@@ -352,6 +356,10 @@ public class TemplateMapper {
     } else {
       return StringUtils.isBlank(relation) ? EMPTY : relation;
     }
+  }
+
+  public List<FamilyMember> nonMissingFamilyMembers(List<FamilyMember> familyMembers) {
+    return familyMembers.stream().filter(f -> StringUtils.isBlank(f.missingReason())).toList();
   }
 
   private String mapToI18nAgeAtOnset(Observation o) {
