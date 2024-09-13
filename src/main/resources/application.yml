@@ -27,6 +27,8 @@ spring:
     restart:
       enabled: true
       additional-paths: templates/
+qlin-me:
+  url: ${QLIN_ME_URL:https://qlin-me-hybrid.qa.cqgc.hsj.rtss.qc.ca}
 fhir:
   url: ${FHIR_URL:https://fhir.qa.cqgc.hsj.rtss.qc.ca/fhir}
   timeout: 15000 # milliseconds
