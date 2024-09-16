@@ -1,0 +1,86 @@
+{
+  "type" : "GERMLINE",
+  "analysis_code" : "RGDI",
+  "is_reflex" : false,
+  "history" : [ {
+    "condition" : "bof bof",
+    "parental_link_code" : "PATMEM"
+  }, {
+    "condition" : "bof bof again",
+    "parental_link_code" : "MATMEM"
+  } ],
+  "diagnosis" : {
+    "hypothesis" : "diag comment",
+    "ethnicity_code" : "CA-FR",
+    "inbreeding" : true
+  },
+  "sequencings" : [ {
+    "patient" : {
+      "first_name" : "bar",
+      "last_name" : "Foo",
+      "mrn" : "mrn-123333",
+      "sex" : "UNKNOWN",
+      "birth_date" : "1111-11-04",
+      "organization_id" : "CHUSJ",
+      "family_member" : "PROBAND",
+      "foetus" : {
+        "type" : "PRENATAL",
+        "sex" : "MALE",
+        "gestational_age" : "DECEASED"
+      }
+    },
+    "clinical" : {
+      "signs" : [ {
+        "code" : "HP:0001250",
+        "observed" : true,
+        "age_code" : "HP:0003623"
+      }, {
+        "code" : "HP:0025086",
+        "observed" : false
+      } ],
+      "comment" : "general comment"
+    },
+    "para_clinical" : {
+      "exams" : [ {
+        "code" : "BMET",
+        "interpretation" : "ABNORMAL",
+        "values" : [ ]
+      }, {
+        "code" : "TSXF",
+        "interpretation" : "NORMAL",
+        "values" : [ ]
+      } ],
+      "comment" : "exam comment"
+    }
+  }, {
+    "patient" : {
+      "family_member" : "MOTHER"
+    },
+    "parental" : {
+      "status" : "LATER",
+      "reason" : "pas la"
+    }
+  }, {
+    "patient" : {
+      "first_name" : "moma",
+      "last_name" : "moma",
+      "mrn" : "mrn-1246",
+      "sex" : "FEMALE",
+      "birth_date" : "2000-01-01",
+      "organization_id" : "CHUSJ",
+      "family_member" : "FATHER"
+    },
+    "parental" : {
+      "status" : "NOW",
+      "affected" : true
+    },
+    "clinical" : {
+      "signs" : [ {
+        "code" : "HP:0000256",
+        "observed" : true,
+        "age_code" : "HP:0011462"
+      } ],
+      "comment" : "moma comment"
+    }
+  } ]
+}

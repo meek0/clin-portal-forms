@@ -77,7 +77,9 @@ public class QlinMeMapper {
       if (patient.getGender() != null) {
         proband.setSex(AnalysisCreateRequest.Sex.valueOf(patient.getGender().name().toUpperCase()));
       }
-      proband.setBirthDate(DateUtils.FORMATTER_YYYYMMdd.format(patient.getBirthDate()));
+      if (patient.getBirthDate() != null) {
+        proband.setBirthDate(DateUtils.FORMATTER_YYYYMMdd.format(patient.getBirthDate()));
+      }
       proband.setOrganizationId(patient.getEp());
       proband.setFamilyMember(AnalysisCreateRequest.FamilyMember.PROBAND);
       var additionalInfo = patient.getAdditionalInfo();
