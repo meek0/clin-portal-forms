@@ -1,0 +1,90 @@
+{
+  "analysis": {
+    "panel_code": "RGDI",
+    "is_reflex": false
+  },
+  "patient": {
+    "ep": "CHUSJ",
+    "mrn": "mrn-123333",
+    "no_ramq": true,
+    "last_name": "Foo",
+    "first_name": "bar",
+    "birth_date": "1111-11-04",
+    "gender": "unknown",
+    "additional_info": {
+      "is_prenatal_diagnosis": true,
+      "is_new_born": false,
+      "foetus_gender": "male",
+      "gestational_age": "deceased"
+    }
+  },
+  "clinical_signs": {
+    "comment": "general comment",
+    "signs": [
+      {
+        "value": "HP:0001250",
+        "is_observed": true,
+        "name": "Crise d'épilepsie",
+        "age_code": "HP:0003623"
+      },
+      {
+        "name": "Bloody mucoid diarrhea",
+        "value": "HP:0025086",
+        "is_observed": false
+      }
+    ]
+  },
+  "paraclinical_exams": {
+    "exams": [
+      {
+        "code": "BMET",
+        "interpretation": "abnormal"
+      },
+      {
+        "code": "TSXF",
+        "interpretation": "normal"
+      }
+    ],
+    "comment": "exam comment"
+  },
+  "history_and_diagnosis": {
+    "report_health_conditions": true,
+    "inbreeding": true,
+    "ethnicity": "CA-FR",
+    "diagnostic_hypothesis": "diag comment",
+    "health_conditions": [
+      {
+        "condition": "bof bof",
+        "parental_link": "PATMEM"
+      },
+      {
+        "condition": "bof bof again",
+        "parental_link": "MATMEM"
+      }
+    ]
+  },
+  "mother": {
+    "parent_enter_moment": "later",
+    "parent_no_info_reason": "pas la"
+  },
+  "father": {
+    "parent_enter_moment": "now",
+    "ep": "CHUSJ",
+    "mrn": "mrn-1246",
+    "no_ramq": true,
+    "last_name": "moma",
+    "first_name": "moma",
+    "birth_date": "2000-01-01",
+    "gender": "female",
+    "parent_clinical_status": "affected",
+    "comment": "moma comment",
+    "signs": [
+      {
+        "value": "HP:0000256",
+        "is_observed": true,
+        "name": "Macrocéphalie",
+        "age_code": "HP:0011462"
+      }
+    ]
+  }
+}

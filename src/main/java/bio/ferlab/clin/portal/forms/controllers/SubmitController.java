@@ -1,7 +1,9 @@
 package bio.ferlab.clin.portal.forms.controllers;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
+import bio.ferlab.clin.portal.forms.clients.QlinMeClient;
 import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
+import bio.ferlab.clin.portal.forms.configurations.QlinMeConfiguration;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.builders.*;
 import bio.ferlab.clin.portal.forms.models.submit.ClinicalSigns;
@@ -11,6 +13,7 @@ import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import bio.ferlab.clin.portal.forms.utils.JwtUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.hl7.fhir.r4.model.Bundle;
@@ -28,10 +31,16 @@ public class SubmitController {
   private final FhirConfiguration fhirConfiguration;
   private final SubmitToFhirMapper mapper;
   private final LocaleService localeService;
+  private final QlinMeClient qlinMeClient;
+  private final QlinMeConfiguration qlinMeConfiguration;
 
   @PostMapping
-  public ResponseEntity<Response> submit(@RequestHeader String authorization,
-                                         @Valid @RequestBody Request request) {
+  public ResponseEntity<?> submit(@RequestHeader String authorization,
+                                         @Valid @RequestBody Request request) throws JsonProcessingException {
+
+    if (qlinMeConfiguration.getEnabled()) {
+      return qlinMeClient.create(authorization, request);
+    }
 
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
     final String panelCode = request.getAnalysis().getPanelCode();
