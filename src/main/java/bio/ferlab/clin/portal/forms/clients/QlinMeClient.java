@@ -26,6 +26,7 @@ public class QlinMeClient {
   private final QlinMeMapper mapper;
 
   public QlinMeClient(QlinMeConfiguration configuration, QlinMeMapper mapper) {
+    log.info("QlinMeClient: {}", configuration);
     this.client = RestClient.create(configuration.getUrl());
     this.objectMapper = new ObjectMapper();
     objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);

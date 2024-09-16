@@ -3,18 +3,24 @@ package bio.ferlab.clin.portal.forms.controllers;
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.clients.QlinMeClient;
 import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
+import bio.ferlab.clin.portal.forms.configurations.QlinMeConfiguration;
 import bio.ferlab.clin.portal.forms.mappers.SubmitToFhirMapper;
 import bio.ferlab.clin.portal.forms.models.builders.*;
+import bio.ferlab.clin.portal.forms.models.submit.ClinicalSigns;
 import bio.ferlab.clin.portal.forms.models.submit.Request;
+import bio.ferlab.clin.portal.forms.models.submit.Response;
 import bio.ferlab.clin.portal.forms.services.LocaleService;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
+import bio.ferlab.clin.portal.forms.utils.JwtUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.hl7.fhir.r4.model.Bundle;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/form")
@@ -26,14 +32,17 @@ public class SubmitController {
   private final SubmitToFhirMapper mapper;
   private final LocaleService localeService;
   private final QlinMeClient qlinMeClient;
+  private final QlinMeConfiguration qlinMeConfiguration;
 
   @PostMapping
   public ResponseEntity<?> submit(@RequestHeader String authorization,
                                          @Valid @RequestBody Request request) throws JsonProcessingException {
 
-    return qlinMeClient.create(authorization, request);
+    if (qlinMeConfiguration.getEnabled()) {
+      return qlinMeClient.create(authorization, request);
+    }
 
-    /*final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
+    final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
     final String panelCode = request.getAnalysis().getPanelCode();
     final String ep = request.getPatient().getEp();
     final String lang = localeService.getCurrentLangSupportedByFhir();
@@ -134,7 +143,7 @@ public class SubmitController {
 
     final Response res = new Response(submit(pbr, motherResult, fatherResult, nbr, fbr, abr, sbr, sbmr, sbfr, cbr, cbmr, cbfr, obr, obmr, obfr, fmhr));
 
-    return ResponseEntity.ok(res);*/
+    return ResponseEntity.ok(res);
   }
 
   private String submit(PatientBuilder.Result pbr,

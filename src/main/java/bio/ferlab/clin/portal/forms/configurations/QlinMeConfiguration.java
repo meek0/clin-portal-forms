@@ -10,5 +10,5 @@ import org.springframework.context.annotation.Configuration;
 public class QlinMeConfiguration {
 
   private String url;
-
+  private Boolean enabled;
 }
