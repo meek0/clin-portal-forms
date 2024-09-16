@@ -46,7 +46,7 @@ public class QlinMeClient {
             if (res.getStatusCode().value() == 201) {
               // extract ID from response
               var analysis = objectMapper.readValue(res.getBody(), AnalysisCreateResponse.class);
-              return ResponseEntity.status(res.getStatusCode()).body(new Response(analysis.analysisId()));
+              return ResponseEntity.ok(new Response(analysis.analysisId()));
             } else {
               // anything else we forward the response as is
               var body = String.join( "\n", IOUtils.readLines(res.getBody()));
