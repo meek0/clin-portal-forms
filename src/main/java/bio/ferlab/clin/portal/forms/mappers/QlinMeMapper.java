@@ -94,9 +94,10 @@ public class QlinMeMapper {
         if (additionalInfo.getFoetusGender() != null) {
           foetus.setSex(AnalysisCreateRequest.Sex.valueOf(additionalInfo.getFoetusGender().name().toUpperCase()));
         }
-        if (additionalInfo.getIsNewBorn() != null) {
-          foetus.setType(additionalInfo.getIsNewBorn() ? AnalysisCreateRequest.FoetusType.NEW_BORN :
-            additionalInfo.getIsPrenatalDiagnosis() ? AnalysisCreateRequest.FoetusType.PRENATAL : null);
+        if (Boolean.TRUE.equals(additionalInfo.getIsNewBorn())) {
+          foetus.setType(AnalysisCreateRequest.FoetusType.NEW_BORN);
+        } else if (Boolean.TRUE.equals(additionalInfo.getIsPrenatalDiagnosis())) {
+          foetus.setType(AnalysisCreateRequest.FoetusType.PRENATAL);
         }
         if (additionalInfo.getMotherRamq() != null) {
           foetus.setMotherJhn(additionalInfo.getMotherRamq());
