@@ -11,4 +11,5 @@ public class QlinMeConfiguration {
 
   private String url;
   private Boolean enabled;
+  private int timeout;
 }

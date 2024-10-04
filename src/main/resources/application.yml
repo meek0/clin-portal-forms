@@ -30,6 +30,7 @@ spring:
 qlin-me:
   url: ${QLIN_ME_URL:https://qlin-me-hybrid.qa.cqgc.hsj.rtss.qc.ca}
   enabled: ${QLIN_ME_ENABLED:false}
+  timeout: 15000 # milliseconds
 fhir:
   url: ${FHIR_URL:https://fhir.qa.cqgc.hsj.rtss.qc.ca/fhir}
   timeout: 15000 # milliseconds
