@@ -30,6 +30,10 @@ public class FhirUtils {
     return new Reference(formatResource(resource));
   }
 
+  public static String extractId(IBaseResource r) {
+    return r != null ? r.getIdElement().getIdPart() : null;
+  }
+
   public static String extractId(String url) {
     return extractId(new Reference(url));
   }
