@@ -15,8 +15,11 @@ public class AnalysisCreateRequest {
   private String residentSupervisorId;
   private String comment;
   private List<History> history;
-  private Diagnosis diagnosis;
-  private List<Sequencing> sequencings;
+  private String diagnosisHypothesis;
+  private String ethnicityCode;
+  private Boolean inbreeding;
+  private List<String> sequencingTypes;
+  private List<Patient> patients;
 
   public enum AnalysisType {
     GERMLINE, SOMATIC_TUMOR_ONLY
@@ -26,22 +29,6 @@ public class AnalysisCreateRequest {
   public static class History {
     private String condition;
     private String parentalLinkCode;
-  }
-
-  @Data
-  public static class Diagnosis {
-    private String hypothesis;
-    private String ethnicityCode;
-    private Boolean inbreeding;
-  }
-
-  @Data
-  public static class Sequencing {
-    private String sequencingId;
-    private Patient patient;
-    private Parental parental;
-    private Clinical clinical;
-    private ParaClinical paraClinical;
   }
 
   public enum FamilyMember {
@@ -60,13 +47,18 @@ public class AnalysisCreateRequest {
     private String organizationId;
     private FamilyMember familyMember;
     private Foetus foetus;
+    private ParentalStatus status;
+    private String reason;
+    private Boolean affected;
+    private Clinical clinical;
+    private ParaClinical paraClinical;
   }
 
   @Data
   public static class Foetus {
     private FoetusType type;
     private Sex sex;
-    private GestationalAge gestationalAge;
+    private GestationalMethod gestationalMethod;
     private String gestationalDate;
     private String motherJhn;
   }
@@ -77,15 +69,8 @@ public class AnalysisCreateRequest {
   public enum Sex {
     MALE, FEMALE, OTHER, UNKNOWN
   }
-  public enum GestationalAge {
+  public enum GestationalMethod {
     DDM, DPA, DECEASED
-  }
-
-  @Data
-  public static class Parental {
-    private ParentalStatus status;
-    private String reason;
-    private Boolean affected;
   }
 
   public enum ParentalStatus {
@@ -108,7 +93,7 @@ public class AnalysisCreateRequest {
   @Data
   public static class ParaClinical {
     private List<Exam> exams = new ArrayList<>();
-    private String comment;
+    private String other;
   }
 
   @Data

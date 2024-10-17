@@ -24,15 +24,15 @@ public class QlinMeMapper {
     analysis.setIsReflex(submitRequest.getAnalysis().getIsReflex());
     analysis.setComment(submitRequest.getAnalysis().getComment());
 
-    analysis.setDiagnosis(mapToDiagnosis(submitRequest));
+    mapToDiagnosis(analysis, submitRequest);
     analysis.setHistory(mapToHistory(submitRequest));
 
-    var sequencings = new ArrayList<AnalysisCreateRequest.Sequencing>();
-    Optional.ofNullable(mapToProband(submitRequest)).ifPresent(sequencings::add);
-    Optional.ofNullable(mapToParent(submitRequest.getMother(), AnalysisCreateRequest.FamilyMember.MOTHER)).ifPresent(sequencings::add);
-    Optional.ofNullable(mapToParent(submitRequest.getFather(), AnalysisCreateRequest.FamilyMember.FATHER)).ifPresent(sequencings::add);
-    if (!sequencings.isEmpty()) {
-      analysis.setSequencings(sequencings);
+    var patients = new ArrayList<AnalysisCreateRequest.Patient>();
+    Optional.ofNullable(mapToProband(submitRequest)).ifPresent(patients::add);
+    Optional.ofNullable(mapToParent(submitRequest.getMother(), AnalysisCreateRequest.FamilyMember.MOTHER)).ifPresent(patients::add);
+    Optional.ofNullable(mapToParent(submitRequest.getFather(), AnalysisCreateRequest.FamilyMember.FATHER)).ifPresent(patients::add);
+    if (!patients.isEmpty()) {
+      analysis.setPatients(patients);
     }
 
     return analysis;
@@ -53,22 +53,18 @@ public class QlinMeMapper {
     return null;
   }
 
-  private AnalysisCreateRequest.Diagnosis mapToDiagnosis(Request submitRequest) {
+  private void mapToDiagnosis(AnalysisCreateRequest analysis, Request submitRequest) {
     var historyAndDiagnosis = submitRequest.getHistoryAndDiagnosis();
     if (historyAndDiagnosis != null) {
-      var diagnosis = new AnalysisCreateRequest.Diagnosis();
-      diagnosis.setHypothesis(historyAndDiagnosis.getDiagnosticHypothesis());
-      diagnosis.setEthnicityCode(historyAndDiagnosis.getEthnicity());
-      diagnosis.setInbreeding(historyAndDiagnosis.getInbreeding());
-      return diagnosis;
+      analysis.setDiagnosisHypothesis(historyAndDiagnosis.getDiagnosticHypothesis());
+      analysis.setEthnicityCode(historyAndDiagnosis.getEthnicity());
+      analysis.setInbreeding(historyAndDiagnosis.getInbreeding());
     }
-    return null;
   }
 
-  private AnalysisCreateRequest.Sequencing mapToProband(Request submitRequest) {
+  private AnalysisCreateRequest.Patient mapToProband(Request submitRequest) {
     var patient = submitRequest.getPatient();
     if (patient != null) {
-      var sequencing = new AnalysisCreateRequest.Sequencing();
       var proband = new AnalysisCreateRequest.Patient();
       proband.setFirstName(patient.getFirstName());
       proband.setLastName(patient.getLastName());
@@ -86,7 +82,7 @@ public class QlinMeMapper {
       if (additionalInfo != null && (Boolean.TRUE.equals(additionalInfo.getIsPrenatalDiagnosis()) || Boolean.TRUE.equals(additionalInfo.getIsNewBorn()))) {
         var foetus = new AnalysisCreateRequest.Foetus();
         if (additionalInfo.getGestationalAge() != null) {
-          foetus.setGestationalAge(AnalysisCreateRequest.GestationalAge.valueOf(additionalInfo.getGestationalAge().name().toUpperCase()));
+          foetus.setGestationalMethod(AnalysisCreateRequest.GestationalMethod.valueOf(additionalInfo.getGestationalAge().name().toUpperCase()));
         }
         if (additionalInfo.getGestationalDate() != null) {
           foetus.setGestationalDate(DateUtils.FORMATTER_YYYYMMdd.format(additionalInfo.getGestationalDate()));
@@ -104,10 +100,9 @@ public class QlinMeMapper {
         }
         proband.setFoetus(foetus);
       }
-      sequencing.setPatient(proband);
-      sequencing.setClinical(mapToClinical(submitRequest.getClinicalSigns()));
-      sequencing.setParaClinical(mapToParaclinical(submitRequest));
-      return sequencing;
+      proband.setClinical(mapToClinical(submitRequest.getClinicalSigns()));
+      proband.setParaClinical(mapToParaclinical(submitRequest));
+      return proband;
     }
     return null;
   }
@@ -140,7 +135,7 @@ public class QlinMeMapper {
     var paraclinicalExams = submitRequest.getParaclinicalExams();
     if (paraclinicalExams != null) {
       var result = new AnalysisCreateRequest.ParaClinical();
-      result.setComment(paraclinicalExams.getComment());
+      result.setOther(paraclinicalExams.getComment());
       if (paraclinicalExams.getExams() != null && !paraclinicalExams.getExams().isEmpty()) {
         result.setExams(new ArrayList<>());
         paraclinicalExams.getExams().forEach(e -> {
@@ -165,9 +160,8 @@ public class QlinMeMapper {
     return null;
   }
 
-  private AnalysisCreateRequest.Sequencing mapToParent(Parent parent, AnalysisCreateRequest.FamilyMember familyMember) {
+  private AnalysisCreateRequest.Patient mapToParent(Parent parent, AnalysisCreateRequest.FamilyMember familyMember) {
     if (parent != null) {
-      var sequencing = new AnalysisCreateRequest.Sequencing();
       var patient = new AnalysisCreateRequest.Patient();
       patient.setFirstName(parent.getFirstName());
       patient.setLastName(parent.getLastName());
@@ -181,17 +175,15 @@ public class QlinMeMapper {
       }
       patient.setOrganizationId(parent.getEp());
       patient.setFamilyMember(familyMember);
-      sequencing.setClinical(mapToClinical(parent.getSigns(), parent.getComment()));
-      sequencing.setPatient(patient);
-      var parental = new AnalysisCreateRequest.Parental();
-      parental.setReason(parent.getParentNoInfoReason());
+      patient.setClinical(mapToClinical(parent.getSigns(), parent.getComment()));
+
       if (parent.getParentEnterMoment() != null) {
-        parental.setStatus(AnalysisCreateRequest.ParentalStatus.valueOf(parent.getParentEnterMoment().name().toUpperCase()));
+        patient.setStatus(AnalysisCreateRequest.ParentalStatus.valueOf(parent.getParentEnterMoment().name().toUpperCase()));
       }
+      patient.setReason(parent.getParentNoInfoReason());
       Boolean affected = Parent.Status.affected.equals(parent.getParentClinicalStatus()) ? Boolean.TRUE : Parent.Status.not_affected.equals(parent.getParentClinicalStatus()) ? Boolean.FALSE : null;
-      parental.setAffected(affected);
-      sequencing.setParental(parental);
-      return sequencing;
+      patient.setAffected(affected);
+      return patient;
     }
     return null;
   }
