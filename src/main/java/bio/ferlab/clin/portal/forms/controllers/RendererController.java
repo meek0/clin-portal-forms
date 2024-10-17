@@ -167,15 +167,15 @@ public class RendererController {
 
       context.put("probandSequencing", probandSequencing);
     } else {
-      final var probandSequencing = sequencings.stream()
-        .filter(s -> FhirUtils.extractId(s.getBasedOnFirstRep().getReference()).equals(analysis.getIdElement().getIdPart())).findFirst().orElse(null);
+      final var foetusSequencing = sequencings.stream()
+        .filter(s -> PRENATAL.equalsIgnoreCase(s.getCategoryFirstRep().getCodingFirstRep().getCode())).findFirst().orElse(null);
 
-      if (probandSequencing != null) {
-        final Bundle fetusBundle = fhirClient.fetchFetusSequencingDetails(probandSequencing);
+      if (foetusSequencing != null) {
+        final Bundle fetusBundle = fhirClient.fetchFetusSequencingDetails(foetusSequencing);
         final var fetusExtractor = new BundleExtractor(fhirClient.getContext(), fetusBundle);
         final var fetus = fetusExtractor.getFirstResourcesOfType(Patient.class);
 
-        context.put("probandSequencing", probandSequencing);
+        context.put("probandSequencing", foetusSequencing);
         context.put("fetus", fetus);
       }
     }
