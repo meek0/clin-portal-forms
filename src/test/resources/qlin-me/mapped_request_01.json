@@ -9,25 +9,21 @@
     "condition" : "bof bof again",
     "parental_link_code" : "MATMEM"
   } ],
-  "diagnosis" : {
-    "hypothesis" : "diag comment",
-    "ethnicity_code" : "CA-FR",
-    "inbreeding" : true
-  },
-  "sequencings" : [ {
-    "patient" : {
-      "first_name" : "bar",
-      "last_name" : "Foo",
-      "mrn" : "mrn-123333",
-      "sex" : "UNKNOWN",
-      "birth_date" : "1111-11-04",
-      "organization_id" : "CHUSJ",
-      "family_member" : "PROBAND",
-      "foetus" : {
-        "type" : "PRENATAL",
-        "sex" : "MALE",
-        "gestational_age" : "DECEASED"
-      }
+  "diagnosis_hypothesis" : "diag comment",
+  "ethnicity_code" : "CA-FR",
+  "inbreeding" : true,
+  "patients" : [ {
+    "first_name" : "bar",
+    "last_name" : "Foo",
+    "mrn" : "mrn-123333",
+    "sex" : "UNKNOWN",
+    "birth_date" : "1111-11-04",
+    "organization_id" : "CHUSJ",
+    "family_member" : "PROBAND",
+    "foetus" : {
+      "type" : "PRENATAL",
+      "sex" : "MALE",
+      "gestational_method" : "DECEASED"
     },
     "clinical" : {
       "signs" : [ {
@@ -50,30 +46,22 @@
         "interpretation" : "NORMAL",
         "values" : [ ]
       } ],
-      "comment" : "exam comment"
+      "other" : "exam comment"
     }
   }, {
-    "patient" : {
-      "family_member" : "MOTHER"
-    },
-    "parental" : {
-      "status" : "LATER",
-      "reason" : "pas la"
-    }
+    "family_member" : "MOTHER",
+    "status" : "LATER",
+    "reason" : "pas la"
   }, {
-    "patient" : {
-      "first_name" : "moma",
-      "last_name" : "moma",
-      "mrn" : "mrn-1246",
-      "sex" : "FEMALE",
-      "birth_date" : "2000-01-01",
-      "organization_id" : "CHUSJ",
-      "family_member" : "FATHER"
-    },
-    "parental" : {
-      "status" : "NOW",
-      "affected" : true
-    },
+    "first_name" : "moma",
+    "last_name" : "moma",
+    "mrn" : "mrn-1246",
+    "sex" : "FEMALE",
+    "birth_date" : "2000-01-01",
+    "organization_id" : "CHUSJ",
+    "family_member" : "FATHER",
+    "status" : "NOW",
+    "affected" : true,
     "clinical" : {
       "signs" : [ {
         "code" : "HP:0000256",
