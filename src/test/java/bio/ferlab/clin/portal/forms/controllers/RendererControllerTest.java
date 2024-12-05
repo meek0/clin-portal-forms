@@ -164,8 +164,13 @@ class RendererControllerTest {
     analysis.setId("analysisId");
     analysis.setSubject(new Reference("Patient/p1"));
     analysis.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
+    analysis.addPerformer().setReference("Organization/LDM-0001");
+
+    var performer = new Organization();
+    performer.setId("LDM-0001");
 
     mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(analysis));
+    mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(performer));
 
     final var detailsBundle = new Bundle();
 
