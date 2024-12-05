@@ -7,8 +7,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.interceptor.KeyGenerator;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 class CacheConfigurationTest {
 
-  @MockBean
+  @MockitoBean
   private FhirClient fhirClient;
 
   @Autowired

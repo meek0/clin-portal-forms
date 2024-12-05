@@ -13,8 +13,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.server.ResponseStatusException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,10 +29,10 @@ class ConfigControllerTest {
   final Algorithm algorithm = Algorithm.HMAC256("secret");
   final String token = JWT.create().withClaim(JwtUtils.FHIR_PRACTITIONER_ID, "practitionerId").sign(algorithm);
 
-  @MockBean
+  @MockitoBean
   private FhirClient fhirClient;
 
-  @MockBean
+  @MockitoBean
   private LogOnceService logOnceService;
 
   @Autowired
