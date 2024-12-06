@@ -14,7 +14,7 @@
 	<name>clin-portal-forms</name>
 	<description>API between front-end and FHIR</description>
 	<properties>
-		<java.version>23</java.version>
+		<java.version>21</java.version> <!-- docker container infinite loop using JDK 23 beware before updating it-->
 		<hapifhir.version>5.4.2</hapifhir.version>
 	</properties>
 	<dependencies>
@@ -48,6 +48,17 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
+      <exclusions>
+        <!-- Exclude the Tomcat dependency -->
+        <exclusion>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-tomcat</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-undertow</artifactId>
     </dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

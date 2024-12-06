@@ -1,9 +1,9 @@
-FROM maven:3.9.9-amazoncorretto-23 as build-api
+FROM maven:3.9.9-amazoncorretto-21 as build-api
 WORKDIR /tmp/api
 COPY . .
 RUN mvn clean install -DskipTests
 
-FROM amazoncorretto:23-alpine as build-jre
+FROM amazoncorretto:21-alpine as build-jre
 WORKDIR /tmp/jre
 # required for strip-debug to work
 RUN apk add --no-cache binutils
