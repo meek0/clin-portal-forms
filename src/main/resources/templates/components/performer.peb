@@ -14,7 +14,6 @@
         </div>
     </div>
 </div>
-{% if performer  is not empty %}
 <div class="panel">
     <div class="panel-header"><b>{{ i18n("messages", "performer_contact_title")}}</b></div>
     <div class="panel-body">
@@ -34,4 +33,3 @@
         </table>
     </div>
 </div>
-{% endif %}
