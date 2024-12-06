@@ -8,11 +8,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
@@ -31,7 +31,7 @@ class RendererControllerTest {
 
   private final FhirContext fhirContext = FhirContext.forR4();
 
-  @MockBean
+  @MockitoBean
   private FhirClient fhirClient;
 
   @Autowired
@@ -164,8 +164,13 @@ class RendererControllerTest {
     analysis.setId("analysisId");
     analysis.setSubject(new Reference("Patient/p1"));
     analysis.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
+    analysis.addPerformer().setReference("Organization/LDM-0001");
+
+    var performer = new Organization();
+    performer.setId("LDM-0001");
 
     mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(analysis));
+    mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(performer));
 
     final var detailsBundle = new Bundle();
 

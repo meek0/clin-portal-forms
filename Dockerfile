@@ -1,9 +1,9 @@
-FROM maven:3.9.4-amazoncorretto-21 as build-api
+FROM maven:3.9.9-amazoncorretto-23 as build-api
 WORKDIR /tmp/api
 COPY . .
 RUN mvn clean install -DskipTests
 
-FROM amazoncorretto:21-alpine as build-jre
+FROM amazoncorretto:23-alpine as build-jre
 WORKDIR /tmp/jre
 # required for strip-debug to work
 RUN apk add --no-cache binutils
@@ -25,11 +25,3 @@ COPY --from=build-jre /tmp/jre/minimal $JAVA_HOME
 COPY --from=build-api /tmp/api/target/clin-portal-forms-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
 ENTRYPOINT java $JAVA_OPTS -jar app.jar
-
-# legacy way to run the app without 'build-jre' custom JRE
-#FROM openjdk:17-alpine
-#WORKDIR /app
-#RUN apk update && apk add ca-certificates openssl
-#COPY --from=build-api /tmp/api/target/clin-portal-forms-0.0.1-SNAPSHOT.jar app.jar
-#EXPOSE 8080
-#ENTRYPOINT ["java","-jar","app.jar"]
