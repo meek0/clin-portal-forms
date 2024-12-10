@@ -75,7 +75,7 @@ public class FhirClient {
   }
 
   public ServiceRequest shareWithRoles(ServiceRequest serviceRequest) {
-    log.info("Share service request {} with roles {}", serviceRequest.getIdElement().getIdPart(), serviceRequest.getMeta().getSecurity());
+    log.info("Share service request {} with roles {}", serviceRequest.getIdElement().getIdPart(), serviceRequest.getMeta().getSecurity().stream().map(Coding::getCode).toList());
     final var outcome = this.genericClient.update().resource(serviceRequest).execute();
     return (ServiceRequest) outcome.getResource();
   }

@@ -62,18 +62,32 @@ public class ShareBuilder {
         validShareRoles.add(shareRole);
       });
 
+      // we always override the previous shared roles
+      this.removedPreviousSharedRoles(analysis);
+
       validShareRoles
         .stream()
         .map(r -> "PractitionerRole/" + r)
         .filter(r -> analysis.getMeta().getSecurity().stream().noneMatch(c -> c.getCode().equals(r)))
         .forEach(r -> analysis.getMeta().getSecurity().add(new Coding().setCode(r)));
 
-      final var updatedAnalysis = this.fhirClient.assignPerformers(analysis);
+      final var updatedAnalysis = this.fhirClient.shareWithRoles(analysis);
 
       return new ShareBuilder.Result(updatedAnalysis);
     } catch(ResourceNotFoundException e) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "service request " + analysisId + " is unknown");
     }
+  }
+
+  private void removedPreviousSharedRoles(ServiceRequest analysis) {
+    var previousTags = analysis.getMeta().getSecurity().stream()
+      .map(Coding::getCode)
+      .filter(c -> !c.contains("PractitionerRole/"))
+      .toList();
+
+    // add previous tags
+    analysis.getMeta().getSecurity().clear();
+    previousTags.forEach(t -> analysis.getMeta().addSecurity(new Coding().setCode(t)));
   }
 
   @AllArgsConstructor
