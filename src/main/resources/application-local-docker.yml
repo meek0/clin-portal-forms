@@ -1,0 +1,7 @@
+
+qlin-me:
+  url: http://host.docker.internal:7979
+  enabled: true
+logging:
+  level:
+    bio.ferlab.clin.portal.forms: DEBUG

@@ -1,0 +1,11 @@
+services:
+  api:
+    ports: !override
+      - '8088:8080'
+      - '8089:8089'
+    environment:
+      SPRING_PROFILES_ACTIVE: local-docker
+      JAVA_TOOL_OPTIONS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8089
+    healthcheck:
+      test: curl -Is localhost:8088/actuator/health | head -n 1 | grep 200 || exit 1
+
