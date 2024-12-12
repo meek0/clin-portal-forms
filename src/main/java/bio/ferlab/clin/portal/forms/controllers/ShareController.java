@@ -4,6 +4,7 @@ import bio.ferlab.clin.portal.forms.clients.FhirClient;
 import bio.ferlab.clin.portal.forms.models.builders.ShareBuilder;
 import bio.ferlab.clin.portal.forms.models.share.Request;
 import bio.ferlab.clin.portal.forms.models.share.Response;
+import bio.ferlab.clin.portal.forms.services.PrescriptionService;
 import bio.ferlab.clin.portal.forms.utils.JwtUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ShareController {
 
+  private final PrescriptionService prescriptionService;
   private final FhirClient fhirClient;
 
   @PostMapping
@@ -27,7 +29,7 @@ public class ShareController {
 
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
 
-    final var builder = new ShareBuilder(fhirClient, request.getAnalysisId(), request.getRoles(), practitionerId);
+    final var builder = new ShareBuilder(prescriptionService, fhirClient, request.getAnalysisId(), request.getRoles(), practitionerId);
     final var result = builder
       .build();
 

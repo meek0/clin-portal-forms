@@ -118,7 +118,11 @@ class RendererControllerTest {
     analysis.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
     analysis.addCategory().addCoding().setCode(PRENATAL);
 
+    var proband = new Patient();
+    proband.setId("p1");
+
     mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(analysis));
+    mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(proband));
 
     final var detailsBundle = new Bundle();
     final var sequencingDetailsBundle = new Bundle();
@@ -151,7 +155,7 @@ class RendererControllerTest {
     final var codesAndValuesBundle = new Bundle();
 
     when(fhirClient.findServiceRequestWithDepsById(any())).thenReturn(mainBundle);
-    when(fhirClient.fetchPrescriptionDetails(any(), any(), any())).thenReturn(detailsBundle);
+    when(fhirClient.fetchPrescriptionDetails(any(), any(), any(), any())).thenReturn(detailsBundle);
     when(fhirClient.fetchCodesAndValues()).thenReturn(codesAndValuesBundle);
 
     when(fhirClient.fetchFetusSequencingDetails(any())).thenReturn(sequencingDetailsBundle);
@@ -166,10 +170,15 @@ class RendererControllerTest {
     analysis.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
     analysis.addPerformer().setReference("Organization/LDM-0001");
 
+    var proband = new Patient();
+    proband.setId("p1");
+    proband.setManagingOrganization(new Reference("Organization/EP-0001"));
+
     var performer = new Organization();
     performer.setId("LDM-0001");
 
     mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(analysis));
+    mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(proband));
     mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(performer));
 
     final var detailsBundle = new Bundle();
@@ -187,15 +196,20 @@ class RendererControllerTest {
     final var clinical = new ClinicalImpression();
     clinical.setSubject(new Reference("Patient/p1"));
 
+    var ep = new Organization();
+    ep.setId("EP-0001");
+    ep.setName("EP");
+
     detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(patient));
     detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(person));
     detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(sequencing));
     detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(clinical));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(ep));
 
     final var codesAndValuesBundle = new Bundle();
 
     when(fhirClient.findServiceRequestWithDepsById(any())).thenReturn(mainBundle);
-    when(fhirClient.fetchPrescriptionDetails(any(), any(), any())).thenReturn(detailsBundle);
+    when(fhirClient.fetchPrescriptionDetails(any(), any(), any(), any())).thenReturn(detailsBundle);
     when(fhirClient.fetchCodesAndValues()).thenReturn(codesAndValuesBundle);
   }
 
@@ -207,7 +221,11 @@ class RendererControllerTest {
     analysis.setSubject(new Reference("Patient/p1"));
     analysis.getMeta().addProfile(ANALYSIS_SERVICE_REQUEST);
 
+    var proband = new Patient();
+    proband.setId("p1");
+
     mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(analysis));
+    mainBundle.addEntry(new Bundle.BundleEntryComponent().setResource(proband));
 
     final var detailsBundle = new Bundle();
 
@@ -271,7 +289,7 @@ class RendererControllerTest {
     final var codesAndValuesBundle = new Bundle();
 
     when(fhirClient.findServiceRequestWithDepsById(any())).thenReturn(mainBundle);
-    when(fhirClient.fetchPrescriptionDetails(any(), any(), any())).thenReturn(detailsBundle);
+    when(fhirClient.fetchPrescriptionDetails(any(), any(), any(), any())).thenReturn(detailsBundle);
     when(fhirClient.fetchCodesAndValues()).thenReturn(codesAndValuesBundle);
   }
 
