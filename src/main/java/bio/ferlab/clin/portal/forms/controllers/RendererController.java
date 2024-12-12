@@ -44,6 +44,7 @@ public class RendererController {
   private final TemplateService templateService;
   private final CodesValuesService codesValuesService;
   private final MessagesService messagesService;
+  private final PrescriptionService prescriptionService;
 
   @GetMapping(path = "/{id}")
   public ResponseEntity<?> render(@PathVariable String id, @RequestParam(defaultValue = "html") String format) {
@@ -62,47 +63,25 @@ public class RendererController {
   }
 
   private Map<String, Object> prepareContext(String id, Locale locale) {
-    final var mainBundle = fhirClient.findServiceRequestWithDepsById(id);
-    final var mainBundleExtractor = new BundleExtractor(fhirClient.getContext(), mainBundle);
-    final var analysis = mainBundleExtractor.getFirstResourcesOfType(ServiceRequest.class);
-    // if the user doesn't belong to the EP/LDM
-    if (analysis == null) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Prescription not found: " + id);
-    // has to be analysis
-    if (!analysis.getMeta().hasProfile(ANALYSIS_SERVICE_REQUEST)) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Prescription isn't an analysis: " + id);
-    }
-    final var performer = mainBundleExtractor.getFirstResourcesOfType(Organization.class);
-    // Assignation feature will attach several PractitionerRole insider performer BUT we want the one from requester
-    final var practitionerRole = mainBundleExtractor.getFirstResourcesById(PractitionerRole.class, FhirUtils.extractId(analysis.getRequester()));
-
-    // DUO/TRIO ...
-    var familyMembers = new TreeMap<String, Reference>();
-    for(var member: analysis.getExtensionsByUrl(FAMILY_MEMBER)) {
-      var parentPatientRef = ((Reference) member.getExtensionByUrl("parent").getValue());
-      var parentRelation = ((CodeableConcept) member.getExtensionByUrl("parent-relationship").getValue()).getCodingFirstRep().getCode();
-      familyMembers.put(parentRelation, parentPatientRef);
-    }
-
-    final var detailsBundle = fhirClient.fetchPrescriptionDetails(analysis, practitionerRole, familyMembers);
-    final var detailsBundleExtractor = new BundleExtractor(fhirClient.getContext(), detailsBundle);
-    final var sequencings = detailsBundleExtractor.getAllResourcesOfType(ServiceRequest.class).stream()
-      .filter(s -> s.getMeta().hasProfile(SEQUENCING_SERVICE_REQUEST)).toList();
-    final var patients = detailsBundleExtractor.getAllResourcesOfType(Patient.class);
-    final var persons = detailsBundleExtractor.getAllResourcesOfType(Person.class);
-    final var practitioner = detailsBundleExtractor.getFirstResourcesOfType(Practitioner.class);
-    final var organization = detailsBundleExtractor.getFirstResourcesOfType(Organization.class);
-    final var impressions = detailsBundleExtractor.getAllResourcesOfType(ClinicalImpression.class);
-    final var observations = detailsBundleExtractor.getAllResourcesOfType(Observation.class);
-    final var familyHistories = detailsBundleExtractor.getAllResourcesOfType(FamilyMemberHistory.class);
+    final var prescription = prescriptionService.fromAnalysisId(id);
+    final var analysis = prescription.getAnalysis();
+    final var sequencings = prescription.getSequencings();
+    final var performer = prescription.getPerformer();
+    final var practitioner = prescription.getPractitioner();
+    final var practitionerRole = prescription.getPractitionerRole();
+    final var organization = prescription.getOrganization();
+    final var patients = prescription.getPatients();
+    final var persons = prescription.getPersons();
+    final var familyMembers = prescription.getFamilyMembers();
+    final var impressions = prescription.getImpressions();
+    final var observations = prescription.getObservations();
+    final var familyHistories = prescription.getFamilyHistories();
 
     final var analysisCodes = codesValuesService.getCodes(CodesValuesService.ANALYSE_KEY);
 
-    final var probandPatient = patients.stream()
-      .filter(s -> s.getIdElement().getIdPart().equals(FhirUtils.extractId(analysis.getSubject())))
-      .findFirst().orElseThrow(() -> new RuntimeException("Can't find patient for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
-    final var probandPerson = persons.stream()
-      .filter(s -> s.getLink().stream().anyMatch(l -> l.getTarget().getReference().equals(analysis.getSubject().getReference())))
-      .findFirst().orElseThrow(() -> new RuntimeException("Can't find person for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
+    // following code could also be placed inside Prescription model for easier access
+    final var probandPatient = prescription.getProbandPatient();
+    final var probandPerson = prescription.getProbandPerson();
 
     final var probandImpression = impressions.stream()
       .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))

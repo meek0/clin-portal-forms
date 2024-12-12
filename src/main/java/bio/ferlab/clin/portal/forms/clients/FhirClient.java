@@ -74,10 +74,27 @@ public class FhirClient {
     return (ServiceRequest) outcome.getResource();
   }
 
-  public ServiceRequest shareWithRoles(ServiceRequest serviceRequest) {
-    log.info("Share service request {} with roles {}", serviceRequest.getIdElement().getIdPart(), serviceRequest.getMeta().getSecurity().stream().map(Coding::getCode).toList());
-    final var outcome = this.genericClient.update().resource(serviceRequest).execute();
-    return (ServiceRequest) outcome.getResource();
+  public Bundle update(List<IBaseResource> resources) {
+    try {
+      final var bundle = new Bundle();
+      bundle.setType(Bundle.BundleType.TRANSACTION);
+      resources.forEach(resource -> {
+        bundle.addEntry()
+          .setResource((Resource) resource)
+          .setFullUrl(FhirUtils.formatResource(resource))
+          .getRequest()
+            .setMethod(Bundle.HTTPVerb.PUT)
+            .setUrl(FhirUtils.formatResource(resource));
+      });
+      log.info("Update resources {}", resources.stream().map(FhirUtils::formatResource).toList());
+      var response = this.getGenericClient().transaction().withBundle(bundle).execute();
+      logDebug(response);
+      return response;
+    } catch(PreconditionFailedException | UnprocessableEntityException | InvalidRequestException e) {  // FHIR Server custom validation chain failed
+      final String errors = toJson(e.getOperationOutcome());
+      log.debug("Failed to update resources:\n{}", errors);  // don't log in production <= sensitive data
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors);
+    }
   }
 
   public Bundle submitForm(String personRef, String patientRef, Bundle bundle) {
@@ -180,6 +197,7 @@ public class FhirClient {
         .where(ServiceRequest.RES_ID.exactly().code(id))
         .include(ServiceRequest.INCLUDE_REQUESTER)
         .include(ServiceRequest.INCLUDE_PERFORMER)
+        .include(ServiceRequest.INCLUDE_SUBJECT)
         .returnBundle(Bundle.class)
         .execute();
   }
@@ -214,7 +232,7 @@ public class FhirClient {
   }
 
   @Cacheable(value = CacheConfiguration.CACHE_FHIR, sync = true, keyGenerator = "customKeyGenerator")
-  public Bundle fetchPrescriptionDetails(ServiceRequest analysis, PractitionerRole practitionerRole, TreeMap<String, Reference> familyMembers) {
+  public Bundle fetchPrescriptionDetails(ServiceRequest analysis, PractitionerRole practitionerRole, Patient proband, TreeMap<String, Reference> familyMembers) {
     log.debug("Fetch prescription details for id: {}", analysis.getIdElement().getIdPart());
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.BATCH);
@@ -237,11 +255,11 @@ public class FhirClient {
       .setUrl(String.format("Person?link=%s", analysis.getSubject().getReference()))
       .setMethod(Bundle.HTTPVerb.GET);
 
-    if (practitionerRole != null) {
-      bundle.addEntry().getRequest()
-        .setUrl(String.format("Organization/%s", FhirUtils.extractId(practitionerRole.getOrganization())))
-        .setMethod(Bundle.HTTPVerb.GET);
+    bundle.addEntry().getRequest()
+      .setUrl(String.format("Organization/%s", FhirUtils.extractId(proband.getManagingOrganization())))
+      .setMethod(Bundle.HTTPVerb.GET);
 
+    if (practitionerRole != null) {
       bundle.addEntry().getRequest()
         .setUrl(String.format("Practitioner/%s", FhirUtils.extractId(practitionerRole.getPractitioner())))
         .setMethod(Bundle.HTTPVerb.GET);
