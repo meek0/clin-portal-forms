@@ -68,7 +68,7 @@ public class RendererController {
     final var sequencings = prescription.getSequencings();
     final var performer = prescription.getPerformer();
     final var practitioner = prescription.getPractitioner();
-    final var practitionerRole = prescription.getPractitioner();
+    final var practitionerRole = prescription.getPractitionerRole();
     final var organization = prescription.getOrganization();
     final var patients = prescription.getPatients();
     final var persons = prescription.getPersons();
