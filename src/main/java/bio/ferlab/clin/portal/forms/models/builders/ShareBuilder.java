@@ -30,6 +30,9 @@ public class ShareBuilder {
   private final List<String> shareRoles;
   private final String practitionerId;
 
+  // remember all the previously shared roles because we want to delete them first from meta
+  private final List<String> previousRoles = new ArrayList<>();
+
   public ShareBuilder.Result build() {
     final var prescription = prescriptionService.fromAnalysisId(analysisId);
 
@@ -42,7 +45,7 @@ public class ShareBuilder {
     final var updatedResources = this.updateSecurityTags(prescription);
 
     log.info("Share service request {} with roles {}", analysisId, shareRoles);
-    fhirClient.update(updatedResources);
+    fhirClient.updateSharePractitionerRoles(updatedResources, previousRoles.stream().filter(r -> r.startsWith("PractitionerRole/")).distinct().toList());
 
     return new ShareBuilder.Result(prescription.getAnalysis());
   }
@@ -97,6 +100,9 @@ public class ShareBuilder {
   }
 
   private void addTagCode(Resource resource, boolean erasePrevious) {
+    // previous roles to delete from meta
+    resource.getMeta().getSecurity().forEach(c -> previousRoles.add(c.getCode()));
+
     if (erasePrevious) {
       var previousTags = resource.getMeta().getSecurity().stream()
         .map(Coding::getCode)
