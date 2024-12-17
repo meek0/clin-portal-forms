@@ -74,17 +74,25 @@ public class FhirClient {
     return (ServiceRequest) outcome.getResource();
   }
 
-  public Bundle update(List<IBaseResource> resources) {
+  public void deleteSecurityTags(IBaseResource analysis, List<String> tags) {
+    var meta = new Meta();
+    tags.forEach(tag -> meta.addSecurity().setCode(tag));
+    genericClient.meta().delete().onResource(analysis.getIdElement()).meta(meta).encodedJson().prettyPrint().execute();
+  }
+
+  public Bundle updateSharePractitionerRoles(List<IBaseResource> resources, List<String> previousRoles) {
     try {
       final var bundle = new Bundle();
       bundle.setType(Bundle.BundleType.TRANSACTION);
       resources.forEach(resource -> {
+        var ref = FhirUtils.formatResource(resource);
+        deleteSecurityTags(resource, previousRoles);  // can't be done in batch/bundle
         bundle.addEntry()
           .setResource((Resource) resource)
-          .setFullUrl(FhirUtils.formatResource(resource))
+          .setFullUrl(ref)
           .getRequest()
             .setMethod(Bundle.HTTPVerb.PUT)
-            .setUrl(FhirUtils.formatResource(resource));
+            .setUrl(ref);
       });
       log.info("Update resources {}", resources.stream().map(FhirUtils::formatResource).toList());
       var response = this.getGenericClient().transaction().withBundle(bundle).execute();
