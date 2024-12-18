@@ -7,6 +7,7 @@ import org.hl7.fhir.r4.model.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Data
 public class Prescription {
@@ -38,6 +39,6 @@ public class Prescription {
     allResources.addAll(impressions);
     allResources.addAll(observations);
     allResources.addAll(familyHistories);
-    return allResources;
+    return allResources.stream().filter(Objects::nonNull).toList();
   }
 }

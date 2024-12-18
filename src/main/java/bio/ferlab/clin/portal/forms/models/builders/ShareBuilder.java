@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.hl7.fhir.instance.model.api.IBaseCoding;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.http.HttpStatus;
@@ -22,16 +23,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ShareBuilder {
 
-  public static final List<String> RESOURCES_WITH_TAGS = List.of("ServiceRequest", "Patient", "Observation", "ClinicalImpression");
-
   private final PrescriptionService prescriptionService;
   private final FhirClient fhirClient;
   private final String analysisId;
   private final List<String> shareRoles;
   private final String practitionerId;
-
-  // remember all the previously shared roles because we want to delete them first from meta
-  private final List<String> previousRoles = new ArrayList<>();
 
   public ShareBuilder.Result build() {
     final var prescription = prescriptionService.fromAnalysisId(analysisId);
@@ -42,12 +38,26 @@ public class ShareBuilder {
     final var userRoles = this.getUserRoles(allRoles);
     this.validateShareRoles(prescription, allRoles, userRoles);
 
+    var previousTagsToDelete = getPreviousTagsToDelete(prescription, userRoles);
     final var updatedResources = this.updateSecurityTags(prescription);
 
-    log.info("Share service request {} with roles {}", analysisId, shareRoles);
-    fhirClient.updateSharePractitionerRoles(updatedResources, previousRoles.stream().filter(r -> r.startsWith("PractitionerRole/")).distinct().toList());
+    log.info("Share service request {} with roles {} delete previous {}", analysisId, shareRoles, previousTagsToDelete);
+    fhirClient.updateSharePractitionerRoles(updatedResources, previousTagsToDelete);
 
     return new ShareBuilder.Result(prescription.getAnalysis());
+  }
+
+  private List<String> getPreviousTagsToDelete(Prescription prescription, List<PractitionerRole> userRoles) {
+    var tagsToDelete = new ArrayList<String>();
+    for(var resource : prescription.getAllResources()) {
+      var previousTags = resource.getMeta().getSecurity().stream()
+        .map(IBaseCoding::getCode)
+        .filter(code -> code.startsWith("PractitionerRole/")) // ignore not role tags
+        .filter(code -> userRoles.stream().noneMatch(r -> code.equals(FhirUtils.formatResource(r)))) // don't remove yourself
+        .toList();
+      tagsToDelete.addAll(previousTags);
+    }
+    return tagsToDelete.stream().distinct().toList();
   }
 
   private List<PractitionerRole> getUserRoles(List<PractitionerRole> allRoles) {
@@ -100,9 +110,6 @@ public class ShareBuilder {
   }
 
   private void addTagCode(Resource resource, boolean erasePrevious) {
-    // previous roles to delete from meta
-    resource.getMeta().getSecurity().forEach(c -> previousRoles.add(c.getCode()));
-
     if (erasePrevious) {
       var previousTags = resource.getMeta().getSecurity().stream()
         .map(Coding::getCode)
