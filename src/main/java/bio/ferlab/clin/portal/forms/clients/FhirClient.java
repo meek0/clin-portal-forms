@@ -75,6 +75,9 @@ public class FhirClient {
   }
 
   public void deleteSecurityTags(IBaseResource analysis, List<String> tags) {
+    if (tags.isEmpty()) {
+      return;
+    }
     var meta = new Meta();
     tags.forEach(tag -> meta.addSecurity().setCode(tag));
     genericClient.meta().delete().onResource(analysis.getIdElement()).meta(meta).encodedJson().prettyPrint().execute();
