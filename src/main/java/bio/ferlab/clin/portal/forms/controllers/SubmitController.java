@@ -16,11 +16,14 @@ import bio.ferlab.clin.portal.forms.utils.JwtUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.apache.http.client.HttpResponseException;
 import org.hl7.fhir.r4.model.Bundle;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/form")
@@ -36,10 +39,12 @@ public class SubmitController {
 
   @PostMapping
   public ResponseEntity<?> submit(@RequestHeader String authorization,
-                                         @Valid @RequestBody Request request) throws JsonProcessingException {
+                                         @Valid @RequestBody Request request, @RequestParam Map<String, String> queryParameters) throws JsonProcessingException {
+
+    final boolean isDraft = queryParameters.get("draft") != null;
 
     if (qlinMeConfiguration.getEnabled()) {
-      return qlinMeClient.create(authorization, request);
+      return qlinMeClient.create(authorization, request, isDraft);
     }
 
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
@@ -141,9 +146,19 @@ public class SubmitController {
     SequencingBuilder.Result sbfr = sequencingFatherBuilder
       .build();
 
-    final Response res = new Response(submit(pbr, motherResult, fatherResult, nbr, fbr, abr, sbr, sbmr, sbfr, cbr, cbmr, cbfr, obr, obmr, obfr, fmhr));
+    final Response res = new Response(submit(pbr, motherResult, fatherResult, nbr, fbr, abr, sbr, sbmr, sbfr, cbr, cbmr, cbfr, obr, obmr, obfr, fmhr), null);
 
     return ResponseEntity.ok(res);
+  }
+
+  @PutMapping("{prescriptionId}")
+  public ResponseEntity<?> update(@RequestHeader String authorization,
+                                  @Valid @RequestBody Request request, @RequestParam Map<String, String> queryParameters, @PathVariable("prescriptionId") String prescriptionId) throws JsonProcessingException {
+
+    if(!qlinMeConfiguration.getEnabled()) return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("update not supported if QlinMe is disabled");
+
+    final boolean isDraft = queryParameters.get("draft") != null;
+    return qlinMeClient.update(authorization, request, prescriptionId, isDraft);
   }
 
   private String submit(PatientBuilder.Result pbr,

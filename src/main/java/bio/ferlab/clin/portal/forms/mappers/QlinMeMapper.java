@@ -66,6 +66,7 @@ public class QlinMeMapper {
     var patient = submitRequest.getPatient();
     if (patient != null) {
       var proband = new AnalysisCreateRequest.Patient();
+      if(patient.getId() != null) proband.setPatientId(patient.getId());
       proband.setFirstName(patient.getFirstName());
       proband.setLastName(patient.getLastName());
       proband.setJhn(patient.getRamq());
@@ -163,6 +164,7 @@ public class QlinMeMapper {
   private AnalysisCreateRequest.Patient mapToParent(Parent parent, AnalysisCreateRequest.FamilyMember familyMember) {
     if (parent != null) {
       var patient = new AnalysisCreateRequest.Patient();
+      if(parent.getId() != null) patient.setPatientId(parent.getId());
       patient.setFirstName(parent.getFirstName());
       patient.setLastName(parent.getLastName());
       patient.setJhn(parent.getRamq());

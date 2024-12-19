@@ -14,14 +14,14 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Patient {
-  
+
   public enum Gender {
     male,
     female,
     other,
     unknown
   }
-  
+  private String id;
   @NotBlank
   private String ep;
   private String ramq;
