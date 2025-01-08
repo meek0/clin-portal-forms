@@ -24,37 +24,19 @@
     {% include "components/performer" %}
     {% include "components/footer" with {"withVersion": true, "page": "1", "total": "1"} %}
 {% endblock %}
-
-{% set nonMissingFamilyMembers = mapper.nonMissingFamilyMembers(probandFamilyMembers) %}
-{% if nonMissingFamilyMembers|length > 0 %}
-{% block pageparent1 %}
-    {% include "components/header" with {"type": "sequencing", "serviceRequest": nonMissingFamilyMembers[0].sequencing} %}
-    {% include "components/patient" with {"patient" : nonMissingFamilyMembers[0].patient, "person": nonMissingFamilyMembers[0].person, "relation": nonMissingFamilyMembers[0].relation} %}
-    <table>
-        <tr>
-            <td style="width: 50%">{% include "components/prescription" %}</td>
-            <td style="width: 50%">{% include "components/prescriber" %}</td>
-        </tr>
-    </table>
-    {% include "components/samples" with {"isPrenatalAnalysisCategory": false} %}
-    {% include "components/performer" with {"performer": nonMissingFamilyMembers[0].sequencing.performer[0].resource} %}
-    {% include "components/footer" with {"withVersion": true, "page": "1", "total": "1"} %}
-{% endblock %}
-
-{% if nonMissingFamilyMembers|length > 1 %}
-{% block pageparent2 %}
-    {% include "components/header" with {"type": "sequencing", "serviceRequest": nonMissingFamilyMembers[1].sequencing} %}
-    {% include "components/patient" with {"patient" : nonMissingFamilyMembers[1].patient, "person": nonMissingFamilyMembers[1].person, "relation": nonMissingFamilyMembers[1].relation} %}
-    <table>
-        <tr>
-            <td style="width: 50%">{% include "components/prescription" %}</td>
-            <td style="width: 50%">{% include "components/prescriber" %}</td>
-        </tr>
-    </table>
-    {% include "components/samples" with {"isPrenatalAnalysisCategory": false} %}
-    {% include "components/performer" with {"performer": nonMissingFamilyMembers[1].sequencing.performer[0].resource} %}
-    {% include "components/footer" with {"withVersion": true, "page": "1", "total": "1"} %}
-{% endblock %}
-{% endif %}
-
-{% endif %}
+{% for nonMissingFamilyMember in mapper.nonMissingFamilyMembers(probandFamilyMembers) %}
+    {% set blockName = "pageparent" + loop.index %}
+    {% block blockName %}
+        {% include "components/header" with {"type": "sequencing", "serviceRequest": nonMissingFamilyMember.sequencing} %}
+        {% include "components/patient" with {"patient" : nonMissingFamilyMember.patient, "person": nonMissingFamilyMember.person, "relation": nonMissingFamilyMember.relation} %}
+        <table>
+            <tr>
+                <td style="width: 50%">{% include "components/prescription" %}</td>
+                <td style="width: 50%">{% include "components/prescriber" %}</td>
+            </tr>
+        </table>
+        {% include "components/samples" with {"isPrenatalAnalysisCategory": false} %}
+        {% include "components/performer" with {"performer": nonMissingFamilyMember.sequencing.performer[0].resource} %}
+        {% include "components/footer" with {"withVersion": true, "page": "1", "total": "1"} %}
+    {% endblock %}
+{% endfor %}

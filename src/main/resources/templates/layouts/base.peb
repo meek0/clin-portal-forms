@@ -18,21 +18,13 @@
         {% block page2 %}
         {% endblock %}
 		</div>
-    {% set nonMissingFamilyMembers = mapper.nonMissingFamilyMembers(probandFamilyMembers) %}
-    {% if nonMissingFamilyMembers|length > 0 %}
+    {% for nonMissingFamilyMember in mapper.nonMissingFamilyMembers(probandFamilyMembers) %}
+        {% set blockName = "pageparent" + loop.index %}
         <div class="pagebreak"> </div>
         <div class="page">
-            {% block pageparent1 %}
+            {% block blockName %}
             {% endblock %}
         </div>
-
-        {% if nonMissingFamilyMembers|length > 1 %}
-            <div class="pagebreak"> </div>
-            <div class="page">
-                {% block pageparent2 %}
-                {% endblock %}
-            </div>
-        {% endif %}
-    {% endif %}
+    {% endfor %}
 	</body>
 </html>

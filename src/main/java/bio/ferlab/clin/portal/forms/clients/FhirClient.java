@@ -243,7 +243,7 @@ public class FhirClient {
   }
 
   @Cacheable(value = CacheConfiguration.CACHE_FHIR, sync = true, keyGenerator = "customKeyGenerator")
-  public Bundle fetchPrescriptionDetails(ServiceRequest analysis, PractitionerRole practitionerRole, Patient proband, TreeMap<String, Reference> familyMembers) {
+  public Bundle fetchPrescriptionDetails(ServiceRequest analysis, PractitionerRole practitionerRole, Patient proband, TreeMap<String, List<Reference>> familyMembers) {
     log.debug("Fetch prescription details for id: {}", analysis.getIdElement().getIdPart());
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.BATCH);
@@ -284,13 +284,15 @@ public class FhirClient {
       }
     }
 
-    for(var familyMember : familyMembers.values()) {
-      bundle.addEntry().getRequest()
-        .setUrl(String.format("Patient/%s", FhirUtils.extractId(familyMember)))
-        .setMethod(Bundle.HTTPVerb.GET);
-      bundle.addEntry().getRequest()
-        .setUrl(String.format("Person?link=%s", familyMember.getReference()))
-        .setMethod(Bundle.HTTPVerb.GET);
+    for(var familyMemberRefs : familyMembers.values()) {
+      for (var familyMemberRef: familyMemberRefs) {
+        bundle.addEntry().getRequest()
+          .setUrl(String.format("Patient/%s", FhirUtils.extractId(familyMemberRef)))
+          .setMethod(Bundle.HTTPVerb.GET);
+        bundle.addEntry().getRequest()
+          .setUrl(String.format("Person?link=%s", familyMemberRef.getReference()))
+          .setMethod(Bundle.HTTPVerb.GET);
+      }
     }
 
     return this.getGenericClient().transaction().withBundle(bundle).execute();

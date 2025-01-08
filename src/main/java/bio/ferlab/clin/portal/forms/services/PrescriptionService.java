@@ -10,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
@@ -38,11 +40,13 @@ public class PrescriptionService {
     var probandPatient = mainBundleExtractor.getFirstResourcesOfType(Patient.class);
 
     // DUO/TRIO ...
-    var familyMembers = new TreeMap<String, Reference>();
+    var familyMembers = new TreeMap<String, List<Reference>>();
     for(var member: analysis.getExtensionsByUrl(FAMILY_MEMBER)) {
       var parentPatientRef = ((Reference) member.getExtensionByUrl("parent").getValue());
       var parentRelation = ((CodeableConcept) member.getExtensionByUrl("parent-relationship").getValue()).getCodingFirstRep().getCode();
-      familyMembers.put(parentRelation, parentPatientRef);
+      var sameMemberRefs = familyMembers.getOrDefault(parentRelation, new ArrayList<>());
+      sameMemberRefs.add(parentPatientRef); // can have multiple brothers/sisters
+      familyMembers.put(parentRelation, sameMemberRefs);
     }
 
     var detailsBundle = fhirClient.fetchPrescriptionDetails(analysis, practitionerRole, probandPatient, familyMembers);

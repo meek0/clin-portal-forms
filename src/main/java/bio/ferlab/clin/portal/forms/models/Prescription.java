@@ -17,7 +17,7 @@ public class Prescription {
   private Patient probandPatient;
   private List<Person> persons;
   private Person probandPerson;
-  private Map<String, Reference> familyMembers;
+  private Map<String, List<Reference>> familyMembers;
   private Practitioner practitioner;
   private PractitionerRole practitionerRole;
   private Organization performer;
