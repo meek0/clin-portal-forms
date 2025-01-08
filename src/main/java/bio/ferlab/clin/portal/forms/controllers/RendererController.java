@@ -96,26 +96,28 @@ public class RendererController {
     // extract family infos
     var probandFamily = new ArrayList<FamilyMember>();
     for(var relation : familyMembers.keySet()) {
-      var ref = familyMembers.get(relation);
-      final var patient = patients.stream()
-        .filter(s -> s.getIdElement().getIdPart().equals(FhirUtils.extractId(ref)))
-        .findFirst().orElseThrow(() -> new RuntimeException("Can't find patient ("+relation+") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
-      final var person = persons.stream()
-        .filter(s -> s.getLink().stream().anyMatch(l -> l.getTarget().getReference().equals(ref.getReference())))
-        .findFirst().orElseThrow(() -> new RuntimeException("Can't find person ("+relation+") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
-      var sequencing = sequencings.stream()
-        .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
-        .findFirst().orElseThrow(() -> new RuntimeException("Can't find sequencing ("+relation+") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
-      final var impression = impressions.stream()
-        .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
-        .findFirst().orElseThrow(() -> new RuntimeException("Can't find clinical impression ("+relation+") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
-      final var obs = observations.stream()
-        .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
-        .toList();
-      final var histories = familyHistories.stream()
-        .filter(s -> ref.getReference().equals(s.getPatient().getReference()))
-        .toList();
-      probandFamily.add(new FamilyMember(null, ref, relation, patient, person, sequencing, impression, obs, histories, null));
+      var refs = familyMembers.get(relation);
+      for (var ref : refs) {
+        final var patient = patients.stream()
+          .filter(s -> s.getIdElement().getIdPart().equals(FhirUtils.extractId(ref)))
+          .findFirst().orElseThrow(() -> new RuntimeException("Can't find patient (" + relation + ") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
+        final var person = persons.stream()
+          .filter(s -> s.getLink().stream().anyMatch(l -> l.getTarget().getReference().equals(ref.getReference())))
+          .findFirst().orElseThrow(() -> new RuntimeException("Can't find person (" + relation + ") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
+        var sequencing = sequencings.stream()
+          .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
+          .findFirst().orElseThrow(() -> new RuntimeException("Can't find sequencing (" + relation + ") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
+        final var impression = impressions.stream()
+          .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
+          .findFirst().orElseThrow(() -> new RuntimeException("Can't find clinical impression (" + relation + ") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
+        final var obs = observations.stream()
+          .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
+          .toList();
+        final var histories = familyHistories.stream()
+          .filter(s -> ref.getReference().equals(s.getPatient().getReference()))
+          .toList();
+        probandFamily.add(new FamilyMember(null, ref, relation, patient, person, sequencing, impression, obs, histories, null));
+      }
     }
 
     var missingReasons = probandObservations.stream()
