@@ -21,12 +21,9 @@ public class Request {
   @Valid
   private Parent father;
   @Valid
-  @NotNull
   private ClinicalSigns clinicalSigns;
   @Valid
-  @NotNull
   private ParaclinicalExams paraclinicalExams;
   @Valid
-  @NotNull
   private HistoryAndDiag historyAndDiagnosis;
 }

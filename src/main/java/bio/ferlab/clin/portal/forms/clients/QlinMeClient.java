@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
@@ -22,6 +23,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -55,13 +57,13 @@ public class QlinMeClient {
     this.configuration = configuration;
   }
 
-  public ResponseEntity<?> create(String authorization, Request request) {
+  public ResponseEntity<?> create(String authorization, Request request, boolean isDraft) {
     HttpResponse response = null;
     try {
       var mappedRequest = mapper.mapToAnalysisCreateRequest(request);
       log.debug(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(mappedRequest));
 
-      var qlinRequest = new HttpPost(configuration.getUrl()+ "/api/v1/analysis");
+      var qlinRequest = new HttpPost(configuration.getUrl()+ "/api/v1/analysis" + (isDraft ? "?draft" : ""));
       qlinRequest.addHeader(HttpHeaders.AUTHORIZATION, authorization);
       qlinRequest.addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
       qlinRequest.setEntity(new ByteArrayEntity(objectMapper.writeValueAsBytes(mappedRequest)));
@@ -71,7 +73,10 @@ public class QlinMeClient {
       var status = response.getStatusLine().getStatusCode();
       if (status == 201) {
         var analysis = objectMapper.readValue(body, AnalysisCreateResponse.class);
-        return ResponseEntity.ok(new Response(analysis.analysisId()));
+        List<Response.Patient> patients = analysis.patients().stream()
+          .map(patient -> new Response.Patient(patient.patientId(), patient.familyMember()))
+          .toList();
+        return ResponseEntity.ok(new Response(analysis.analysisId(), patients));
       } else {
         return ResponseEntity.status(status)
           .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType()).body(body);
@@ -82,6 +87,40 @@ public class QlinMeClient {
     } finally {
       Optional.ofNullable(response).map(HttpResponse::getEntity).ifPresent(EntityUtils::consumeQuietly);
     }
+  }
 
+  public ResponseEntity<?> update(String authorization, Request request, String prescriptionId, boolean isDraft) {
+    HttpResponse response = null;
+    try {
+      if(prescriptionId == null) {
+        return ResponseEntity.status(400).body("analysisId is required");
+      }
+      var mappedRequest = mapper.mapToAnalysisCreateRequest(request);
+      log.debug(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(mappedRequest));
+
+      var qlinRequest = new HttpPatch(configuration.getUrl()+ "/api/v1/analysis/" + prescriptionId + (isDraft ? "?draft" : ""));
+      qlinRequest.addHeader(HttpHeaders.AUTHORIZATION, authorization);
+      qlinRequest.addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+      qlinRequest.setEntity(new ByteArrayEntity(objectMapper.writeValueAsBytes(mappedRequest)));
+      response = client.execute(qlinRequest);
+
+      var body = EntityUtils.toString(response.getEntity());
+      var status = response.getStatusLine().getStatusCode();
+      if (status == 201) {
+        var analysis = objectMapper.readValue(body, AnalysisCreateResponse.class);
+        List<Response.Patient> patients = analysis.patients().stream()
+          .map(patient -> new Response.Patient(patient.patientId(), patient.familyMember()))
+          .toList();
+        return ResponseEntity.ok(new Response(analysis.analysisId(), patients));
+      } else {
+        return ResponseEntity.status(status)
+          .header(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType()).body(body);
+      }
+
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    } finally {
+      Optional.ofNullable(response).map(HttpResponse::getEntity).ifPresent(EntityUtils::consumeQuietly);
+    }
   }
 }

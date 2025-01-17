@@ -18,19 +18,20 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Parent {
-  
+
   public enum Moment {
     now,
     later,
     never,
   }
-  
+
   public enum Status {
     affected,
     not_affected,
     unknown,
   }
-  
+
+  private String id;
   @NotNull
   private Moment parentEnterMoment;
   private String parentNoInfoReason;
@@ -49,7 +50,7 @@ public class Parent {
   private String comment;
 
   public void validate() {
-    // this part is not optimal ... but if moment = now we need to manually validate the values are here 
+    // this part is not optimal ... but if moment = now we need to manually validate the values are here
     // and if moment != null these values are allowed to be missing
     if (Moment.now.equals(parentEnterMoment)) {
       if (StringUtils.isAnyBlank(ep, lastName, firstName)) {
