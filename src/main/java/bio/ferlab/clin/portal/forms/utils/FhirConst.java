@@ -6,7 +6,8 @@ public class FhirConst {
 
   public static final String LDM_PREFIX = "LDM";
   public static final String DOCTOR_PREFIX = "doctor";
-  public static final String RESIDENT_PREFIX = "405277009";
+  public static final String RESIDENT_PHYSICIAN_PREFIX = "405277009";
+  public static final String GENETIC_COUNSELOR_PREFIX = "310189009";
 
   public static final String PRENATAL = "Prenatal";
 

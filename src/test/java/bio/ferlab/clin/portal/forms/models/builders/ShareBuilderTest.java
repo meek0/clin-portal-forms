@@ -66,7 +66,7 @@ class ShareBuilderTest {
     pr.setId("PRR01");
     pr.getPractitioner().setReference("Practitioner/PR01");
     pr.setOrganization(new Reference("Organization/ORG01"));
-    pr.getCodeFirstRep().getCodingFirstRep().setSystem(PRACTITIONER_ROLE_GENETICIAN_SYSTEM).setCode(DOCTOR_PREFIX);
+    pr.getCodeFirstRep().getCodingFirstRep().setSystem(PRACTITIONER_ROLE_GENETICIAN_SYSTEM).setCode(RESIDENT_PHYSICIAN_PREFIX);
     return pr;
   }
 
@@ -192,7 +192,7 @@ class ShareBuilderTest {
 
     var builder = new ShareBuilder(prescriptionService, fhirClient, "analysis_id", List.of("PRR01"), "PR01");
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, builder::build);
-    assertEquals("practitioner role: PRR01 isn't a doctor at organization: ORG01", exception.getReason());
+    assertEquals("practitioner role: PRR01 isn't a doctor|genetic counselor|resident physician at organization: ORG01", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 

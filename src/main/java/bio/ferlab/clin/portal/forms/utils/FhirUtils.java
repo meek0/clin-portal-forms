@@ -10,16 +10,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static bio.ferlab.clin.portal.forms.utils.FhirConst.DOCTOR_PREFIX;
+import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 
 public class FhirUtils {
 
   private FhirUtils(){}
 
-  public static boolean isDoctor(PractitionerRole role, String ep) {
+  private static boolean hasRole(PractitionerRole role, String ep, String roleName) {
     final String orgRef = FhirUtils.formatResource(new Organization().setId(ep));
-    return role != null && DOCTOR_PREFIX.equals(role.getCodeFirstRep().getCodingFirstRep().getCode())
+    return role != null && roleName.equals(role.getCodeFirstRep().getCodingFirstRep().getCode())
       && orgRef.equals(role.getOrganization().getReference());
+  }
+
+  public static boolean isDoctor(PractitionerRole role, String ep) {
+    return hasRole(role, ep, DOCTOR_PREFIX);
+  }
+
+  public static boolean isResidentPhysician(PractitionerRole role, String ep) {
+    return hasRole(role, ep, RESIDENT_PHYSICIAN_PREFIX);
+  }
+
+  public static boolean isGeneticCounselor(PractitionerRole role, String ep) {
+    return hasRole(role, ep, GENETIC_COUNSELOR_PREFIX);
   }
 
   public static String formatResource(IBaseResource resource) {
