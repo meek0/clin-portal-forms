@@ -68,7 +68,7 @@ public class TemplateMapper {
   public String mapToRole(PractitionerRole role) {
     try {
       var code = role.getCodeFirstRep().getCodingFirstRep().getCode();
-      var res = RESIDENT_PREFIX.equals(code) ? i18n(role.getCodeFirstRep().getCodingFirstRep().getCode()): "";
+      var res = RESIDENT_PHYSICIAN_PREFIX.equals(code) ? i18n(role.getCodeFirstRep().getCodingFirstRep().getCode()): "";
       return StringUtils.isNotBlank(res) ? "("+res+")" : EMPTY;
     }catch ( Exception e) {
       return this.handleError(e);

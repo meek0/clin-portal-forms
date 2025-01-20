@@ -80,8 +80,8 @@ public class ShareBuilder {
       if (!roleOrg.equals(ep)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("practitioner role: %s belongs to another organization: %s than the prescription: %s", shareRole, roleOrg, ep));
       }
-      if(!FhirUtils.isDoctor(role, roleOrg)) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("practitioner role: %s isn't a doctor at organization: %s", shareRole, roleOrg));
+      if(!FhirUtils.isDoctor(role, roleOrg) && !FhirUtils.isGeneticCounselor(role, ep) && !FhirUtils.isResidentPhysician(role, ep)) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("practitioner role: %s isn't a doctor|genetic counselor|resident physician at organization: %s", shareRole, roleOrg));
       }
       if (userRoles.stream().anyMatch(r -> FhirUtils.extractId(r).equals(shareRole))) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("practitioner: %s can't share with themself: %s", practitionerId, shareRole));
