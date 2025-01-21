@@ -13,8 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -98,7 +98,7 @@ public class QlinMeClient {
       var mappedRequest = mapper.mapToAnalysisCreateRequest(request);
       log.debug(objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(mappedRequest));
 
-      var qlinRequest = new HttpPatch(configuration.getUrl()+ "/api/v1/analysis/" + prescriptionId + (isDraft ? "?draft" : ""));
+      var qlinRequest = new HttpPut(configuration.getUrl()+ "/api/v1/analysis/" + prescriptionId + (isDraft ? "?draft" : ""));
       qlinRequest.addHeader(HttpHeaders.AUTHORIZATION, authorization);
       qlinRequest.addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
       qlinRequest.setEntity(new ByteArrayEntity(objectMapper.writeValueAsBytes(mappedRequest)));
