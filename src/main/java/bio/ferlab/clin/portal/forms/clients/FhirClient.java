@@ -12,6 +12,7 @@ import ca.uhn.fhir.rest.server.exceptions.PreconditionFailedException;
 import ca.uhn.fhir.rest.server.exceptions.UnprocessableEntityException;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.hl7.fhir.instance.model.api.IBaseCoding;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
 import org.springframework.cache.annotation.Cacheable;
@@ -80,16 +81,19 @@ public class FhirClient {
     }
     var meta = new Meta();
     tags.forEach(tag -> meta.addSecurity().setCode(tag));
-    genericClient.meta().delete().onResource(analysis.getIdElement()).meta(meta).encodedJson().prettyPrint().execute();
+    var response = genericClient.meta().delete().onResource(analysis.getIdElement()).meta(meta).encodedJson().prettyPrint().execute();
+    log.debug("Updated security tags for: {} => {} (deleted={})", FhirUtils.formatResource(analysis), response.getSecurity().stream().map(IBaseCoding::getCode).toList(), tags);
   }
 
   public Bundle updateSharePractitionerRoles(List<IBaseResource> resources, List<String> previousRoles) {
     try {
+      // this is a two steps request
+      // 1. add the new roles
+      // 2. delete the previous roles
       final var bundle = new Bundle();
       bundle.setType(Bundle.BundleType.TRANSACTION);
       resources.forEach(resource -> {
         var ref = FhirUtils.formatResource(resource);
-        deleteSecurityTags(resource, previousRoles);  // can't be done in batch/bundle
         bundle.addEntry()
           .setResource((Resource) resource)
           .setFullUrl(ref)
@@ -100,6 +104,11 @@ public class FhirClient {
       log.info("Update resources {}", resources.stream().map(FhirUtils::formatResource).toList());
       var response = this.getGenericClient().transaction().withBundle(bundle).execute();
       logDebug(response);
+      resources.forEach(resource -> {
+        if (!(resource instanceof Patient)) {
+          deleteSecurityTags(resource, previousRoles);
+        }
+      });
       return response;
     } catch(PreconditionFailedException | UnprocessableEntityException | InvalidRequestException e) {  // FHIR Server custom validation chain failed
       final String errors = toJson(e.getOperationOutcome());
