@@ -38,22 +38,22 @@ public class ShareBuilder {
     final var userRoles = this.getUserRoles(allRoles);
     this.validateShareRoles(prescription, allRoles, userRoles);
 
-    var previousTagsToDelete = getPreviousTagsToDelete(prescription, userRoles);
+    var tagsToDelete = getTagsToDelete(prescription); // find shared roles that exist but arent shared anymore
     final var updatedResources = this.updateSecurityTags(prescription);
 
-    log.info("Share service request {} with roles {} delete previous {}", analysisId, shareRoles, previousTagsToDelete);
-    fhirClient.updateSharePractitionerRoles(updatedResources, previousTagsToDelete);
+    log.info("Share service request {} with roles {} delete previous {}", analysisId, shareRoles, tagsToDelete);
+    fhirClient.updateSharePractitionerRoles(updatedResources, tagsToDelete);
 
     return new ShareBuilder.Result(prescription.getAnalysis());
   }
 
-  private List<String> getPreviousTagsToDelete(Prescription prescription, List<PractitionerRole> userRoles) {
+  private List<String> getTagsToDelete(Prescription prescription) {
     var tagsToDelete = new ArrayList<String>();
     for(var resource : prescription.getAllResources()) {
       var previousTags = resource.getMeta().getSecurity().stream()
         .map(IBaseCoding::getCode)
         .filter(code -> code.startsWith("PractitionerRole/")) // ignore not role tags
-        .filter(code -> userRoles.stream().noneMatch(r -> code.equals(FhirUtils.formatResource(r)))) // don't remove yourself
+        .filter(code -> shareRoles.stream().noneMatch(r -> r.equals(FhirUtils.extractId(code))))
         .toList();
       tagsToDelete.addAll(previousTags);
     }
@@ -83,8 +83,8 @@ public class ShareBuilder {
       if(!FhirUtils.isDoctor(role, roleOrg) && !FhirUtils.isGeneticCounselor(role, ep) && !FhirUtils.isResidentPhysician(role, ep)) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("practitioner role: %s isn't a doctor|genetic counselor|resident physician at organization: %s", shareRole, roleOrg));
       }
-      if (userRoles.stream().anyMatch(r -> FhirUtils.extractId(r).equals(shareRole))) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("practitioner: %s can't share with themself: %s", practitionerId, shareRole));
+      if (shareRoles.stream().anyMatch(r -> r.equals(FhirUtils.extractId(prescription.getAnalysis().getRequester())))) {
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, String.format("practitioner: %s can't share with the requester: %s", practitionerId, FhirUtils.extractId(prescription.getAnalysis().getRequester())));
       }
     });
   }

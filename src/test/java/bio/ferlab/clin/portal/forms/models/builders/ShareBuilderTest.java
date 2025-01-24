@@ -16,6 +16,8 @@ import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ShareBuilderTest {
@@ -75,6 +77,16 @@ class ShareBuilderTest {
     pr.setId("PRR02");
     pr.getPractitioner().setReference("Practitioner/PR02");
     pr.setOrganization(new Reference("Organization/ORG02"));
+    pr.getCodeFirstRep().getCodingFirstRep().setSystem(PRACTITIONER_ROLE_GENETICIAN_SYSTEM).setCode(DOCTOR_PREFIX);
+    return pr;
+  }
+
+
+  private PractitionerRole buildPractitionerRole3() {
+    var pr = new PractitionerRole();
+    pr.setId("PRR03");
+    pr.getPractitioner().setReference("Practitioner/PR03");
+    pr.setOrganization(new Reference("Organization/ORG01"));
     pr.getCodeFirstRep().getCodingFirstRep().setSystem(PRACTITIONER_ROLE_GENETICIAN_SYSTEM).setCode(DOCTOR_PREFIX);
     return pr;
   }
@@ -197,9 +209,10 @@ class ShareBuilderTest {
   }
 
   @Test
-  void share_with_themself() {
+  void share_with_requester() {
     var patient1 = buildPatient1();
     var analysis = buildAnalysis();
+    analysis.setRequester(new Reference("PractitionerRole/PRR01"));
     var bundleAnalysis = new Bundle();
     bundleAnalysis.addEntry().setResource(analysis);
     bundleAnalysis.addEntry().setResource(patient1);
@@ -220,9 +233,9 @@ class ShareBuilderTest {
     bundleRoles.addEntry().setResource(pr2);
     when(fhirClient.findAllPractitionerRoles()).thenReturn(bundleRoles);
 
-    var builder = new ShareBuilder(prescriptionService, fhirClient, "analysis_id", List.of("PRR01"), "PR01");
+    var builder = new ShareBuilder(prescriptionService, fhirClient, "analysis_id", List.of("PRR01"), "PR02");
     ResponseStatusException exception = assertThrows(ResponseStatusException.class, builder::build);
-    assertEquals("practitioner: PR01 can't share with themself: PRR01", exception.getReason());
+    assertEquals("practitioner: PR02 can't share with the requester: PRR01", exception.getReason());
     assertEquals(HttpStatus.BAD_REQUEST, exception.getStatusCode());
   }
 
@@ -246,9 +259,11 @@ class ShareBuilderTest {
     var observation1 = new Observation();
     observation1.setId("OBS01");
     observation1.getMeta().addSecurity().setCode("PractitionerRole/PRR01"); // will be removed
+    observation1.getMeta().addSecurity().setCode("PractitionerRole/PRR03"); // will be kept
     var clinicalImpression1 = new ClinicalImpression();
     clinicalImpression1.setId("CLI01");
     clinicalImpression1.getMeta().addSecurity().setCode("PractitionerRole/PRR01"); // will be removed
+    clinicalImpression1.getMeta().addSecurity().setCode("PractitionerRole/PRR03"); // will be kept
     bundleDetails.addEntry().setResource(observation1);
     bundleDetails.addEntry().setResource(clinicalImpression1);
 
@@ -256,19 +271,23 @@ class ShareBuilderTest {
 
     var pr1 = buildPractitionerRole1();
     var pr2 = buildPractitionerRole2();
+    var pr3 = buildPractitionerRole3();
     pr2.setOrganization(new Reference("Organization/ORG01"));
     var bundleRoles = new Bundle();
     bundleRoles.addEntry().setResource(pr1);
     bundleRoles.addEntry().setResource(pr2);
+    bundleRoles.addEntry().setResource(pr3);
     when(fhirClient.findAllPractitionerRoles()).thenReturn(bundleRoles);
 
-    var builder = new ShareBuilder(prescriptionService, fhirClient, "analysis_id", List.of("PRR02"), "PR01");
+    var builder = new ShareBuilder(prescriptionService, fhirClient, "analysis_id", List.of("PRR02", "PRR03"), "PR01");
     builder.build();
 
-    assertEquals("[EP1, PractitionerRole/PRR02]", analysis.getMeta().getSecurity().stream().map(Coding::getCode).toList().toString());
-    assertEquals("[PractitionerRole/PRR01, PractitionerRole/PRR02]", patient1.getMeta().getSecurity().stream().map(Coding::getCode).toList().toString());
-    assertEquals("[PractitionerRole/PRR02]", observation1.getMeta().getSecurity().stream().map(Coding::getCode).toList().toString());
-    assertEquals("[PractitionerRole/PRR02]", clinicalImpression1.getMeta().getSecurity().stream().map(Coding::getCode).toList().toString());
+    assertEquals("[EP1, PractitionerRole/PRR02, PractitionerRole/PRR03]", analysis.getMeta().getSecurity().stream().map(Coding::getCode).toList().toString());
+    assertEquals("[PractitionerRole/PRR01, PractitionerRole/PRR02, PractitionerRole/PRR03]", patient1.getMeta().getSecurity().stream().map(Coding::getCode).toList().toString());
+    assertEquals("[PractitionerRole/PRR02, PractitionerRole/PRR03]", observation1.getMeta().getSecurity().stream().map(Coding::getCode).toList().toString());
+    assertEquals("[PractitionerRole/PRR02, PractitionerRole/PRR03]", clinicalImpression1.getMeta().getSecurity().stream().map(Coding::getCode).toList().toString());
+
+    verify(fhirClient).updateSharePractitionerRoles(any(), eq(List.of("PractitionerRole/PRR01")));
   }
 
   @Test
