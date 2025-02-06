@@ -94,7 +94,7 @@ public class TemplateMapper {
   public String mapToMRN(Patient patient) {
     try {
       var org = Optional.ofNullable(FhirUtils.extractId(patient.getManagingOrganization())).orElse(EMPTY).toUpperCase();
-      var mrn = getIdentifier(patient.getIdentifier(), CODE_MRN).map(r -> r.toUpperCase().replace("MRN-", "")).orElse(EMPTY);
+      var mrn = getIdentifier(patient.getIdentifier(), CODE_MRN).map(String::toUpperCase).orElse(EMPTY);
 
       if (StringUtils.isAllBlank(org, mrn)) {
         return DASHES;
