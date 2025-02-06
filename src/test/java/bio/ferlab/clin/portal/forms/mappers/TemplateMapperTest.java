@@ -232,9 +232,9 @@ class TemplateMapperTest {
     Patient patient = new Patient();
     assertEquals("--", mapper.mapToMRN(patient));
     patient.addIdentifier(new Identifier().setValue("mrn-foo-1234").setType(new CodeableConcept().addCoding(new Coding().setCode("MR"))));
-    assertEquals("FOO-1234", mapper.mapToMRN(patient));
+    assertEquals("MRN-FOO-1234", mapper.mapToMRN(patient));
     patient.setManagingOrganization(new Reference("Organization/bar"));
-    assertEquals("FOO-1234 | BAR", mapper.mapToMRN(patient));
+    assertEquals("MRN-FOO-1234 | BAR", mapper.mapToMRN(patient));
   }
 
   @Test
