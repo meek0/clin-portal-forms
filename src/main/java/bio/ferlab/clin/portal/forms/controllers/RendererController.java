@@ -171,7 +171,7 @@ public class RendererController {
 
     // don't know how thread-safe is Pebble renderer, let's instance a new mapper instead of having a singleton
     var mapper = new TemplateMapper(id, logOnceService, messagesService, templateService, codesValuesService, analysisCodes, locale);
-    context.put("mapper", new TemplateMapper(id, logOnceService, messagesService, templateService, codesValuesService, analysisCodes, locale));
+    context.put("mapper", mapper);
     context.put("isPrenatalAnalysisCategory", analysis.hasCategory() && PRENATAL.equalsIgnoreCase(analysis.getCategoryFirstRep().getCodingFirstRep().getCode()));
     context.put("now", new Date());
     context.put("version", "1.0");
