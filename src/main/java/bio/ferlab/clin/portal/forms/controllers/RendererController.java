@@ -170,10 +170,12 @@ public class RendererController {
     context.put("probandFamilyMembers", probandFamily);
 
     // don't know how thread-safe is Pebble renderer, let's instance a new mapper instead of having a singleton
-    context.put("mapper", new TemplateMapper(id, logOnceService, messagesService, templateService, codesValuesService, analysisCodes, locale));
+    var mapper = new TemplateMapper(id, logOnceService, messagesService, templateService, codesValuesService, analysisCodes, locale);
+    context.put("mapper", mapper);
     context.put("isPrenatalAnalysisCategory", analysis.hasCategory() && PRENATAL.equalsIgnoreCase(analysis.getCategoryFirstRep().getCodingFirstRep().getCode()));
     context.put("now", new Date());
     context.put("version", "1.0");
+    context.put("totalPages", 2 + mapper.nonMissingFamilyMembers(probandFamily).size());
 
     FhirUtils.findExtension(analysis, SUPERVISOR_EXT).ifPresent(r -> {
       final Bundle bundle = fhirClient.findPractitionerAndRoleByRoleId(FhirUtils.extractId((Reference)r));
