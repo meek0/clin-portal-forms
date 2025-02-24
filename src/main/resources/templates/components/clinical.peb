@@ -73,12 +73,15 @@
             <td>{{ history }}</td>
         </tr>
         {% endif %}
-        {% if inbreeding is not empty %}
         <tr>
            <td class="col-left">{{ i18n("messages", "clinical_inbreeding") }} : </td>
+           {% if inbreeding is not empty %}
            <td>{{ inbreeding }}</td>
+           {% else %}
+           <td>--</td>
+           {% endif %}
         </tr>
-        {% endif %}
+
         {% if ethnicity is not empty %}
         <tr>
             <td class="col-left">{{ i18n("messages", "clinical_ethnicity") }} : </td>
