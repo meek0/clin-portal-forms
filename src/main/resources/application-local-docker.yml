@@ -1,7 +1,17 @@
-
+server:
+  port: 8080
+fhir:
+  timeout: 600000
+  url: http://clin-fhir-server:8080/fhir
+  validate: true
+cache:
+  eviction: 60
+  short-eviction: 30
 qlin-me:
-  url: http://host.docker.internal:7979
+  url: http://clin-qlin-me-hybrid:7979
   enabled: true
+security:
+  issuer: http://keycloak:8081/realms/clin
 logging:
   level:
     bio.ferlab.clin.portal.forms: DEBUG
