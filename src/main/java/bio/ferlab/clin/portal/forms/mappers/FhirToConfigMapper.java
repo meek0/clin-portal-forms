@@ -31,10 +31,13 @@ public class FhirToConfigMapper {
   }
 
   public List<ValueName> mapToPrescribingInst(List<PractitionerRole> practitionerRoles) {
-    return practitionerRoles.stream().map(r -> {
-      String orgId = r.getOrganization().getReferenceElement().getIdPart();
-      return ValueName.builder().name(orgId).value(orgId).build();
-    }).toList();
+    return practitionerRoles.stream()
+        .map(r -> r.getOrganization().getReferenceElement().getIdPart())
+        .distinct()
+        .sorted()
+        .map(orgId -> ValueName.builder().name(orgId).value(orgId).build())
+        .collect(Collectors.toList());
+
   }
 
   public List<ValueName> mapToClinicalSigns(CodeSystem hp, String lang) {
