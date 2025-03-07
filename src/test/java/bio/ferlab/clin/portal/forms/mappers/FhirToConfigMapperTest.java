@@ -45,11 +45,44 @@ class FhirToConfigMapperTest {
   @Test
   void mapToPrescribingInst() {
     final List<PractitionerRole> roles = new ArrayList<>();
-    Stream.iterate(0, n -> n +1).limit(2).forEach(n -> {
+    Stream.iterate(0, n -> n + 1).limit(2).forEach(n -> {
         PractitionerRole role = new PractitionerRole();
         role.setOrganization(FhirUtils.toReference(new Organization().setId(n.toString())));
         roles.add(role);
     });
+
+
+    var result = mapper.mapToPrescribingInst(roles);
+    assertEquals("ValueName(name=0, value=0) ValueName(name=1, value=1)", StringUtils.join(result, " "));
+  }
+
+  @Test
+  void mapToPrescribingInst_isSorted() {
+    final List<PractitionerRole> roles = new ArrayList<>();
+    Stream.iterate(1, n -> n - 1).limit(2).forEach(n -> {
+        PractitionerRole role = new PractitionerRole();
+        role.setOrganization(FhirUtils.toReference(new Organization().setId(n.toString())));
+        roles.add(role);
+    });
+
+    var result = mapper.mapToPrescribingInst(roles);
+    assertEquals("ValueName(name=0, value=0) ValueName(name=1, value=1)", StringUtils.join(result, " "));
+  }
+
+  @Test
+  void mapToPrescribingInst_isDistinct() {
+    final List<PractitionerRole> roles = new ArrayList<>();
+    Stream.iterate(0, n -> n + 1).limit(2).forEach(n -> {
+        PractitionerRole role = new PractitionerRole();
+        role.setOrganization(FhirUtils.toReference(new Organization().setId(n.toString())));
+        roles.add(role);
+    });
+
+    //add a duplicate id
+    PractitionerRole role = new PractitionerRole();
+        role.setOrganization(FhirUtils.toReference(new Organization().setId("0")));
+        roles.add(role);
+
     var result = mapper.mapToPrescribingInst(roles);
     assertEquals("ValueName(name=0, value=0) ValueName(name=1, value=1)", StringUtils.join(result, " "));
   }
