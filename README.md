@@ -58,6 +58,10 @@ Return of experience using FHIR Client library instead of OpenFeign to perform t
 
 # Prescription rendering
 
+## Documentation
+
+- [Pebble Templates](https://pebbletemplates.io)
+
 ## GET /render/`id`?`format=`HTML&`lang`=fr
 
 ### Parameters
