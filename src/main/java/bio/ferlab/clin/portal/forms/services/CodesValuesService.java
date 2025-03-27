@@ -23,6 +23,7 @@ import java.util.Optional;
 public class CodesValuesService {
 
   public static final String ANALYSE_KEY = "analyse";
+  public static final String SEQUENCING_REQUEST_KEY = "sequencing-request-code";
   public static final String HP_KEY = "hp";
   public static final String PARENTAL_KEY = "parental";
   public static final String ETHNICITY_KEY = "ethnicity";
@@ -101,6 +102,7 @@ public class CodesValuesService {
     BundleExtractor bundleExtractor = new BundleExtractor(fhirClient.getContext(), bundle);
 
     CodeSystem analyseCode = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
+    CodeSystem sequencingRequestCode = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
     CodeSystem hp = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
     CodeSystem parentalLinks = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
     CodeSystem ethnicity = bundleExtractor.getNextResourcesOfType(CodeSystem.class);
@@ -109,6 +111,7 @@ public class CodesValuesService {
     ValueSet relation = bundleExtractor.getNextResourcesOfType(ValueSet.class);
 
     codesAndValues.put(ANALYSE_KEY, analyseCode);
+    codesAndValues.put(SEQUENCING_REQUEST_KEY, sequencingRequestCode);
     codesAndValues.put(HP_KEY, hp);
     codesAndValues.put(PARENTAL_KEY, parentalLinks);
     codesAndValues.put(ETHNICITY_KEY, ethnicity);

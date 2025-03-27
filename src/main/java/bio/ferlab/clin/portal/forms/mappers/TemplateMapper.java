@@ -34,6 +34,7 @@ public class TemplateMapper {
   private final TemplateService templateService;
   private final CodesValuesService codesValuesService;
   private final CodeSystem analysisCodes;
+  private final CodeSystem sequencingCodes;
   private final Locale locale;
 
   public String mapToBarcodeBase64(String value) {
@@ -42,7 +43,7 @@ public class TemplateMapper {
 
   public String mapToAddress(Organization organization) {
     try {
-      var addr =  organization.getContactFirstRep().getAddress().getText();
+      var addr = organization.getContactFirstRep().getAddress().getText();
       return Optional.ofNullable(addr).orElse(EMPTY);
     } catch (Exception e) {
       return handleError(e);
@@ -68,9 +69,10 @@ public class TemplateMapper {
   public String mapToRole(PractitionerRole role) {
     try {
       var code = role.getCodeFirstRep().getCodingFirstRep().getCode();
-      var res = RESIDENT_PHYSICIAN_PREFIX.equals(code) ? i18n(role.getCodeFirstRep().getCodingFirstRep().getCode()): "";
-      return StringUtils.isNotBlank(res) ? "("+res+")" : EMPTY;
-    }catch ( Exception e) {
+      var res = RESIDENT_PHYSICIAN_PREFIX.equals(code) ? i18n(role.getCodeFirstRep().getCodingFirstRep().getCode())
+          : "";
+      return StringUtils.isNotBlank(res) ? "(" + res + ")" : EMPTY;
+    } catch (Exception e) {
       return this.handleError(e);
     }
   }
@@ -85,7 +87,9 @@ public class TemplateMapper {
 
   public String mapToRAMQ(Person person) {
     try {
-      return getIdentifier(person.getIdentifier(), CODE_RAMQ).map(r -> String.format("%s %s %s", r.substring(0,4), r.substring(4,8), r.substring(8,12)).toUpperCase()).orElse(DASHES);
+      return getIdentifier(person.getIdentifier(), CODE_RAMQ)
+          .map(r -> String.format("%s %s %s", r.substring(0, 4), r.substring(4, 8), r.substring(8, 12)).toUpperCase())
+          .orElse(DASHES);
     } catch (Exception e) {
       return this.handleError(e);
     }
@@ -103,7 +107,7 @@ public class TemplateMapper {
       } else if (StringUtils.isBlank(org) && StringUtils.isNotBlank(mrn)) {
         return mrn;
       } else {
-        return mrn + " | "+ org;
+        return mrn + " | " + org;
       }
     } catch (Exception e) {
       return this.handleError(e);
@@ -136,8 +140,10 @@ public class TemplateMapper {
 
   public String mapToContact(PractitionerRole practitionerRole, PractitionerRole supervisorRole, String system) {
     try {
-      Optional<String> practitionerContact = Optional.ofNullable(practitionerRole).flatMap(r -> getTelecom(r.getTelecom(), system));
-      Optional<String> supervisorContact = Optional.ofNullable(supervisorRole).flatMap(s -> getTelecom(s.getTelecom(), system));
+      Optional<String> practitionerContact = Optional.ofNullable(practitionerRole)
+          .flatMap(r -> getTelecom(r.getTelecom(), system));
+      Optional<String> supervisorContact = Optional.ofNullable(supervisorRole)
+          .flatMap(s -> getTelecom(s.getTelecom(), system));
       return supervisorContact.or(() -> practitionerContact).orElse(EMPTY);
     } catch (Exception e) {
       return this.handleError(e);
@@ -163,9 +169,9 @@ public class TemplateMapper {
     try {
       final var analysisCode = FhirUtils.findCode(serviceRequest, ANALYSIS_REQUEST_CODE).orElse(null);
       return analysisCodes.getConcept().stream().filter(c -> c.getCode().equals(analysisCode))
-        .findFirst()
-        .map(c -> FhirToConfigMapper.getDisplayForLang(c, getLang()))
-        .orElse(EMPTY);
+          .findFirst()
+          .map(c -> FhirToConfigMapper.getDisplayForLang(c, getLang()))
+          .orElse(EMPTY);
     } catch (Exception e) {
       return this.handleError(e);
     }
@@ -174,8 +180,8 @@ public class TemplateMapper {
   public String mapToPanelReflex(ServiceRequest serviceRequest) {
     try {
       return serviceRequest.hasOrderDetail() ? serviceRequest.getOrderDetailFirstRep().getText()
-        .replace(REFLEX_PANEL_PREFIX_FR, "")
-        .replace(REFLEX_PANEL_PREFIX_EN, "").trim() : DASHES;
+          .replace(REFLEX_PANEL_PREFIX_FR, "")
+          .replace(REFLEX_PANEL_PREFIX_EN, "").trim() : DASHES;
     } catch (Exception e) {
       return this.handleError(e);
     }
@@ -190,14 +196,38 @@ public class TemplateMapper {
     }
   }
 
+  public String mapToSequencingRequestCode(ServiceRequest serviceRequest) {
+    try {
+      final var sequencingRequestCode = FhirUtils.findCode(serviceRequest, SEQUENCING_REQUEST_CODE).orElse(null);
+      if (StringUtils.isNotBlank(sequencingRequestCode))
+        return sequencingRequestCode;
+      else
+        return EMPTY;
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
+  public String mapToSequencingRequestCodeDisplay(ServiceRequest serviceRequest) {
+    try {
+      final var sequencingRequestCode = FhirUtils.findCode(serviceRequest, SEQUENCING_REQUEST_CODE).orElse(null);
+      return sequencingCodes.getConcept().stream().filter(c -> c.getCode().equals(sequencingRequestCode))
+          .findFirst()
+          .map(c -> FhirToConfigMapper.getDisplayForLang(c, getLang()))
+          .orElse(EMPTY);
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
   public String mapToMissingReason(List<Observation> obs) {
     try {
       var reason = obs.stream()
-        .filter(o -> "social-history".equals(o.getCategoryFirstRep().getCodingFirstRep().getCode()))
-        .filter(o -> SYSTEM_MISSING_PARENT.equals(o.getValueCodeableConcept().getCodingFirstRep().getSystem()))
-        .findFirst();
+          .filter(o -> "social-history".equals(o.getCategoryFirstRep().getCodingFirstRep().getCode()))
+          .filter(o -> SYSTEM_MISSING_PARENT.equals(o.getValueCodeableConcept().getCodingFirstRep().getSystem()))
+          .findFirst();
       return reason.map(o -> o.getNoteFirstRep().getText())
-        .filter(StringUtils::isNotBlank).orElse(DASHES);
+          .filter(StringUtils::isNotBlank).orElse(DASHES);
     } catch (Exception e) {
       return this.handleError(e);
     }
@@ -205,10 +235,16 @@ public class TemplateMapper {
 
   public List<String> mapToGestetionalAge(List<Observation> obs) {
     try {
-      final var gestationalAgeObs = obs.stream().filter(o -> List.of(FhirConst.CODE_DDM, FhirConst.CODE_DPA).indexOf(o.getCode().getCodingFirstRep().getCode()) > -1).findFirst().orElse(null);
+      final var gestationalAgeObs = obs.stream().filter(
+          o -> List.of(FhirConst.CODE_DDM, FhirConst.CODE_DPA).indexOf(o.getCode().getCodingFirstRep().getCode()) > -1)
+          .findFirst().orElse(null);
 
       if (gestationalAgeObs != null) {
-        return List.of(String.format(i18n("patient_gestational_age_weeks"), calculateGestationalAge(gestationalAgeObs.getCode().getCodingFirstRep().getCode(), gestationalAgeObs.getValueDateTimeType().dateTimeValue().dateTimeValue().getValue())), i18n("patient_gestational_age_weeks_pregnancy"));
+        return List.of(
+            String.format(i18n("patient_gestational_age_weeks"),
+                calculateGestationalAge(gestationalAgeObs.getCode().getCodingFirstRep().getCode(),
+                    gestationalAgeObs.getValueDateTimeType().dateTimeValue().dateTimeValue().getValue())),
+            i18n("patient_gestational_age_weeks_pregnancy"));
       } else {
         return List.of(i18n("patient_fetus_deceased"), i18n("patient_fetus_deceased_pregnancy"));
       }
@@ -222,20 +258,21 @@ public class TemplateMapper {
     var signs = new ArrayList<String>();
     try {
       var filtered = obs.stream()
-        .filter(o -> code.equals(o.getCode().getCodingFirstRep().getCode()))
-        .filter(o -> StringUtils.isBlank(interpretation) || interpretation.equals(o.getInterpretationFirstRep().getCodingFirstRep().getCode()))
-        .toList();
-      for (var sign: filtered) {
+          .filter(o -> code.equals(o.getCode().getCodingFirstRep().getCode()))
+          .filter(o -> StringUtils.isBlank(interpretation)
+              || interpretation.equals(o.getInterpretationFirstRep().getCodingFirstRep().getCode()))
+          .toList();
+      for (var sign : filtered) {
         var signCode = sign.getValue();
         var signAge = mapToI18nAgeAtOnset(sign);
         if (signCode instanceof CodeableConcept v) {
           var hpoCode = v.getCodingFirstRep().getCode();
-          var hpoName = mapToI18nHPOName(hpoCode); //arrangerClient.getHPONameByPrefix(hpoCode);
+          var hpoName = mapToI18nHPOName(hpoCode); // arrangerClient.getHPONameByPrefix(hpoCode);
           String signStr = "";
           if (StringUtils.isNotBlank(hpoName)) {
             signStr += StringUtils.capitalize(hpoName);
           }
-          signStr += " ("+hpoCode+")";
+          signStr += " (" + hpoCode + ")";
           if (StringUtils.isNotBlank(signAge)) {
             signStr += " - " + signAge;
           }
@@ -254,7 +291,7 @@ public class TemplateMapper {
 
   public String mapToSign(List<Observation> obs, String code, String interpretation) {
     var signs = mapToSigns(obs, code, interpretation);
-    return signs.isEmpty() ? EMPTY : StringUtils.isNotBlank(signs.get(0)) ? signs.get(0): EMPTY;
+    return signs.isEmpty() ? EMPTY : StringUtils.isNotBlank(signs.get(0)) ? signs.get(0) : EMPTY;
   }
 
   public String mapToAffected(List<Observation> obs) {
@@ -271,7 +308,7 @@ public class TemplateMapper {
   }
 
   public String mapToEthnicity(List<Observation> obs) {
-    var code = mapToSign(obs, "ETHN", "").replace("(","").replace(")", "").trim();
+    var code = mapToSign(obs, "ETHN", "").replace("(", "").replace(")", "").trim();
     var eth = codesValuesService.getCodeSystemByKeyCode(CodesValuesService.ETHNICITY_KEY, code);
     if (eth != null) {
       return FhirToConfigMapper.getDisplayForLang(eth, getLang());
@@ -284,23 +321,24 @@ public class TemplateMapper {
     var exams = new ArrayList<Exam>();
     try {
       var filtered = obs.stream()
-        .filter(o -> "procedure".equals(o.getCategoryFirstRep().getCodingFirstRep().getCode())).toList();
-      for (var exam: filtered) {
+          .filter(o -> "procedure".equals(o.getCategoryFirstRep().getCodingFirstRep().getCode())).toList();
+      for (var exam : filtered) {
         var code = exam.getCode().getCodingFirstRep().getCode();
         var name = codesValuesService.getCodeSystemByKeyCode(CodesValuesService.OBSERVATION_KEY, code);
 
-        String examName = name != null ? FhirToConfigMapper.getDisplayForLang(name, getLang()) : code != null ? code: EMPTY;
+        String examName = name != null ? FhirToConfigMapper.getDisplayForLang(name, getLang())
+            : code != null ? code : EMPTY;
         String examComment = EMPTY;
 
         var interpretation = exam.getInterpretationFirstRep().getCodingFirstRep().getCode();
         if (StringUtils.isNotBlank(interpretation)) {
-          examComment += i18n("interpretation_"+interpretation);
+          examComment += i18n("interpretation_" + interpretation);
         }
 
         var value = exam.getValue();
         if (value instanceof CodeableConcept v) {
           var allHPOs = new ArrayList<>();
-          for(var coding: v.getCoding()) {
+          for (var coding : v.getCoding()) {
             var hpoCode = coding.getCode();
             var hpoName = mapToI18nHPOName(hpoCode);
             if (StringUtils.isNotBlank(hpoName)) {
@@ -311,7 +349,7 @@ public class TemplateMapper {
             examComment += " : " + StringUtils.join(allHPOs, ", ");
           }
         } else if (value instanceof StringType v) {
-          examComment += " : "+v.asStringValue();
+          examComment += " : " + v.asStringValue();
           if ("A".equals(interpretation)) {
             examComment += " UI/L";
           }
@@ -324,12 +362,13 @@ public class TemplateMapper {
     return exams;
   }
 
-  public record Exam(String name, String comment){}
+  public record Exam(String name, String comment) {
+  }
 
   public String mapToFamilyHistory(List<FamilyMemberHistory> histories) {
     var all = new ArrayList<String>();
     try {
-      for(var history: histories) {
+      for (var history : histories) {
         String str = history.getNoteFirstRep().getText();
         var code = history.getRelationship().getCodingFirstRep().getCode();
         var value = codesValuesService.getCodeSystemByKeyCode(CodesValuesService.PARENTAL_KEY, code);
@@ -365,9 +404,10 @@ public class TemplateMapper {
   private String mapToI18nAgeAtOnset(Observation o) {
     ValueSet allAges = codesValuesService.getValues(CodesValuesService.AGE_KEY);
     return FhirUtils.findExtension(o, AGE_AT_ONSET_EXT).map(e -> ((Coding) e).getCode())
-      .flatMap(code -> allAges.getCompose().getIncludeFirstRep().getConcept().stream().filter(c -> c.getCode().equals(code)).findFirst())
-      .map(code -> FhirToConfigMapper.getDisplayForLang(code, getLang()))
-      .orElse(EMPTY);
+        .flatMap(code -> allAges.getCompose().getIncludeFirstRep().getConcept().stream()
+            .filter(c -> c.getCode().equals(code)).findFirst())
+        .map(code -> FhirToConfigMapper.getDisplayForLang(code, getLang()))
+        .orElse(EMPTY);
   }
 
   private String mapToI18nHPOName(String hpoCode) {
@@ -391,7 +431,8 @@ public class TemplateMapper {
   }
 
   private Optional<String> getTelecom(List<ContactPoint> contactPoints, String system) {
-    return contactPoints.stream().filter(t -> system.equals(t.getSystem().toCode())).findFirst().map(ContactPoint::getValue);
+    return contactPoints.stream().filter(t -> system.equals(t.getSystem().toCode())).findFirst()
+        .map(ContactPoint::getValue);
   }
 
   private String getLang() {
@@ -405,7 +446,8 @@ public class TemplateMapper {
   }
 
   private String formatName(HumanName name, boolean withPrefix) {
-    var full = String.format("%s %s", name.getFamily().toUpperCase(), StringUtils.capitalize(name.getGivenAsSingleString()));
+    var full = String.format("%s %s", name.getFamily().toUpperCase(),
+        StringUtils.capitalize(name.getGivenAsSingleString()));
     if (withPrefix && name.hasPrefix()) {
       full = StringUtils.capitalize(name.getPrefixAsSingleString()) + ". " + full;
     }
@@ -413,13 +455,15 @@ public class TemplateMapper {
   }
 
   private Optional<String> getIdentifier(List<Identifier> identifiers, String code) {
-    return identifiers.stream().filter(i -> i.getType().getCoding().stream().anyMatch(c -> code.equals(c.getCode()))).findFirst().map(Identifier::getValue);
+    return identifiers.stream().filter(i -> i.getType().getCoding().stream().anyMatch(c -> code.equals(c.getCode())))
+        .findFirst().map(Identifier::getValue);
   }
 
   private String calculateGestationalAge(String type, Date value) {
     final var today = LocalDate.now();
 
     final var date = DateUtils.toLocalDate(value);
-    return FhirConst.CODE_DDM.equals(type) ? "DDM " + ChronoUnit.WEEKS.between(date, today) : "DPA " + (40 * 7 - ChronoUnit.WEEKS.between(today, date));
+    return FhirConst.CODE_DDM.equals(type) ? "DDM " + ChronoUnit.WEEKS.between(date, today)
+        : "DPA " + (40 * 7 - ChronoUnit.WEEKS.between(today, date));
   }
 }

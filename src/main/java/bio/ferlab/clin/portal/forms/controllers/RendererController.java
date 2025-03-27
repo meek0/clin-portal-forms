@@ -78,6 +78,7 @@ public class RendererController {
     final var familyHistories = prescription.getFamilyHistories();
 
     final var analysisCodes = codesValuesService.getCodes(CodesValuesService.ANALYSE_KEY);
+    final var sequencingRequestCodes = codesValuesService.getCodes(CodesValuesService.SEQUENCING_REQUEST_KEY);
 
     // following code could also be placed inside Prescription model for easier access
     final var probandPatient = prescription.getProbandPatient();
@@ -170,7 +171,7 @@ public class RendererController {
     context.put("probandFamilyMembers", probandFamily);
 
     // don't know how thread-safe is Pebble renderer, let's instance a new mapper instead of having a singleton
-    var mapper = new TemplateMapper(id, logOnceService, messagesService, templateService, codesValuesService, analysisCodes, locale);
+    var mapper = new TemplateMapper(id, logOnceService, messagesService, templateService, codesValuesService, analysisCodes,sequencingRequestCodes, locale);
     context.put("mapper", mapper);
     context.put("isPrenatalAnalysisCategory", analysis.hasCategory() && PRENATAL.equalsIgnoreCase(analysis.getCategoryFirstRep().getCodingFirstRep().getCode()));
     context.put("now", new Date());

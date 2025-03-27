@@ -57,20 +57,22 @@ public class FhirClient {
     OperationOutcome oo;
     try {
       oo = (OperationOutcome) getGenericClient().validate().resource(resource).execute().getOperationOutcome();
-    } catch(PreconditionFailedException | UnprocessableEntityException e) {
+    } catch (PreconditionFailedException | UnprocessableEntityException e) {
       oo = (OperationOutcome) e.getOperationOutcome();
     }
     boolean containsError = oo.getIssue().stream()
-        .anyMatch(issue -> EnumSet.of(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueSeverity.FATAL).contains(issue.getSeverity()));
+        .anyMatch(issue -> EnumSet.of(OperationOutcome.IssueSeverity.ERROR, OperationOutcome.IssueSeverity.FATAL)
+            .contains(issue.getSeverity()));
     if (containsError) {
       final String errors = toJson(oo);
-      log.debug("Failed to validate resource:\n{}", errors);  // don't log in production <= sensitive data
+      log.debug("Failed to validate resource:\n{}", errors); // don't log in production <= sensitive data
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors);
     }
   }
 
   public ServiceRequest assignPerformers(ServiceRequest serviceRequest) {
-    log.info("Update service request {} with performers {}", serviceRequest.getIdElement().getIdPart(), serviceRequest.getPerformer().stream().map((Reference::getReference)).toList());
+    log.info("Update service request {} with performers {}", serviceRequest.getIdElement().getIdPart(),
+        serviceRequest.getPerformer().stream().map((Reference::getReference)).toList());
     final var outcome = this.genericClient.update().resource(serviceRequest).execute();
     return (ServiceRequest) outcome.getResource();
   }
@@ -81,8 +83,10 @@ public class FhirClient {
     }
     var meta = new Meta();
     tags.forEach(tag -> meta.addSecurity().setCode(tag));
-    var response = genericClient.meta().delete().onResource(analysis.getIdElement()).meta(meta).encodedJson().prettyPrint().execute();
-    log.debug("Updated security tags for: {} => {} (deleted={})", FhirUtils.formatResource(analysis), response.getSecurity().stream().map(IBaseCoding::getCode).toList(), tags);
+    var response = genericClient.meta().delete().onResource(analysis.getIdElement()).meta(meta).encodedJson()
+        .prettyPrint().execute();
+    log.debug("Updated security tags for: {} => {} (deleted={})", FhirUtils.formatResource(analysis),
+        response.getSecurity().stream().map(IBaseCoding::getCode).toList(), tags);
   }
 
   public Bundle updateSharePractitionerRoles(List<IBaseResource> resources, List<String> previousRoles) {
@@ -95,9 +99,9 @@ public class FhirClient {
       resources.forEach(resource -> {
         var ref = FhirUtils.formatResource(resource);
         bundle.addEntry()
-          .setResource((Resource) resource)
-          .setFullUrl(ref)
-          .getRequest()
+            .setResource((Resource) resource)
+            .setFullUrl(ref)
+            .getRequest()
             .setMethod(Bundle.HTTPVerb.PUT)
             .setUrl(ref);
       });
@@ -110,9 +114,12 @@ public class FhirClient {
         }
       });
       return response;
-    } catch(PreconditionFailedException | UnprocessableEntityException | InvalidRequestException e) {  // FHIR Server custom validation chain failed
+    } catch (PreconditionFailedException | UnprocessableEntityException | InvalidRequestException e) { // FHIR Server
+                                                                                                       // custom
+                                                                                                       // validation
+                                                                                                       // chain failed
       final String errors = toJson(e.getOperationOutcome());
-      log.debug("Failed to update resources:\n{}", errors);  // don't log in production <= sensitive data
+      log.debug("Failed to update resources:\n{}", errors); // don't log in production <= sensitive data
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors);
     }
   }
@@ -123,13 +130,16 @@ public class FhirClient {
       if (fhirConfiguration.isValidate()) {
         validate(bundle);
       }
-      log.info("Submit bundle for {} {} with {} entries",personRef, patientRef, bundle.getEntry().size());
+      log.info("Submit bundle for {} {} with {} entries", personRef, patientRef, bundle.getEntry().size());
       Bundle response = this.getGenericClient().transaction().withBundle(bundle).execute();
       logDebug(response);
       return response;
-    } catch(PreconditionFailedException | UnprocessableEntityException | InvalidRequestException e) {  // FHIR Server custom validation chain failed
+    } catch (PreconditionFailedException | UnprocessableEntityException | InvalidRequestException e) { // FHIR Server
+                                                                                                       // custom
+                                                                                                       // validation
+                                                                                                       // chain failed
       final String errors = toJson(e.getOperationOutcome());
-      log.debug("Failed to submit bundle:\n{}", errors);  // don't log in production <= sensitive data
+      log.debug("Failed to submit bundle:\n{}", errors); // don't log in production <= sensitive data
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errors);
     }
   }
@@ -144,17 +154,17 @@ public class FhirClient {
   public Bundle findPractitionerAndRoleByRoleId(String id) {
     log.debug("Fetch practitioner and role by role id: {}", id);
     return this.getGenericClient().search().forResource(PractitionerRole.class)
-      .where(PractitionerRole.RES_ID.exactly().code(id))
-      .include(PractitionerRole.INCLUDE_PRACTITIONER)
-      .returnBundle(Bundle.class).execute();
+        .where(PractitionerRole.RES_ID.exactly().code(id))
+        .include(PractitionerRole.INCLUDE_PRACTITIONER)
+        .returnBundle(Bundle.class).execute();
   }
 
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
   public Bundle findAllPractitionerRoles() {
     log.info("Fetch all practitioner roles");
     return this.getGenericClient().search().forResource(PractitionerRole.class)
-      .count(Integer.MAX_VALUE)
-      .returnBundle(Bundle.class).execute();
+        .count(Integer.MAX_VALUE)
+        .returnBundle(Bundle.class).execute();
   }
 
   @Cacheable(value = CacheConfiguration.CACHE_ROLES, sync = true, keyGenerator = "customKeyGenerator")
@@ -252,7 +262,8 @@ public class FhirClient {
   }
 
   @Cacheable(value = CacheConfiguration.CACHE_FHIR, sync = true, keyGenerator = "customKeyGenerator")
-  public Bundle fetchPrescriptionDetails(ServiceRequest analysis, PractitionerRole practitionerRole, Patient proband, TreeMap<String, List<Reference>> familyMembers) {
+  public Bundle fetchPrescriptionDetails(ServiceRequest analysis, PractitionerRole practitionerRole, Patient proband,
+      TreeMap<String, List<Reference>> familyMembers) {
     log.debug("Fetch prescription details for id: {}", analysis.getIdElement().getIdPart());
     Bundle bundle = new Bundle();
     bundle.setType(Bundle.BundleType.BATCH);
@@ -260,47 +271,50 @@ public class FhirClient {
     // Mandatory for FHIR Analysis has to be part of the response
     // cf: PrescriptionMasking and MetaTagPerson
     bundle.addEntry().getRequest()
-      .setUrl(String.format(String.format("ServiceRequest/%s?_profile=%s", analysis.getIdElement().getIdPart(), ANALYSIS_SERVICE_REQUEST)))
-      .setMethod(Bundle.HTTPVerb.GET);
+        .setUrl(String.format(String.format("ServiceRequest/%s?_profile=%s", analysis.getIdElement().getIdPart(),
+            ANALYSIS_SERVICE_REQUEST)))
+        .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()
-      .setUrl(String.format("Patient/%s", FhirUtils.extractId(analysis.getSubject())))
-      .setMethod(Bundle.HTTPVerb.GET);
+        .setUrl(String.format("Patient/%s", FhirUtils.extractId(analysis.getSubject())))
+        .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()
-      .setUrl(String.format("ServiceRequest?based-on=%s&_profile=%s&_include=ServiceRequest:performer", FhirUtils.formatResource(analysis), SEQUENCING_SERVICE_REQUEST))
-      .setMethod(Bundle.HTTPVerb.GET);
+        .setUrl(String.format("ServiceRequest?based-on=%s&_profile=%s&_include=ServiceRequest:performer",
+            FhirUtils.formatResource(analysis), SEQUENCING_SERVICE_REQUEST))
+        .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()
-      .setUrl(String.format("Person?link=%s", analysis.getSubject().getReference()))
-      .setMethod(Bundle.HTTPVerb.GET);
+        .setUrl(String.format("Person?link=%s", analysis.getSubject().getReference()))
+        .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()
-      .setUrl(String.format("Organization/%s", FhirUtils.extractId(proband.getManagingOrganization())))
-      .setMethod(Bundle.HTTPVerb.GET);
+        .setUrl(String.format("Organization/%s", FhirUtils.extractId(proband.getManagingOrganization())))
+        .setMethod(Bundle.HTTPVerb.GET);
 
     if (practitionerRole != null) {
       bundle.addEntry().getRequest()
-        .setUrl(String.format("Practitioner/%s", FhirUtils.extractId(practitionerRole.getPractitioner())))
-        .setMethod(Bundle.HTTPVerb.GET);
+          .setUrl(String.format("Practitioner/%s", FhirUtils.extractId(practitionerRole.getPractitioner())))
+          .setMethod(Bundle.HTTPVerb.GET);
     }
 
     for (var ref : analysis.getSupportingInfo()) {
       if (ref.getReference().startsWith("ClinicalImpression")) {
         bundle.addEntry().getRequest()
-          .setUrl(String.format("ClinicalImpression?_id=%s&_include=ClinicalImpression:investigation", FhirUtils.extractId(ref)))
-          .setMethod(Bundle.HTTPVerb.GET);
+            .setUrl(String.format("ClinicalImpression?_id=%s&_include=ClinicalImpression:investigation",
+                FhirUtils.extractId(ref)))
+            .setMethod(Bundle.HTTPVerb.GET);
       }
     }
 
-    for(var familyMemberRefs : familyMembers.values()) {
-      for (var familyMemberRef: familyMemberRefs) {
+    for (var familyMemberRefs : familyMembers.values()) {
+      for (var familyMemberRef : familyMemberRefs) {
         bundle.addEntry().getRequest()
-          .setUrl(String.format("Patient/%s", FhirUtils.extractId(familyMemberRef)))
-          .setMethod(Bundle.HTTPVerb.GET);
+            .setUrl(String.format("Patient/%s", FhirUtils.extractId(familyMemberRef)))
+            .setMethod(Bundle.HTTPVerb.GET);
         bundle.addEntry().getRequest()
-          .setUrl(String.format("Person?link=%s", familyMemberRef.getReference()))
-          .setMethod(Bundle.HTTPVerb.GET);
+            .setUrl(String.format("Person?link=%s", familyMemberRef.getReference()))
+            .setMethod(Bundle.HTTPVerb.GET);
       }
     }
 
@@ -313,8 +327,8 @@ public class FhirClient {
     bundle.setType(Bundle.BundleType.BATCH);
 
     bundle.addEntry().getRequest()
-      .setUrl(String.format("Patient/%s", FhirUtils.extractId(sequencing.getSubject())))
-      .setMethod(Bundle.HTTPVerb.GET);
+        .setUrl(String.format("Patient/%s", FhirUtils.extractId(sequencing.getSubject())))
+        .setMethod(Bundle.HTTPVerb.GET);
 
     return this.getGenericClient().transaction().withBundle(bundle).execute();
   }
@@ -328,6 +342,10 @@ public class FhirClient {
 
     bundle.addEntry().getRequest()
         .setUrl("CodeSystem/analysis-request-code")
+        .setMethod(Bundle.HTTPVerb.GET);
+
+    bundle.addEntry().getRequest()
+        .setUrl("CodeSystem/sequencing-request-code")
         .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()
@@ -351,10 +369,10 @@ public class FhirClient {
         .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()
-      .setUrl("ValueSet/fmh-relationship")
-      .setMethod(Bundle.HTTPVerb.GET);
+        .setUrl("ValueSet/fmh-relationship")
+        .setMethod(Bundle.HTTPVerb.GET);
 
-    for(String byType: fhirConfiguration.getTypesWithDefault()) {
+    for (String byType : fhirConfiguration.getTypesWithDefault()) {
       bundle.addEntry().getRequest()
           .setUrl("ValueSet/" + byType + DEFAULT_HPO_SUFFIX)
           .setMethod(Bundle.HTTPVerb.GET);
@@ -363,7 +381,7 @@ public class FhirClient {
           .setMethod(Bundle.HTTPVerb.GET);
     }
 
-    for(String byType: fhirConfiguration.getMultiValuesObservationCodes()) {
+    for (String byType : fhirConfiguration.getMultiValuesObservationCodes()) {
       bundle.addEntry().getRequest()
           .setUrl("ValueSet/" + byType + ABNORMALITIES_SUFFIX)
           .setMethod(Bundle.HTTPVerb.GET);
