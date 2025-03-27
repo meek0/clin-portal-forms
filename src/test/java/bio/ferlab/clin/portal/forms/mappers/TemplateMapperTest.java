@@ -5,6 +5,7 @@ import bio.ferlab.clin.portal.forms.services.LogOnceService;
 import bio.ferlab.clin.portal.forms.services.MessagesService;
 import bio.ferlab.clin.portal.forms.services.TemplateService;
 import org.hl7.fhir.r4.model.*;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -29,11 +30,43 @@ class TemplateMapperTest {
   final TemplateService templateService = Mockito.mock(TemplateService.class);
   final CodesValuesService codesValuesService = Mockito.mock(CodesValuesService.class);
   final CodeSystem codeSystem = new CodeSystem();
-  final TemplateMapper mapper = new TemplateMapper("id", logOnceService, messagesService, templateService, codesValuesService, codeSystem, Locale.FRENCH);
+  TemplateMapper mapper; // Keep mapper as instance variable
+
+  private static final String EXPECTED_EMPTY_RESULT = "";
+
+  // Use @BeforeEach to re-initialize the mapper before each test
+  // This prevents interference between tests, especially when spying
+  @BeforeEach
+  void setUp() {
+    mapper = new TemplateMapper("id", logOnceService, messagesService, templateService, codesValuesService, codeSystem,
+        codeSystem,
+        Locale.FRENCH);
+  }
+
+  // Helper to create a basic ServiceRequest with codings
+  private ServiceRequest createServiceRequest(List<Coding> codings) {
+    ServiceRequest sr = new ServiceRequest();
+    if (codings != null) {
+      CodeableConcept codeableConcept = new CodeableConcept();
+      codings.forEach(codeableConcept::addCoding);
+      sr.setCode(codeableConcept);
+    } // else: sr without a 'code' element
+    return sr;
+  }
+
+  // Helper to create a coding
+  private Coding createCoding(String system, String code, String display) {
+    Coding coding = new Coding();
+    coding.setSystem(system);
+    coding.setCode(code);
+    coding.setDisplay(display);
+    return coding;
+  }
 
   @Test
   void mapToBarcodeBase64() {
-    when(templateService.generateBarcodeImage(any())).thenReturn(new BufferedImage(100,100, BufferedImage.TYPE_INT_RGB));
+    when(templateService.generateBarcodeImage(any()))
+        .thenReturn(new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB));
     when(templateService.convertToBase64(any())).thenReturn("dataBase64Image");
     assertEquals("dataBase64Image", mapper.mapToBarcodeBase64("1234"));
   }
@@ -66,7 +99,8 @@ class TemplateMapperTest {
     o3.getValueCodeableConcept().getCodingFirstRep().setCode("SIGN3");
     o3.addExtension(AGE_AT_ONSET_EXT, new Coding().setCode("age_code3"));
     var allAges = new ValueSet();
-    allAges.getCompose().getIncludeFirstRep().addConcept().setCode("age_code3").getDesignationFirstRep().setLanguage("fr").setValue("age FR");
+    allAges.getCompose().getIncludeFirstRep().addConcept().setCode("age_code3").getDesignationFirstRep()
+        .setLanguage("fr").setValue("age FR");
     when(codesValuesService.getValues(eq(CodesValuesService.AGE_KEY))).thenReturn(allAges);
 
     var o4 = new Observation();
@@ -83,9 +117,10 @@ class TemplateMapperTest {
     when(codesValuesService.getHPOByCode(eq("SIGN2"))).thenReturn(o2Concept);
     when(codesValuesService.getHPOByCode(eq("SIGN3"))).thenReturn(null);
 
-    var all = List.of(o1,o2,o3);
+    var all = List.of(o1, o2, o3);
 
-    assertEquals(List.of("Sign 1 FR (SIGN1)", "Sign 2 FR (SIGN2)", "(SIGN3) - age FR"), mapper.mapToSigns(all, "PHEN", "POS"));
+    assertEquals(List.of("Sign 1 FR (SIGN1)", "Sign 2 FR (SIGN2)", "(SIGN3) - age FR"),
+        mapper.mapToSigns(all, "PHEN", "POS"));
   }
 
   @Test
@@ -150,7 +185,8 @@ class TemplateMapperTest {
 
     var code1 = new CodeSystem.ConceptDefinitionComponent();
     code1.setCode("code1").getDesignationFirstRep().setLanguage("fr").setValue("code1 FR");
-    when(codesValuesService.getCodeSystemByKeyCode(eq(CodesValuesService.OBSERVATION_KEY), eq("code1"))).thenReturn(code1);
+    when(codesValuesService.getCodeSystemByKeyCode(eq(CodesValuesService.OBSERVATION_KEY), eq("code1")))
+        .thenReturn(code1);
     when(messagesService.get(eq("interpretation_A"), eq("fr"))).thenReturn("Abnormal");
 
     var o1Values = new CodeableConcept();
@@ -173,9 +209,11 @@ class TemplateMapperTest {
     var o4 = new Observation();
     o4.getCategoryFirstRep().getCodingFirstRep().setCode("not_procedure");
 
-    var all = List.of(o1,o2,o3);
+    var all = List.of(o1, o2, o3);
 
-    assertEquals("[Exam[name=code1 FR, comment=Abnormal : o1 value1 FR], Exam[name=code2, comment=Abnormal : o2value UI/L], Exam[name=, comment=]]", mapper.mapToExams(all).toString());
+    assertEquals(
+        "[Exam[name=code1 FR, comment=Abnormal : o1 value1 FR], Exam[name=code2, comment=Abnormal : o2value UI/L], Exam[name=, comment=]]",
+        mapper.mapToExams(all).toString());
   }
 
   @Test
@@ -185,12 +223,14 @@ class TemplateMapperTest {
     fm1.getRelationship().getCodingFirstRep().setCode("fm1_code");
     var code1 = new CodeSystem.ConceptDefinitionComponent();
     code1.setCode("code1").getDesignationFirstRep().setLanguage("fr").setValue("code1 FR");
-    when(codesValuesService.getCodeSystemByKeyCode(eq(CodesValuesService.PARENTAL_KEY), eq("fm1_code"))).thenReturn(code1);
+    when(codesValuesService.getCodeSystemByKeyCode(eq(CodesValuesService.PARENTAL_KEY), eq("fm1_code")))
+        .thenReturn(code1);
 
     var fm2 = new FamilyMemberHistory();
     fm2.getNoteFirstRep().setText("fm2 text");
     fm2.getRelationship().getCodingFirstRep().setCode("fm2_code");
-    when(codesValuesService.getCodeSystemByKeyCode(eq(CodesValuesService.PARENTAL_KEY), eq("fm2_code"))).thenReturn(null);
+    when(codesValuesService.getCodeSystemByKeyCode(eq(CodesValuesService.PARENTAL_KEY), eq("fm2_code")))
+        .thenReturn(null);
 
     var fm3 = new FamilyMemberHistory();
 
@@ -222,7 +262,8 @@ class TemplateMapperTest {
     assertEquals("", mapper.mapToRAMQ(null));
     Person person = new Person();
     assertEquals("--", mapper.mapToRAMQ(person));
-    person.addIdentifier(new Identifier().setValue("abcd12345678").setType(new CodeableConcept().addCoding(new Coding().setCode("JHN"))));
+    person.addIdentifier(new Identifier().setValue("abcd12345678")
+        .setType(new CodeableConcept().addCoding(new Coding().setCode("JHN"))));
     assertEquals("ABCD 1234 5678", mapper.mapToRAMQ(person));
   }
 
@@ -231,7 +272,8 @@ class TemplateMapperTest {
     assertEquals("", mapper.mapToMRN(null));
     Patient patient = new Patient();
     assertEquals("--", mapper.mapToMRN(patient));
-    patient.addIdentifier(new Identifier().setValue("mrn-foo-1234").setType(new CodeableConcept().addCoding(new Coding().setCode("MR"))));
+    patient.addIdentifier(
+        new Identifier().setValue("mrn-foo-1234").setType(new CodeableConcept().addCoding(new Coding().setCode("MR"))));
     assertEquals("MRN-FOO-1234", mapper.mapToMRN(patient));
     patient.setManagingOrganization(new Reference("Organization/bar"));
     assertEquals("MRN-FOO-1234 | BAR", mapper.mapToMRN(patient));
@@ -259,23 +301,27 @@ class TemplateMapperTest {
     assertEquals("", mapper.mapToContact(null, null));
     Organization organization = new Organization();
     assertEquals("", mapper.mapToContact(organization, null));
-    organization.getContactFirstRep().addTelecom(new ContactPoint().setSystem(ContactPoint.ContactPointSystem.PHONE).setValue("123456789"));
-    organization.getContactFirstRep().addTelecom(new ContactPoint().setSystem(ContactPoint.ContactPointSystem.EMAIL).setValue("foo@bar"));
+    organization.getContactFirstRep()
+        .addTelecom(new ContactPoint().setSystem(ContactPoint.ContactPointSystem.PHONE).setValue("123456789"));
+    organization.getContactFirstRep()
+        .addTelecom(new ContactPoint().setSystem(ContactPoint.ContactPointSystem.EMAIL).setValue("foo@bar"));
     assertEquals("123456789", mapper.mapToContact(organization, "phone"));
     assertEquals("foo@bar", mapper.mapToContact(organization, "email"));
   }
 
   @Test
   void mapToContact_prescriber() {
-    assertEquals("", mapper.mapToContact(null,null,null));
+    assertEquals("", mapper.mapToContact(null, null, null));
     PractitionerRole prescriber = new PractitionerRole();
     assertEquals("", mapper.mapToContact(prescriber, null, null));
-    prescriber.addTelecom(new ContactPoint().setSystem(ContactPoint.ContactPointSystem.EMAIL).setValue("prescriber@mail"));
-    assertEquals("prescriber@mail", mapper.mapToContact(prescriber,null, "email"));
+    prescriber
+        .addTelecom(new ContactPoint().setSystem(ContactPoint.ContactPointSystem.EMAIL).setValue("prescriber@mail"));
+    assertEquals("prescriber@mail", mapper.mapToContact(prescriber, null, "email"));
     PractitionerRole supervisor = new PractitionerRole();
-    assertEquals("prescriber@mail", mapper.mapToContact(prescriber,supervisor, "email"));
-    supervisor.addTelecom(new ContactPoint().setSystem(ContactPoint.ContactPointSystem.EMAIL).setValue("supervisor@mail"));
-    assertEquals("supervisor@mail", mapper.mapToContact(prescriber,supervisor, "email"));
+    assertEquals("prescriber@mail", mapper.mapToContact(prescriber, supervisor, "email"));
+    supervisor
+        .addTelecom(new ContactPoint().setSystem(ContactPoint.ContactPointSystem.EMAIL).setValue("supervisor@mail"));
+    assertEquals("supervisor@mail", mapper.mapToContact(prescriber, supervisor, "email"));
   }
 
   @Test
@@ -296,7 +342,8 @@ class TemplateMapperTest {
     assertEquals("", mapper.mapToAnalysis(serviceRequest));
     serviceRequest.getCode().addCoding(new Coding().setSystem(ANALYSIS_REQUEST_CODE).setCode("code"));
     assertEquals("", mapper.mapToAnalysis(serviceRequest));
-    codeSystem.addConcept(new CodeSystem.ConceptDefinitionComponent().setCode("another_code").setDisplay("not_that_analysis"));
+    codeSystem.addConcept(
+        new CodeSystem.ConceptDefinitionComponent().setCode("another_code").setDisplay("not_that_analysis"));
     assertEquals("", mapper.mapToAnalysis(serviceRequest));
     codeSystem.addConcept(new CodeSystem.ConceptDefinitionComponent().setCode("code").setDisplay("analysis"));
     assertEquals("analysis", mapper.mapToAnalysis(serviceRequest));
@@ -390,6 +437,28 @@ class TemplateMapperTest {
 
     assertEquals("Mother_fr", mapper.mapToRelation("MTH"));
     verify(codesValuesService, times(2)).getValueSetByKeyCode(eq(CodesValuesService.RELATION_KEY), eq("MTH"));
+  }
+
+  @Test
+  void mapToSequencingRequestCode() {
+    final String VALID_CODE = "SEQ001";
+    final String VALID_DISPLAY = "Whole Genome Sequencing";
+    Coding matchingCoding = createCoding(SEQUENCING_REQUEST_CODE, VALID_CODE, VALID_DISPLAY);
+    ServiceRequest sr = createServiceRequest(List.of(matchingCoding));
+    assertEquals(VALID_CODE, mapper.mapToSequencingRequestCode(sr));
+  }
+
+  void mapToSequencingRequestCodeDisplay() {
+    assertEquals("", mapper.mapToSequencingRequestCodeDisplay(null));
+    ServiceRequest serviceRequest = new ServiceRequest();
+    assertEquals("", mapper.mapToSequencingRequestCodeDisplay(serviceRequest));
+    serviceRequest.getCode().addCoding(new Coding().setSystem(SEQUENCING_REQUEST_CODE).setCode("code"));
+    assertEquals("", mapper.mapToSequencingRequestCodeDisplay(serviceRequest));
+    codeSystem.addConcept(
+        new CodeSystem.ConceptDefinitionComponent().setCode("another_code").setDisplay("not_that_analysis"));
+    assertEquals("", mapper.mapToAnalysis(serviceRequest));
+    codeSystem.addConcept(new CodeSystem.ConceptDefinitionComponent().setCode("code").setDisplay("analysis"));
+    assertEquals("analysis", mapper.mapToAnalysis(serviceRequest));
   }
 
 }
