@@ -31,6 +31,27 @@ class TemplateMapperTest {
   final CodeSystem codeSystem = new CodeSystem();
   final TemplateMapper mapper = new TemplateMapper("id", logOnceService, messagesService, templateService, codesValuesService, codeSystem, Locale.FRENCH);
 
+
+  // Helper to create a basic ServiceRequest with codings
+  private ServiceRequest createServiceRequest(List<Coding> codings) {
+    ServiceRequest sr = new ServiceRequest();
+    if (codings != null) {
+      CodeableConcept codeableConcept = new CodeableConcept();
+      codings.forEach(codeableConcept::addCoding);
+      sr.setCode(codeableConcept);
+    } // else: sr without a 'code' element
+    return sr;
+  }
+
+  // Helper to create a coding
+  private Coding createCoding(String system, String code, String display) {
+    Coding coding = new Coding();
+    coding.setSystem(system);
+    coding.setCode(code);
+    coding.setDisplay(display);
+    return coding;
+  }
+
   @Test
   void mapToBarcodeBase64() {
     when(templateService.generateBarcodeImage(any())).thenReturn(new BufferedImage(100,100, BufferedImage.TYPE_INT_RGB));
@@ -390,6 +411,15 @@ class TemplateMapperTest {
 
     assertEquals("Mother_fr", mapper.mapToRelation("MTH"));
     verify(codesValuesService, times(2)).getValueSetByKeyCode(eq(CodesValuesService.RELATION_KEY), eq("MTH"));
+  }
+
+  @Test
+  void mapToSequencingRequestCode() {
+    final String VALID_CODE = "SEQ001";
+    final String VALID_DISPLAY = "Whole Genome Sequencing";
+    Coding matchingCoding = createCoding(SEQUENCING_REQUEST_CODE, VALID_CODE, VALID_DISPLAY);
+    ServiceRequest sr = createServiceRequest(List.of(matchingCoding));
+    assertEquals(VALID_CODE, mapper.mapToSequencingRequestCode(sr));
   }
 
 }

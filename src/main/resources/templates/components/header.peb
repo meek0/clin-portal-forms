@@ -10,7 +10,17 @@
       {% endif %}
     </tr>
     <tr>
-      <td>{{ i18n("messages","header_number_" + type) }} : <b>{{id}}</b> &nbsp;&nbsp;&nbsp; {{ i18n("messages","created") }} : <b>{{authoredOn}}</b></td>
+      <td>{{ i18n("messages","header_number_" + type) }} : <b>{{id}}</b> &nbsp;&nbsp;&nbsp; {{ i18n("messages","created") }} : <b>{{authoredOn}}</b>
+      {% if type != "analysis" %}
+          {% set sequencing_request_code = mapper.mapToSequencingRequestCode(serviceRequest) %}
+          {% set sequencing_request_code_display = mapper.mapToSequencingRequestCode(serviceRequest) %}
+          <br/>{{ i18n("messages","header_sequencing_code") }} :
+          <b>{{sequencing_request_code}}</b>
+            {% if sequencing_request_code_display != "" %}
+                ({{sequencing_request_code_display}})
+            {% endif %}
+        {% endif %}
+      </td>
     </tr>
   </table>
 </div>

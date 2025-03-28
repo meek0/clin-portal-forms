@@ -190,6 +190,30 @@ public class TemplateMapper {
     }
   }
 
+  public String mapToSequencingRequestCode(ServiceRequest serviceRequest) {
+    try {
+      final var sequencingRequestCode = FhirUtils.findCode(serviceRequest, SEQUENCING_REQUEST_CODE).orElse(null);
+      if (StringUtils.isNotBlank(sequencingRequestCode))
+        return sequencingRequestCode;
+      else
+        return EMPTY;
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
+  /* public String mapToSequencingRequestCode(ServiceRequest serviceRequest) {
+    try {
+      final var sequencingRequestCode = FhirUtils.findCode(serviceRequest, SEQUENCING_REQUEST_CODE).orElse(null);
+      if (StringUtils.isNotBlank(sequencingRequestCode))
+        return sequencingRequestCode;
+      else
+        return EMPTY;
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }*/
+
   public String mapToMissingReason(List<Observation> obs) {
     try {
       var reason = obs.stream()
