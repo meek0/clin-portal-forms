@@ -4,8 +4,12 @@ import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LogOnceService;
 import bio.ferlab.clin.portal.forms.services.MessagesService;
 import bio.ferlab.clin.portal.forms.services.TemplateService;
+import bio.ferlab.clin.portal.forms.utils.FhirConst;
+import bio.ferlab.clin.portal.forms.utils.FhirUtils;
+
 import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.awt.image.BufferedImage;
@@ -420,6 +424,34 @@ class TemplateMapperTest {
     Coding matchingCoding = createCoding(SEQUENCING_REQUEST_CODE, VALID_CODE, VALID_DISPLAY);
     ServiceRequest sr = createServiceRequest(List.of(matchingCoding));
     assertEquals(VALID_CODE, mapper.mapToSequencingRequestCode(sr));
+  }
+
+   @Test
+  void mapToSequencingRequestExperimentalStrategyCode() {
+
+      // Arrange
+      final String serviceRequestId = "123";
+      final String taskFocusRef = "ServiceRequest/" + serviceRequestId;
+      final String expectedStrategyCode = "WGS";
+
+      ServiceRequest serviceRequest = new ServiceRequest();
+      serviceRequest.setIdElement(new IdType("ServiceRequest", serviceRequestId));
+      Task task = new Task();
+      if (taskFocusRef != null) {
+          task.setFocus(new Reference(taskFocusRef));
+      }
+      Extension outerExtension = new Extension(FhirConst.SEQUENCING_EXPERIMENT_EXT);
+      Extension innerExtension = new Extension("experimentalStrategy");
+      innerExtension.setValue(new Coding(null, expectedStrategyCode, null));
+      outerExtension.addExtension(innerExtension);
+      task.addExtension(outerExtension);
+      List<Task> analysisTasks = List.of(task);
+
+      // Act
+      String result = mapper.mapToSequencingRequestExperimentalStrategyCode(serviceRequest, analysisTasks);
+
+      // Assert
+      assertEquals(expectedStrategyCode, result);
   }
 
 }
