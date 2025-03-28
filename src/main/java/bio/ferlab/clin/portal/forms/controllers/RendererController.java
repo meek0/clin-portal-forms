@@ -38,7 +38,6 @@ public class RendererController {
     }
   }
 
-  private final LocaleService localeService;
   private final LogOnceService logOnceService;
   private final FhirClient fhirClient;
   private final TemplateService templateService;
@@ -49,7 +48,7 @@ public class RendererController {
   @GetMapping(path = "/{id}")
   public ResponseEntity<?> render(@PathVariable String id, @RequestParam(defaultValue = "html") String format) {
 
-    final var locale = LocaleService.DEFAULT_LOCALE; // localeService.getCurrentLocale();
+    final var locale = LocaleService.DEFAULT_LOCALE;
     final var context =  prepareContext(id, locale);
     final var template = templateService.parseTemplate("index", context, locale);
 
@@ -65,6 +64,7 @@ public class RendererController {
   private Map<String, Object> prepareContext(String id, Locale locale) {
     final var prescription = prescriptionService.fromAnalysisId(id);
     final var analysis = prescription.getAnalysis();
+    final var analysisTasks = prescription.getAnalysisTasks();
     final var sequencings = prescription.getSequencings();
     final var performer = prescription.getPerformer();
     final var practitioner = prescription.getPractitioner();
@@ -135,6 +135,7 @@ public class RendererController {
     final Map<String, Object> context = new HashMap<>();
 
     context.put("analysis", analysis);
+    context.put("analysisTasks", analysisTasks);
 
     context.put("performer", performer);
     context.put("practitionerRole", practitionerRole);
@@ -145,7 +146,7 @@ public class RendererController {
       final var probandSequencing = sequencings.stream()
         .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
         .findFirst().orElseThrow(() -> new RuntimeException("Can't find sequencing for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
-
+        
       context.put("probandSequencing", probandSequencing);
     } else {
       final var foetusSequencing = sequencings.stream()
