@@ -43,6 +43,7 @@ fhir:
     - mmg
     - mitn
     - rgdi
+    - malfor
   same-types: # use the same 'types-with-default'
     DYSM: MMG
     HYPM: MMG
@@ -64,6 +65,8 @@ fhir:
       - CGH
     RGDI:
       - CGH
+    MALFOR:
+      - CNVPG
 cache:
   eviction: 3600 # 1h
   short-eviction: 60 # sec
