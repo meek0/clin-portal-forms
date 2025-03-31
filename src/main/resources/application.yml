@@ -44,6 +44,7 @@ fhir:
     - mitn
     - rgdi
     - malfor
+    - fetalanom
   same-types: # use the same 'types-with-default'
     DYSM: MMG
     HYPM: MMG
@@ -67,6 +68,9 @@ fhir:
       - CGH
     MALFOR:
       - CNVPG
+    FETALANOM:
+      - CNVPG
+      - QFPCR
 cache:
   eviction: 3600 # 1h
   short-eviction: 60 # sec
