@@ -4,8 +4,12 @@ import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LogOnceService;
 import bio.ferlab.clin.portal.forms.services.MessagesService;
 import bio.ferlab.clin.portal.forms.services.TemplateService;
+import bio.ferlab.clin.portal.forms.utils.FhirConst;
+import bio.ferlab.clin.portal.forms.utils.FhirUtils;
+
 import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.awt.image.BufferedImage;
@@ -30,6 +34,27 @@ class TemplateMapperTest {
   final CodesValuesService codesValuesService = Mockito.mock(CodesValuesService.class);
   final CodeSystem codeSystem = new CodeSystem();
   final TemplateMapper mapper = new TemplateMapper("id", logOnceService, messagesService, templateService, codesValuesService, codeSystem, Locale.FRENCH);
+
+
+  // Helper to create a basic ServiceRequest with codings
+  private ServiceRequest createServiceRequest(List<Coding> codings) {
+    ServiceRequest sr = new ServiceRequest();
+    if (codings != null) {
+      CodeableConcept codeableConcept = new CodeableConcept();
+      codings.forEach(codeableConcept::addCoding);
+      sr.setCode(codeableConcept);
+    } // else: sr without a 'code' element
+    return sr;
+  }
+
+  // Helper to create a coding
+  private Coding createCoding(String system, String code, String display) {
+    Coding coding = new Coding();
+    coding.setSystem(system);
+    coding.setCode(code);
+    coding.setDisplay(display);
+    return coding;
+  }
 
   @Test
   void mapToBarcodeBase64() {
@@ -390,6 +415,43 @@ class TemplateMapperTest {
 
     assertEquals("Mother_fr", mapper.mapToRelation("MTH"));
     verify(codesValuesService, times(2)).getValueSetByKeyCode(eq(CodesValuesService.RELATION_KEY), eq("MTH"));
+  }
+
+  @Test
+  void mapToSequencingRequestCode() {
+    final String VALID_CODE = "SEQ001";
+    final String VALID_DISPLAY = "Whole Genome Sequencing";
+    Coding matchingCoding = createCoding(SEQUENCING_REQUEST_CODE, VALID_CODE, VALID_DISPLAY);
+    ServiceRequest sr = createServiceRequest(List.of(matchingCoding));
+    assertEquals(VALID_CODE, mapper.mapToSequencingRequestCode(sr));
+  }
+
+   @Test
+  void mapToSequencingRequestExperimentalStrategyCode() {
+
+      // Arrange
+      final String serviceRequestId = "123";
+      final String taskFocusRef = "ServiceRequest/" + serviceRequestId;
+      final String expectedStrategyCode = "WGS";
+
+      ServiceRequest serviceRequest = new ServiceRequest();
+      serviceRequest.setIdElement(new IdType("ServiceRequest", serviceRequestId));
+      Task task = new Task();
+      if (taskFocusRef != null) {
+          task.setFocus(new Reference(taskFocusRef));
+      }
+      Extension outerExtension = new Extension(FhirConst.SEQUENCING_EXPERIMENT_EXT);
+      Extension innerExtension = new Extension("experimentalStrategy");
+      innerExtension.setValue(new Coding(null, expectedStrategyCode, null));
+      outerExtension.addExtension(innerExtension);
+      task.addExtension(outerExtension);
+      List<Task> analysisTasks = List.of(task);
+
+      // Act
+      String result = mapper.mapToSequencingRequestExperimentalStrategyCode(serviceRequest, analysisTasks);
+
+      // Assert
+      assertEquals(expectedStrategyCode, result);
   }
 
 }

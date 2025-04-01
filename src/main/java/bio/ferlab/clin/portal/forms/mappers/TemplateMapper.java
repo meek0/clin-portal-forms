@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r4.model.*;
+import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -185,6 +186,37 @@ public class TemplateMapper {
     try {
       final String comment = serviceRequest.getNoteFirstRep().getText();
       return StringUtils.isNotBlank(comment) ? serviceRequest.getNoteFirstRep().getText() : DASHES;
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
+  public String mapToSequencingRequestCode(ServiceRequest serviceRequest) {
+    try {
+      final var sequencingRequestCode = FhirUtils.findCode(serviceRequest, SEQUENCING_REQUEST_CODE).orElse(null);
+      if (StringUtils.isNotBlank(sequencingRequestCode))
+        return sequencingRequestCode;
+      else
+        return EMPTY;
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
+  public String mapToSequencingRequestExperimentalStrategyCode(ServiceRequest serviceRequest, List<Task> analysisTasks) {
+    try {
+      String result= EMPTY;
+      final var tasks = analysisTasks.stream()
+          .filter(e -> FhirUtils.extractId(e.getFocus()).equals(serviceRequest.getIdElement().getIdPart())).toList();
+      if (!CollectionUtils.isEmpty(tasks)) {
+        var extended = tasks.getFirst().getExtensionsByUrl(FhirConst.SEQUENCING_EXPERIMENT_EXT);
+        if (!extended.isEmpty()) {
+          var experimentalStrategy = extended.getFirst().getExtensionsByUrl("experimentalStrategy").getFirst();
+          String sequencingType = ((Coding) (experimentalStrategy.getValue())).getCode();
+          result = sequencingType;
+        }
+      }
+      return result;
     } catch (Exception e) {
       return this.handleError(e);
     }

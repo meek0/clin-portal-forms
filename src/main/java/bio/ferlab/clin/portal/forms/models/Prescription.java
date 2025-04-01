@@ -25,6 +25,7 @@ public class Prescription {
   private List<ClinicalImpression> impressions;
   private List<Observation> observations;
   private List<FamilyMemberHistory> familyHistories;
+  private List<Task> analysisTasks;
 
   public List<IBaseResource> getAllResources() {
     var allResources = new ArrayList<IBaseResource>();
@@ -39,6 +40,7 @@ public class Prescription {
     allResources.addAll(impressions);
     allResources.addAll(observations);
     allResources.addAll(familyHistories);
+    allResources.addAll(analysisTasks);
     return allResources.stream().filter(Objects::nonNull).toList();
   }
 }

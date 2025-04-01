@@ -67,8 +67,10 @@ public class PrescriptionService {
     var impressions = detailsBundleExtractor.getAllResourcesOfType(ClinicalImpression.class);
     var observations = detailsBundleExtractor.getAllResourcesOfType(Observation.class);
     var familyHistories = detailsBundleExtractor.getAllResourcesOfType(FamilyMemberHistory.class);
+    var analysisTasks = detailsBundleExtractor.getAllResourcesOfType(Task.class);
 
     prescription.setAnalysis(analysis);
+    prescription.setAnalysisTasks(analysisTasks);
     prescription.setSequencings(sequencings);
     prescription.setPatients(patients);
     prescription.setProbandPatient(probandPatient);
