@@ -94,7 +94,7 @@ public class ConfigController {
   }
 
   private void applyFormObservationByTypeOrDefault(String formType, Form form, String lang, CodeSystem all, List<ValueSet> byTypes, List<ValueSet> multiValues, Map<String, String> withUnit, List<String> withRequired) {
-    Optional<ValueSet> byType = byTypes.stream().filter(vs -> (formType + DEFAULT_EXAM_SUFFIX).equalsIgnoreCase(vs.getName())).findFirst();
+    Optional<ValueSet> byType = byTypes.stream().filter(vs -> vs != null && (formType + DEFAULT_EXAM_SUFFIX).equalsIgnoreCase(vs.getName())).findFirst();
     if (byType.isPresent()) { // if this panel code has specific values or else use the default
       form.getConfig().getParaclinicalExams().getDefaultList().addAll(fhirToConfigMapper.mapToParaclinicalExams(byType.get(), lang, multiValues, withUnit, withRequired));
     } else {
