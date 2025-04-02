@@ -272,7 +272,7 @@ public class FhirClient {
       .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()
-      .setUrl(String.format("Task?based-on=%s&_profile=%s", FhirUtils.formatResource(analysis), ANALYSIS_TASK))
+      .setUrl(String.format("Task?based-on=%s", FhirUtils.formatResource(analysis)))
       .setMethod(Bundle.HTTPVerb.GET);
 
     bundle.addEntry().getRequest()
