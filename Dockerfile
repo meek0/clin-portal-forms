@@ -1,7 +1,12 @@
 FROM maven:3.9.9-amazoncorretto-21 as build-api
 WORKDIR /tmp/api
+
+COPY pom.xml .
+# To resolve dependencies in a safe way (no re-download when the source code changes)
+RUN mvn clean package -DskipMain -DskipTests && rm -r target
+
 COPY . .
-RUN mvn clean install -DskipTests
+RUN mvn clean package -DskipTests
 
 FROM amazoncorretto:21-alpine as build-jre
 WORKDIR /tmp/jre

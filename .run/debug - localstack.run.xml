@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="debug_local_docker" type="Remote">
+  <configuration default="false" name="debug - localstack" type="Remote">
     <module name="clin-portal-forms" />
     <option name="USE_SOCKET_TRANSPORT" value="true" />
     <option name="SERVER_MODE" value="false" />
