@@ -184,6 +184,9 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <mainClass>bio.ferlab.clin.portal.forms.App</mainClass>
+        </configuration>
       </plugin>
     </plugins>
   </build>
