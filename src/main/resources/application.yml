@@ -44,7 +44,7 @@ fhir:
     - mitn
     - rgdi
     - malfor
-    - fetalanom
+    - fean
   same-types: # use the same 'types-with-default'
     DYSM: MMG
     HYPM: MMG
@@ -68,7 +68,7 @@ fhir:
       - CGH
     MALFOR:
       - CNVPG
-    FETALANOM:
+    FEAN:
       - CNVPG
       - QFPCR
 cache:
