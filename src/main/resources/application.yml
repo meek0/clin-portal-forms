@@ -43,7 +43,7 @@ fhir:
     - mmg
     - mitn
     - rgdi
-    - malfor
+    - polym
     - fean
   same-types: # use the same 'types-with-default'
     DYSM: MMG
@@ -66,7 +66,7 @@ fhir:
       - CGH
     RGDI:
       - CGH
-    MALFOR:
+    POLYM:
       - CNVPG
     FEAN:
       - CNVPG
