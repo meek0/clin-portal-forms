@@ -17,6 +17,7 @@ import org.springframework.util.CollectionUtils;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_EN;
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_FR;
@@ -303,13 +304,17 @@ public class TemplateMapper {
   }
 
   public String mapToEthnicity(List<Observation> obs) {
-    var code = mapToSign(obs, "ETHN", "").replace("(","").replace(")", "").trim();
-    var eth = codesValuesService.getCodeSystemByKeyCode(CodesValuesService.ETHNICITY_KEY, code);
-    if (eth != null) {
-      return FhirToConfigMapper.getDisplayForLang(eth, getLang());
-    } else {
-      return code;
-    }
+    var lang = getLang();
+    var ethnicities = new ArrayList<String>();
+    obs.forEach( observation -> {
+      if(!"ETHN".equals(observation.getCode().getCodingFirstRep().getCode())) return;
+      observation.getValueCodeableConcept().getCoding().forEach(coding -> {
+        var eth = codesValuesService.getCodeSystemByKeyCode(CodesValuesService.ETHNICITY_KEY, coding.getCode());
+        if(eth != null) ethnicities.add(FhirToConfigMapper.getDisplayForLang(eth, lang));
+        else ethnicities.add(coding.getCode());
+      });
+    });
+    return String.join(" | ", ethnicities);
   }
 
   public List<Exam> mapToExams(List<Observation> obs) {
