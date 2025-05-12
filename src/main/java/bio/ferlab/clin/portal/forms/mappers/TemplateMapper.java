@@ -306,7 +306,7 @@ public class TemplateMapper {
   public String mapToEthnicity(List<Observation> obs) {
     var lang = getLang();
     var ethnicities = new ArrayList<String>();
-    obs.forEach( observation -> {
+    if(obs != null) obs.forEach( observation -> {
       if(!"ETHN".equals(observation.getCode().getCodingFirstRep().getCode())) return;
       observation.getValueCodeableConcept().getCoding().forEach(coding -> {
         var eth = codesValuesService.getCodeSystemByKeyCode(CodesValuesService.ETHNICITY_KEY, coding.getCode());
