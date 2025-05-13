@@ -43,7 +43,7 @@ public class ConfigController {
     final String lang = localeService.getCurrentLangSupportedByFhir();
     final String practitionerId = JwtUtils.getProperty(authorization, JwtUtils.FHIR_PRACTITIONER_ID);
 
-    PractitionerBuilder.Result roles = new PractitionerBuilder(fhirClient, practitionerId).build();
+    PractitionerBuilder.Result roles = new PractitionerBuilder(fhirClient, practitionerId, false).build();
 
     CodeSystem analyseCode = codesValuesService.getCodes(CodesValuesService.ANALYSE_KEY);
     CodeSystem hp = codesValuesService.getCodes(CodesValuesService.HP_KEY);
