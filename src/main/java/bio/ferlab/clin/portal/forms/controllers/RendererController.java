@@ -79,6 +79,8 @@ public class RendererController {
 
     final var analysisCodes = codesValuesService.getCodes(CodesValuesService.ANALYSE_KEY);
 
+    final var isPrenatal = PRENATAL.equalsIgnoreCase(analysis.getCategoryFirstRep().getCodingFirstRep().getCode());
+
     // following code could also be placed inside Prescription model for easier access
     final var probandPatient = prescription.getProbandPatient();
     final var probandPerson = prescription.getProbandPerson();
@@ -86,9 +88,13 @@ public class RendererController {
     final var probandImpression = impressions.stream()
       .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
       .findFirst().orElseThrow(() -> new RuntimeException("Can't find clinical impression for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
-    final var probandObservations = observations.stream()
-      .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
-      .toList();
+    final var probandObservations = isPrenatal ?
+      observations.stream()
+        .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()) && s.hasFocus())
+        .toList() :
+      observations.stream()
+        .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
+        .toList();
     final var probandFamilyHistories = familyHistories.stream()
       .filter(s -> analysis.getSubject().getReference().equals(s.getPatient().getReference()))
       .toList();
@@ -110,9 +116,13 @@ public class RendererController {
         final var impression = impressions.stream()
           .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
           .findFirst().orElseThrow(() -> new RuntimeException("Can't find clinical impression (" + relation + ") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
-        final var obs = observations.stream()
-          .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
-          .toList();
+        final var obs = isPrenatal && "MTH".equals(relation) ?
+          observations.stream()
+            .filter(s -> ref.getReference().equals(s.getSubject().getReference()) && !s.hasFocus())
+            .toList() :
+          observations.stream()
+            .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
+            .toList();
         final var histories = familyHistories.stream()
           .filter(s -> ref.getReference().equals(s.getPatient().getReference()))
           .toList();
@@ -142,11 +152,11 @@ public class RendererController {
     context.put("practitioner", practitioner);
     context.put("organization", organization);
 
-    if (!PRENATAL.equalsIgnoreCase(analysis.getCategoryFirstRep().getCodingFirstRep().getCode())) {
+    if (!isPrenatal) {
       final var probandSequencing = sequencings.stream()
         .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
         .findFirst().orElseThrow(() -> new RuntimeException("Can't find sequencing for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
-        
+
       context.put("probandSequencing", probandSequencing);
     } else {
       final var foetusSequencing = sequencings.stream()
