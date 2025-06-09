@@ -116,16 +116,22 @@ public class RendererController {
         final var impression = impressions.stream()
           .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
           .findFirst().orElseThrow(() -> new RuntimeException("Can't find clinical impression (" + relation + ") for analysis: " + analysis.getIdElement().getIdPart() + " and parent: " + ref.getReference()));
-        final var obs = isPrenatal && "MTH".equals(relation) ?
-          observations.stream()
+
+        final var obs = new ArrayList<Observation>();
+        final var histories = new ArrayList<FamilyMemberHistory>();
+        if (isPrenatal && "MTH".equals(relation)) {
+          obs.addAll(observations.stream()
             .filter(s -> ref.getReference().equals(s.getSubject().getReference()) && !s.hasFocus())
-            .toList() :
-          observations.stream()
+            .toList());
+          // in prenatal case, MHT family histories are => probandFamilyHistories (same patient)
+        } else {
+          obs.addAll(observations.stream()
             .filter(s -> ref.getReference().equals(s.getSubject().getReference()))
-            .toList();
-        final var histories = familyHistories.stream()
-          .filter(s -> ref.getReference().equals(s.getPatient().getReference()))
-          .toList();
+            .toList());
+          histories.addAll(familyHistories.stream()
+            .filter(s -> ref.getReference().equals(s.getPatient().getReference()))
+            .toList());
+        }
         probandFamily.add(new FamilyMember(null, ref, relation, patient, person, sequencing, impression, obs, histories, null));
       }
     }
@@ -141,6 +147,13 @@ public class RendererController {
         probandFamily.add(new FamilyMember(reason, null, relation, null, null, null, null, null, null, missingReason.getValueCodeableConcept().getCodingFirstRep().getCode()));
       }
     }
+
+    var probandGlobalObservations = observations.stream()
+      .filter(o -> {
+        var code = o.getCode().getCodingFirstRep().getCode();
+        return code != null && List.of("CONS", "ETHN", "INDIC").contains(code);
+      })
+      .toList();
 
     final Map<String, Object> context = new HashMap<>();
 
@@ -177,8 +190,8 @@ public class RendererController {
     context.put("probandImpression", probandImpression);
     context.put("probandObservations", probandObservations);
     context.put("probandFamilyHistories", probandFamilyHistories);
-
     context.put("probandFamilyMembers", probandFamily);
+    context.put("probandGlobalObservations", probandGlobalObservations);
 
     // don't know how thread-safe is Pebble renderer, let's instance a new mapper instead of having a singleton
     var mapper = new TemplateMapper(id, logOnceService, messagesService, templateService, codesValuesService, analysisCodes, locale);

@@ -1,6 +1,7 @@
 package bio.ferlab.clin.portal.forms.controllers;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
+import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 import ca.uhn.fhir.context.FhirContext;
 import org.apache.commons.io.IOUtils;
 import org.hl7.fhir.r4.model.*;
@@ -59,8 +60,7 @@ class RendererControllerTest {
   void preBirth_html() throws IOException {
     this.preparePreBirth();
     ResponseEntity<String> html = (ResponseEntity<String>) controller.render("5678", "html");
-    assertTrue(html.getBody().contains("Prénatal"));
-    assertTrue(html.getBody().contains("Fœtus décédé"));
+    assertContent("snapshots/prenatal.html", html);
   }
 
   @Test
@@ -145,10 +145,18 @@ class RendererControllerTest {
     final var clinical = new ClinicalImpression();
     clinical.setSubject(new Reference("Patient/p1"));
 
+    var obsIndic = new Observation();
+    obsIndic.setId("obsIndicId");
+    obsIndic.setSubject(new Reference("Patient/p1"));
+    obsIndic.getCode().getCodingFirstRep().setCode("INDIC");
+    obsIndic.setValue(new StringType("indication"));
+    clinical.getInvestigationFirstRep().addItem(FhirUtils.toReference(obsIndic));
+
     detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(patient));
     detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(person));
     detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(sequencing));
     detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(clinical));
+    detailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(obsIndic));
 
     sequencingDetailsBundle.addEntry(new Bundle.BundleEntryComponent().setResource(fetusPatient));
 
