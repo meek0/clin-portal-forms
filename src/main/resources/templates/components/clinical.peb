@@ -61,9 +61,9 @@
 </div>
 {% endif %}
 {% set history =  mapper.mapToFamilyHistory(familyHistories) %}
-{% set inbreeding =  mapper.mapToSign(obs, "CONS", "") %}
-{% set ethnicity =  mapper.mapToEthnicity(obs) %}
-{% set hypothesis =  mapper.mapToSign(obs, "INDIC", "") %}
+{% set inbreeding =  mapper.mapToSign(probandGlobalObservations, "CONS", "") %}
+{% set ethnicity =  mapper.mapToEthnicity(probandGlobalObservations) %}
+{% set hypothesis =  mapper.mapToSign(probandGlobalObservations, "INDIC", "") %}
 {% if history is not empty or inbreeding is not empty or ethnicity is not empty or hypothesis is not empty %}
  <div class="panel-body">
     <table>
@@ -73,26 +73,27 @@
             <td>{{ history }}</td>
         </tr>
         {% endif %}
-        <tr>
-           <td class="col-left">{{ i18n("messages", "clinical_inbreeding") }} : </td>
-           {% if inbreeding is not empty %}
-           <td>{{ inbreeding }}</td>
-           {% else %}
-           <td>--</td>
-           {% endif %}
-        </tr>
-
-        {% if ethnicity is not empty %}
-        <tr>
-            <td class="col-left">{{ i18n("messages", "clinical_ethnicity") }} : </td>
-            <td>{{ ethnicity }}</td>
-        </tr>
-        {% endif %}
-        {% if hypothesis is not empty %}
-        <tr>
-            <td class="col-left">{{ i18n("messages", "clinical_hypothesis") }} : </td>
-            <td>{{ hypothesis }}</td>
-        </tr>
+        {% if isProband %}
+            <tr>
+               <td class="col-left">{{ i18n("messages", "clinical_inbreeding") }} : </td>
+               {% if inbreeding is not empty %}
+               <td>{{ inbreeding }}</td>
+               {% else %}
+               <td>--</td>
+               {% endif %}
+            </tr>
+            {% if ethnicity is not empty %}
+            <tr>
+                <td class="col-left">{{ i18n("messages", "clinical_ethnicity") }} : </td>
+                <td>{{ ethnicity }}</td>
+            </tr>
+            {% endif %}
+            {% if hypothesis is not empty %}
+            <tr>
+                <td class="col-left">{{ i18n("messages", "clinical_hypothesis") }} : </td>
+                <td>{{ hypothesis }}</td>
+            </tr>
+            {% endif %}
         {% endif %}
     </table>
 </div>
