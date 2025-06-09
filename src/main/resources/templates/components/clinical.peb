@@ -64,7 +64,7 @@
 {% set inbreeding =  mapper.mapToSign(probandGlobalObservations, "CONS", "") %}
 {% set ethnicity =  mapper.mapToEthnicity(probandGlobalObservations) %}
 {% set hypothesis =  mapper.mapToSign(probandGlobalObservations, "INDIC", "") %}
-{% if history is not empty or inbreeding is not empty or ethnicity is not empty or hypothesis is not empty %}
+{% if history is not empty or (isProband and (inbreeding is not empty or ethnicity is not empty or hypothesis is not empty)) %}
  <div class="panel-body">
     <table>
         {% if history is not empty %}
