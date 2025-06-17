@@ -1,5 +1,6 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
+import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
 import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LogOnceService;
 import bio.ferlab.clin.portal.forms.services.MessagesService;
@@ -32,8 +33,9 @@ class TemplateMapperTest {
   final LogOnceService logOnceService = Mockito.mock(LogOnceService.class);
   final TemplateService templateService = Mockito.mock(TemplateService.class);
   final CodesValuesService codesValuesService = Mockito.mock(CodesValuesService.class);
+  final FhirConfiguration configuration = Mockito.mock(FhirConfiguration.class);
   final CodeSystem codeSystem = new CodeSystem();
-  final TemplateMapper mapper = new TemplateMapper("id", logOnceService, messagesService, templateService, codesValuesService, codeSystem, Locale.FRENCH);
+  final TemplateMapper mapper = new TemplateMapper("id", logOnceService, messagesService, templateService, codesValuesService, codeSystem, Locale.FRENCH, configuration);
 
 
   // Helper to create a basic ServiceRequest with codings
