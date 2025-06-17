@@ -347,16 +347,14 @@ public class TemplateMapper {
           }
         } else if (value instanceof StringType v) {
           examComment += " : "+v.asStringValue();
-          String defaultUnits = fhirConfiguration.getWithUnit().entrySet()
-                .stream()
-                .filter(entry -> entry.getValue().containsKey(code))
-                .findFirst()
-                .map(entry -> entry.getValue().get(code))
-                .orElse(EMPTY);
-
 
           if ("A".equals(interpretation)) {
-            //examComment += " UI/L";
+            String defaultUnits = fhirConfiguration.getWithUnit().entrySet()
+              .stream()
+              .filter(entry -> entry.getValue().containsKey(code))
+              .findFirst()
+              .map(entry -> entry.getValue().get(code))
+              .orElse(EMPTY);
             examComment += " " + defaultUnits;
           }
         }

@@ -14,9 +14,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.awt.image.BufferedImage;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_EN;
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_FR;
@@ -26,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 class TemplateMapperTest {
 
@@ -195,14 +194,25 @@ class TemplateMapperTest {
     o2.setValue(o2Values);
 
     var o3 = new Observation();
+    o3.getCode().getCodingFirstRep().setCode("code3");
     o3.getCategoryFirstRep().getCodingFirstRep().setCode("procedure");
+    o3.addInterpretation(new CodeableConcept(new Coding().setCode("A")));
+    var o3Values = new StringType("o3value");
+    o3.setValue(o3Values);
+
+    Map<String, Map<String, String>> withUnit = new HashMap<>();
+    withUnit.put("code3", Map.of("code3", "UI/L"));
+    when(configuration.getWithUnit()).thenReturn(withUnit);
 
     var o4 = new Observation();
-    o4.getCategoryFirstRep().getCodingFirstRep().setCode("not_procedure");
+    o4.getCategoryFirstRep().getCodingFirstRep().setCode("procedure");
 
-    var all = List.of(o1,o2,o3);
+    var o5 = new Observation();
+    o5.getCategoryFirstRep().getCodingFirstRep().setCode("not_procedure");
 
-    assertEquals("[Exam[name=code1 FR, comment=Abnormal : o1 value1 FR], Exam[name=code2, comment=Abnormal : o2value UI/L], Exam[name=, comment=]]", mapper.mapToExams(all).toString());
+    var all = List.of(o1,o2,o3,o4);
+
+    assertEquals("[Exam[name=code1 FR, comment=Abnormal : o1 value1 FR], Exam[name=code2, comment=Abnormal : o2value ], Exam[name=code3, comment=Abnormal : o3value UI/L], Exam[name=, comment=]]", mapper.mapToExams(all).toString());
   }
 
   @Test
