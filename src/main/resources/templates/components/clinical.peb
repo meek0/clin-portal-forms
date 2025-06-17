@@ -40,7 +40,7 @@
     </table>
 </div>
 {% endif %}
-{% set exams = mapper.mapToExams(obs) %}
+{% set exams = mapper.mapToExams(obs, analysis) %}
 {% set inves = mapper.mapToSign(obs, "INVES", "") %}
 {% if exams is not empty or inves is not empty %}
 <div class="panel-body bottom-border">

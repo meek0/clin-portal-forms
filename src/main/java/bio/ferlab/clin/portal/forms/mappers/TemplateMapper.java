@@ -319,9 +319,10 @@ public class TemplateMapper {
     return String.join(" | ", ethnicities);
   }
 
-  public List<Exam> mapToExams(List<Observation> obs) {
+  public List<Exam> mapToExams(List<Observation> obs, ServiceRequest serviceRequest) {
     var exams = new ArrayList<Exam>();
     try {
+      final var analysisCode = FhirUtils.findCode(serviceRequest, ANALYSIS_REQUEST_CODE).orElse(null);
       var filtered = obs.stream()
         .filter(o -> "procedure".equals(o.getCategoryFirstRep().getCodingFirstRep().getCode())).toList();
       for (var exam: filtered) {
@@ -353,13 +354,14 @@ public class TemplateMapper {
           examComment += " : "+v.asStringValue();
 
           if ("A".equals(interpretation)) {
-            String defaultUnits = fhirConfiguration.getWithUnit().entrySet()
-              .stream()
-              .filter(entry -> entry.getValue().containsKey(code))
-              .findFirst()
-              .map(entry -> entry.getValue().get(code))
-              .orElse(EMPTY);
-            examComment += " " + defaultUnits;
+            // Get unit
+            var unitConfig = fhirConfiguration.getWithUnit().get(analysisCode);
+            if(unitConfig != null){
+              String defaultUnits = unitConfig.get(code);
+              if (StringUtils.isNotBlank(defaultUnits)) {
+                examComment += " " + defaultUnits;
+              }
+            }
           }
         }
         exams.add(new Exam(examName, examComment));

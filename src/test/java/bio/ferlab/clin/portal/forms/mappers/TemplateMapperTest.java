@@ -169,6 +169,10 @@ class TemplateMapperTest {
 
   @Test
   void mapToExams() {
+
+    var sr = new ServiceRequest();
+    sr.getCode().addCoding(new Coding().setSystem(ANALYSIS_REQUEST_CODE).setCode("AnalysisCode1"));
+
     var o1 = new Observation();
     o1.getCategoryFirstRep().getCodingFirstRep().setCode("procedure");
     o1.getCode().getCodingFirstRep().setCode("code1");
@@ -201,7 +205,7 @@ class TemplateMapperTest {
     o3.setValue(o3Values);
 
     Map<String, Map<String, String>> withUnit = new HashMap<>();
-    withUnit.put("code3", Map.of("code3", "UI/L"));
+    withUnit.put("AnalysisCode1", Map.of("code3", "UI/L"));
     when(configuration.getWithUnit()).thenReturn(withUnit);
 
     var o4 = new Observation();
@@ -212,7 +216,7 @@ class TemplateMapperTest {
 
     var all = List.of(o1,o2,o3,o4);
 
-    assertEquals("[Exam[name=code1 FR, comment=Abnormal : o1 value1 FR], Exam[name=code2, comment=Abnormal : o2value ], Exam[name=code3, comment=Abnormal : o3value UI/L], Exam[name=, comment=]]", mapper.mapToExams(all).toString());
+    assertEquals("[Exam[name=code1 FR, comment=Abnormal : o1 value1 FR], Exam[name=code2, comment=Abnormal : o2value], Exam[name=code3, comment=Abnormal : o3value UI/L], Exam[name=, comment=]]", mapper.mapToExams(all, sr).toString());
   }
 
   @Test
