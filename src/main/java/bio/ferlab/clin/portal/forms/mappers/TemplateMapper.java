@@ -1,5 +1,6 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
+import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
 import bio.ferlab.clin.portal.forms.controllers.RendererController.FamilyMember;
 import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LogOnceService;
@@ -37,6 +38,7 @@ public class TemplateMapper {
   private final CodesValuesService codesValuesService;
   private final CodeSystem analysisCodes;
   private final Locale locale;
+  private final FhirConfiguration fhirConfiguration;
 
   public String mapToBarcodeBase64(String value) {
     return templateService.convertToBase64(templateService.generateBarcodeImage(value));
@@ -349,8 +351,15 @@ public class TemplateMapper {
           }
         } else if (value instanceof StringType v) {
           examComment += " : "+v.asStringValue();
+
           if ("A".equals(interpretation)) {
-            examComment += " UI/L";
+            String defaultUnits = fhirConfiguration.getWithUnit().entrySet()
+              .stream()
+              .filter(entry -> entry.getValue().containsKey(code))
+              .findFirst()
+              .map(entry -> entry.getValue().get(code))
+              .orElse(EMPTY);
+            examComment += " " + defaultUnits;
           }
         }
         exams.add(new Exam(examName, examComment));
