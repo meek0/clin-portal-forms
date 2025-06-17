@@ -1,6 +1,7 @@
 package bio.ferlab.clin.portal.forms.controllers;
 
 import bio.ferlab.clin.portal.forms.clients.FhirClient;
+import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
 import bio.ferlab.clin.portal.forms.mappers.TemplateMapper;
 import bio.ferlab.clin.portal.forms.services.*;
 import bio.ferlab.clin.portal.forms.utils.BundleExtractor;
@@ -40,6 +41,7 @@ public class RendererController {
 
   private final LogOnceService logOnceService;
   private final FhirClient fhirClient;
+  private final FhirConfiguration fhirConfiguration;
   private final TemplateService templateService;
   private final CodesValuesService codesValuesService;
   private final MessagesService messagesService;
@@ -146,7 +148,7 @@ public class RendererController {
       final var probandSequencing = sequencings.stream()
         .filter(s -> analysis.getSubject().getReference().equals(s.getSubject().getReference()))
         .findFirst().orElseThrow(() -> new RuntimeException("Can't find sequencing for analysis: " + analysis.getIdElement().getIdPart() + " and subject: " + analysis.getSubject().getReference()));
-        
+
       context.put("probandSequencing", probandSequencing);
     } else {
       final var foetusSequencing = sequencings.stream()
@@ -171,7 +173,7 @@ public class RendererController {
     context.put("probandFamilyMembers", probandFamily);
 
     // don't know how thread-safe is Pebble renderer, let's instance a new mapper instead of having a singleton
-    var mapper = new TemplateMapper(id, logOnceService, messagesService, templateService, codesValuesService, analysisCodes, locale);
+    var mapper = new TemplateMapper(id, logOnceService, messagesService, templateService, codesValuesService, analysisCodes, locale, fhirConfiguration);
     context.put("mapper", mapper);
     context.put("isPrenatalAnalysisCategory", analysis.hasCategory() && PRENATAL.equalsIgnoreCase(analysis.getCategoryFirstRep().getCodingFirstRep().getCode()));
     context.put("now", new Date());
