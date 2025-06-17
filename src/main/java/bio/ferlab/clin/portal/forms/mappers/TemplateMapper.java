@@ -1,5 +1,6 @@
 package bio.ferlab.clin.portal.forms.mappers;
 
+import bio.ferlab.clin.portal.forms.configurations.FhirConfiguration;
 import bio.ferlab.clin.portal.forms.controllers.RendererController.FamilyMember;
 import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LogOnceService;
@@ -17,6 +18,7 @@ import org.springframework.util.CollectionUtils;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_EN;
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_FR;
@@ -36,6 +38,7 @@ public class TemplateMapper {
   private final CodesValuesService codesValuesService;
   private final CodeSystem analysisCodes;
   private final Locale locale;
+  private final FhirConfiguration fhirConfiguration;
 
   public String mapToBarcodeBase64(String value) {
     return templateService.convertToBase64(templateService.generateBarcodeImage(value));
@@ -344,8 +347,17 @@ public class TemplateMapper {
           }
         } else if (value instanceof StringType v) {
           examComment += " : "+v.asStringValue();
+          String defaultUnits = fhirConfiguration.getWithUnit().entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().containsKey(code))
+                .findFirst()
+                .map(entry -> entry.getValue().get(code))
+                .orElse(EMPTY);
+
+
           if ("A".equals(interpretation)) {
-            examComment += " UI/L";
+            //examComment += " UI/L";
+            examComment += " " + defaultUnits;
           }
         }
         exams.add(new Exam(examName, examComment));
