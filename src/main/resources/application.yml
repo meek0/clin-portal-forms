@@ -45,6 +45,7 @@ fhir:
     - rgdi
     - polym
     - fean
+    - genor
   same-types: # use the same 'types-with-default'
     DYSM: MMG
     HYPM: MMG
