@@ -351,7 +351,8 @@ public class TemplateMapper {
             examComment += " : " + StringUtils.join(allHPOs, ", ");
           }
         } else if (value instanceof StringType v) {
-          examComment += " : "+v.asStringValue();
+          if (!"N".equals(interpretation))
+            examComment += " : "+v.asStringValue();
 
           if ("A".equals(interpretation)) {
             // Get unit
