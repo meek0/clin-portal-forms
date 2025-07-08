@@ -5,7 +5,12 @@
             <tr>
                 <td class="col-left">{{ i18n("messages", "patient_names") }} : </td>
                 <td style="width: 29%"><b>{{ mapper.mapToName(person) }}</b></td>
-                <td style="width: 50%" rowspan="9"><div class="patient-card">{{ i18n("messages", "patient_card") }}</div></td>
+                <td style="width: 50%; position: relative;" rowspan="9">
+                    <div class="flex-patient-card">
+                        <span>{{ i18n("messages", "patient_card") }}</span>
+                        <span>{{ i18n("messages", "patient_card_optional") }}</span>
+                    </div>
+                </td>
             </tr>
             <tr>
                 <td>{{ i18n("messages", "patient_gender") }} : </td>
