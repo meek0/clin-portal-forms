@@ -5,7 +5,14 @@
             <tr>
                 <td class="col-left">{{ i18n("messages", "patient_names") }} : </td>
                 <td style="width: 29%"><b>{{ mapper.mapToName(person) }}</b> ({{ i18n("messages", "fetus") }})</td>
-                <td style="width: 50%" rowspan="9"><div class="patient-card">{{ i18n("messages", "patient_card") }}</div></td>
+                <td style="width: 50%; position: relative;" rowspan="9">
+                    <div class="patient-card">
+                        <div class="patient-card-text-container">
+                            {{ i18n("messages", "patient_card") }} <br/>
+                            {{ i18n("messages", "patient_card_optional") }}
+                        </div>
+                    </div>
+                </td>
             </tr>
             <tr>
                 <td>{{ i18n("messages", "patient_gender") }} : </td>
@@ -23,10 +30,7 @@
                 <td>{{ i18n("messages", "patient_mrn") }} : </td>
                 <td><b>{{ mapper.mapToMRN(patient) }}</b></td>
             </tr>
-        </table>
-    </div>
-    <div class="panel-body">
-        <table>
+            <tr><td></td><td></td></tr>
             <tr>
                 <td>{{ i18n("messages", "patient_type") }} : </td>
                 <td style="width: 29%"><b class="type">{{ i18n("messages", "patient_fetus") }}</b></td>
@@ -40,9 +44,6 @@
                 <td>{{ i18n("messages", "patient_gestational_age") }}: </td>
                 {% set patientGestationalAgeTexts = mapper.mapToGestetionalAge(probandObservations) %}
                 <td><b>{{ patientGestationalAgeTexts[0] }}</b> ({{ patientGestationalAgeTexts[1] }})</td>
-            </tr>
-            <tr>
-                <td></td>
             </tr>
         </table>
     </div>

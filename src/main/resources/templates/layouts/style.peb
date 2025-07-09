@@ -100,7 +100,11 @@
         width: auto;
         margin-left: {{PANEL_SPACING}};
         color: {{ SECONDARY_COLOR }};
-        line-height: 16; /* a bit tricky but it's to center the text inside the div, replaces height prop */
+    }
+
+    .patient-card-text-container {
+        padding-top: 7em; /* considering that line-height was 16 before, divide by 2 and remove one (1em is one char height) */
+        padding-bottom: 7em;
     }
 
     .type {
