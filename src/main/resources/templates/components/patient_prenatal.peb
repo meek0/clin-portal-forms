@@ -5,7 +5,7 @@
             <tr>
                 <td class="col-left">{{ i18n("messages", "patient_names") }} : </td>
                 <td style="width: 29%"><b>{{ mapper.mapToName(person) }}</b> ({{ i18n("messages", "fetus") }})</td>
-                <td style="width: 50%; position: relative;" rowspan="10">
+                <td style="width: 50%; position: relative;" rowspan="9">
                     <div class="patient-card">
                         <div class="patient-card-text-container">
                             {{ i18n("messages", "patient_card") }} <br/>
@@ -44,9 +44,6 @@
                 <td>{{ i18n("messages", "patient_gestational_age") }}: </td>
                 {% set patientGestationalAgeTexts = mapper.mapToGestetionalAge(probandObservations) %}
                 <td><b>{{ patientGestationalAgeTexts[0] }}</b> ({{ patientGestationalAgeTexts[1] }})</td>
-            </tr>
-            <tr>
-                <td></td>
             </tr>
         </table>
     </div>
