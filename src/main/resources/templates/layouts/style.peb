@@ -100,27 +100,11 @@
         width: auto;
         margin-left: {{PANEL_SPACING}};
         color: {{ SECONDARY_COLOR }};
-        line-height: 16; /* a bit tricky but it's to center the text inside the div, replaces height prop */
     }
 
-    .flex-patient-card {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        height: 98.5%;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 97.5%;
-        border: 2px solid {{SECONDARY_COLOR}};
-        border-radius: {{BORDER_RADIUS}};
-        margin-left: {{PANEL_SPACING}};
-        color: {{ SECONDARY_COLOR }};
-    }
-
-    .double-height-flex-patient-card .flex-patient-card {
-      height: 200%;
+    .patient-card-text-container {
+        padding-top: 7em; /* considering that line-height was 16 before, divide by 2 and remove one (1em is one char height) */
+        padding-bottom: 7em;
     }
 
     .type {

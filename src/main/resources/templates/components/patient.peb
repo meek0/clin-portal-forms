@@ -6,9 +6,11 @@
                 <td class="col-left">{{ i18n("messages", "patient_names") }} : </td>
                 <td style="width: 29%"><b>{{ mapper.mapToName(person) }}</b></td>
                 <td style="width: 50%; position: relative;" rowspan="9">
-                    <div class="flex-patient-card">
-                        <span>{{ i18n("messages", "patient_card") }}</span>
-                        <span>{{ i18n("messages", "patient_card_optional") }}</span>
+                    <div class="patient-card">
+                        <div class="patient-card-text-container">
+                            {{ i18n("messages", "patient_card") }} <br/>
+                            {{ i18n("messages", "patient_card_optional") }}
+                        </div>
                     </div>
                 </td>
             </tr>
