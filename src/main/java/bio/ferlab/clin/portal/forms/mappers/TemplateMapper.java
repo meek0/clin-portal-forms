@@ -18,8 +18,6 @@ import org.springframework.util.CollectionUtils;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.stream.Collectors;
-
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_EN;
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_FR;
 import static bio.ferlab.clin.portal.forms.utils.FhirConst.*;
@@ -469,6 +467,6 @@ public class TemplateMapper {
     final var today = LocalDate.now();
 
     final var date = DateUtils.toLocalDate(value);
-    return FhirConst.CODE_DDM.equals(type) ? "DDM " + ChronoUnit.WEEKS.between(date, today) : "DPA " + (40 * 7 - ChronoUnit.WEEKS.between(today, date));
+    return FhirConst.CODE_DDM.equals(type) ? "DDM " + Math.round(ChronoUnit.DAYS.between(date, today) / 7.0) : "DPA " + (40 * 7 - Math.round(ChronoUnit.DAYS.between(today, date) / 7.0));
   }
 }
