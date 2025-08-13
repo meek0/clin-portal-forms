@@ -5,6 +5,7 @@ import bio.ferlab.clin.portal.forms.services.CodesValuesService;
 import bio.ferlab.clin.portal.forms.services.LogOnceService;
 import bio.ferlab.clin.portal.forms.services.MessagesService;
 import bio.ferlab.clin.portal.forms.services.TemplateService;
+import bio.ferlab.clin.portal.forms.utils.DateUtils;
 import bio.ferlab.clin.portal.forms.utils.FhirConst;
 import bio.ferlab.clin.portal.forms.utils.FhirUtils;
 
@@ -14,6 +15,9 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
 import java.awt.image.BufferedImage;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 import static bio.ferlab.clin.portal.forms.models.builders.ReflexBuilder.REFLEX_PANEL_PREFIX_EN;
@@ -24,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
 
 class TemplateMapperTest {
 
@@ -469,5 +472,28 @@ class TemplateMapperTest {
       // Assert
       assertEquals(expectedStrategyCode, result);
   }
+  @Test
+  void mapToGestetionalAgeDDM() {
+    // Arrange
+    // Définir le DDM au vendredi d'il y a 6 semaines par rapport à aujourd'hui
+    final LocalDate ddmLocalDate = LocalDate.now().minusWeeks(6).with(TemporalAdjusters.previousOrSame(DayOfWeek.FRIDAY));
+    final Date ddmDate = DateUtils.toDate(ddmLocalDate);
 
+    var ddmObs = new Observation();
+    ddmObs.getCode().getCodingFirstRep().setCode(FhirConst.CODE_DDM);
+    ddmObs.setValue(new DateTimeType(ddmDate));
+
+    when(messagesService.get(eq("patient_gestational_age_weeks"), any()))
+        .thenReturn("Age gestationnel : %s semaines");
+    when(messagesService.get(eq("patient_gestational_age_weeks_pregnancy"), any()))
+        .thenReturn("(semaines de grossesse)");
+
+    // Act
+    var resultDdm = mapper.mapToGestetionalAge(List.of(ddmObs));
+
+    // Assert
+    // Valider que le calcule DDM round à la semaine la plus proche et non trunc
+    assertEquals("Age gestationnel : DDM 7 semaines", resultDdm.get(0));
+    assertEquals("(semaines de grossesse)", resultDdm.get(1));
+  }
 }
