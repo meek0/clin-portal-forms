@@ -496,4 +496,43 @@ class TemplateMapperTest {
     assertEquals("Age gestationnel : DDM 7 semaines", resultDdm.get(0));
     assertEquals("(semaines de grossesse)", resultDdm.get(1));
   }
+
+  @Test
+  void mapToProject() {
+    var sr = new ServiceRequest();
+    var rootExt = new Extension();
+    var projectExt = new Extension("project");
+    projectExt.setValue(new StringType("Project1"));
+    rootExt.addExtension(projectExt);
+    sr.addExtension(rootExt);
+    assertEquals("Project1", mapper.mapToProject(sr));
+  }
+
+  @Test
+  void mapToProject_no_extension() {
+    var sr = new ServiceRequest();
+    assertEquals("--", mapper.mapToProject(sr));
+  }
+
+  @Test
+  void mapToProject_no_project_extension() {
+    var sr = new ServiceRequest();
+    var rootExt = new Extension();
+    var otherExt = new Extension("other");
+    otherExt.setValue(new StringType("OtherValue"));
+    rootExt.addExtension(otherExt);
+    sr.addExtension(rootExt);
+    assertEquals("--", mapper.mapToProject(sr));
+  }
+
+  @Test
+  void mapToProject_no_value() {
+    var sr = new ServiceRequest();
+    var rootExt = new Extension();
+    var projectExt = new Extension("project");
+    rootExt.addExtension(projectExt);
+    sr.addExtension(rootExt);
+    assertEquals("--", mapper.mapToProject(sr));
+  }
+
 }

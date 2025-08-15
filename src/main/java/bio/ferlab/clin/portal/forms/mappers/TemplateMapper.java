@@ -189,7 +189,7 @@ public class TemplateMapper {
         .flatMap(rootExt -> rootExt.getExtension().stream())
         .filter(projectExt -> "project".equals(projectExt.getUrl()))
         .findFirst()
-        .map(ext -> ext.getValue() != null ? ext.getValue().primitiveValue() : "")
+        .map(ext -> ext.getValue() != null ? ext.getValue().primitiveValue() : DASHES)
         .orElse(DASHES);
     } catch (Exception e) {
       return this.handleError(e);
