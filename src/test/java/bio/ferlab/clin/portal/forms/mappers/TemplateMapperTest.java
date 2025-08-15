@@ -476,7 +476,8 @@ class TemplateMapperTest {
   void mapToGestetionalAgeDDM() {
     // Arrange
     // Définir le DDM au vendredi d'il y a 6 semaines par rapport à aujourd'hui
-    final LocalDate ddmLocalDate = LocalDate.now().minusWeeks(6).with(TemporalAdjusters.previousOrSame(DayOfWeek.FRIDAY));
+    final LocalDate lastFriday = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.FRIDAY));
+    final LocalDate ddmLocalDate = lastFriday.minusWeeks(6);
     final Date ddmDate = DateUtils.toDate(ddmLocalDate);
 
     var ddmObs = new Observation();
