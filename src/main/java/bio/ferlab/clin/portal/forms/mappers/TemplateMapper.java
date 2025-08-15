@@ -183,6 +183,19 @@ public class TemplateMapper {
     }
   }
 
+  public String mapToProject(ServiceRequest serviceRequest) {
+    try {
+      return serviceRequest.getExtension().stream()
+        .flatMap(rootExt -> rootExt.getExtension().stream())
+        .filter(projectExt -> "project".equals(projectExt.getUrl()))
+        .findFirst()
+        .map(ext -> ext.getValue() != null ? ext.getValue().primitiveValue() : "")
+        .orElse(DASHES);
+    } catch (Exception e) {
+      return this.handleError(e);
+    }
+  }
+
   public String mapToComment(ServiceRequest serviceRequest) {
     try {
       final String comment = serviceRequest.getNoteFirstRep().getText();
