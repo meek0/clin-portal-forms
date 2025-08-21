@@ -476,7 +476,8 @@ class TemplateMapperTest {
   void mapToGestetionalAgeDDM() {
     // Arrange
     // Définir le DDM au vendredi d'il y a 6 semaines par rapport à aujourd'hui
-    final LocalDate ddmLocalDate = LocalDate.now().minusWeeks(6).with(TemporalAdjusters.previousOrSame(DayOfWeek.FRIDAY));
+    final LocalDate lastFriday = LocalDate.now().with(TemporalAdjusters.previous(DayOfWeek.FRIDAY));
+    final LocalDate ddmLocalDate = lastFriday.minusWeeks(6);
     final Date ddmDate = DateUtils.toDate(ddmLocalDate);
 
     var ddmObs = new Observation();
@@ -496,4 +497,43 @@ class TemplateMapperTest {
     assertEquals("Age gestationnel : DDM 7 semaines", resultDdm.get(0));
     assertEquals("(semaines de grossesse)", resultDdm.get(1));
   }
+
+  @Test
+  void mapToProject() {
+    var sr = new ServiceRequest();
+    var rootExt = new Extension();
+    var projectExt = new Extension("project");
+    projectExt.setValue(new StringType("Project1"));
+    rootExt.addExtension(projectExt);
+    sr.addExtension(rootExt);
+    assertEquals("Project1", mapper.mapToProject(sr));
+  }
+
+  @Test
+  void mapToProject_no_extension() {
+    var sr = new ServiceRequest();
+    assertEquals("--", mapper.mapToProject(sr));
+  }
+
+  @Test
+  void mapToProject_no_project_extension() {
+    var sr = new ServiceRequest();
+    var rootExt = new Extension();
+    var otherExt = new Extension("other");
+    otherExt.setValue(new StringType("OtherValue"));
+    rootExt.addExtension(otherExt);
+    sr.addExtension(rootExt);
+    assertEquals("--", mapper.mapToProject(sr));
+  }
+
+  @Test
+  void mapToProject_no_value() {
+    var sr = new ServiceRequest();
+    var rootExt = new Extension();
+    var projectExt = new Extension("project");
+    rootExt.addExtension(projectExt);
+    sr.addExtension(rootExt);
+    assertEquals("--", mapper.mapToProject(sr));
+  }
+
 }

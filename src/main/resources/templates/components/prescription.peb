@@ -18,6 +18,10 @@
                 <td></td>
             </tr>
             <tr>
+                <td>{{ i18n("messages", "analysis_project") }} : </td>
+                <td><b>{{ mapper.mapToProject(analysis) }}</b></td>
+            </tr>
+            <tr>
                 <td>{{ i18n("messages", "prescription_reflex") }} : </td>
                 <td rowspan="2"><b>{{ mapper.mapToPanelReflex(analysis) }}</b></td>
             </tr>
