@@ -46,6 +46,7 @@ fhir:
     - polym
     - fean
     - genor
+    - eidi
   same-types: # use the same 'types-with-default'
     DYSM: MMG
     HYPM: MMG
@@ -72,6 +73,10 @@ fhir:
     FEAN:
       - CNVPG
       - QFPCR
+    EIDI:
+      - LPWGS
+      - PG
+      - LP
 cache:
   eviction: 3600 # 1h
   short-eviction: 60 # sec
